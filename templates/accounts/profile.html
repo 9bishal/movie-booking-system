@@ -1,0 +1,80 @@
+<!-- 
+    Profile Page
+    Displays logged-in user details. Protected by login_required view.
+-->
+{% extends 'base/base.html' %}
+
+{% block title %}My Profile - MovieBooking{% endblock %}
+{% block page_title %}My Profile{% endblock %}
+{% block page_subtitle %}Manage your MovieBooking account{% endblock %}
+
+{% block content %}
+<div class="profile-info">
+    <div class="row">
+        <!-- Profile Avatar -->
+        <div class="col-md-3 text-center mb-4">
+            <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" 
+                 style="width: 100px; height: 100px; font-size: 2.5rem;">
+                <i class="fas fa-user"></i>
+            </div>
+        </div>
+        
+        <!-- Profile Details -->
+        <div class="col-md-9">
+            <table class="table table-borderless">
+                <tr>
+                    <th style="width: 30%;"><i class="fas fa-user me-2"></i>Username:</th>
+                    <td>{{ username }}</td>
+                </tr>
+                <tr>
+                    <th><i class="fas fa-envelope me-2"></i>Email:</th>
+                    <td>{{ email }}</td>
+                </tr>
+                <tr>
+                    <th><i class="fas fa-calendar-plus me-2"></i>Joined Date:</th>
+                    <td>{{ date_joined }}</td>
+                </tr>
+                <tr>
+                    <th><i class="fas fa-clock me-2"></i>Last Login:</th>
+                    <td>{{ last_login }}</td>
+                </tr>
+                <tr>
+                    <th><i class="fas fa-user-shield me-2"></i>Account Type:</th>
+                    <td>
+                        {% if is_staff == 'Yes' %}
+                        <span class="badge bg-success">Staff Member</span>
+                        {% endif %}
+                        {% if is_superuser == 'Yes' %}
+                        <span class="badge bg-danger ms-1">Superuser</span>
+                        {% endif %}
+                        {% if is_staff == 'No' and is_superuser == 'No' %}
+                        <span class="badge bg-primary">Regular User</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Account Actions -->
+<div class="mt-4 text-center">
+    <p class="mb-3"><strong>Account Actions:</strong></p>
+    <div class="d-flex flex-column gap-2">
+        <a href="#" class="btn btn-outline-primary">
+            <i class="fas fa-edit me-2"></i>Edit Profile
+        </a>
+        <a href="#" class="btn btn-outline-warning">
+            <i class="fas fa-key me-2"></i>Change Password
+        </a>
+        <a href="{% url 'logout' %}" class="btn btn-outline-danger">
+            <i class="fas fa-sign-out-alt me-2"></i>Logout
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block nav_links %}
+<p>Ready to book tickets? <a href="#" class="fw-bold">Browse Movies</a> (Coming soon!)</p>
+<p>Need help? <a href="#">Contact Support</a></p>
+{% endblock %}

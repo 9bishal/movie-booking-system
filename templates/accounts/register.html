@@ -1,0 +1,64 @@
+<!-- 
+    Registration Page
+    Inherits from 'base/base.html' and provides the user registration form.
+-->
+{% extends 'base/base.html' %}
+
+{% block title %}Register - MovieBooking{% endblock %}
+{% block page_title %}Join MovieBooking{% endblock %}
+{% block page_subtitle %}Create your account to book tickets{% endblock %}
+
+{% block content %}
+<form method="POST">
+    {% csrf_token %}
+    
+    <!-- Username Field -->
+    <div class="mb-3">
+        <label for="id_username" class="form-label">
+            <i class="fas fa-user me-2"></i>Username
+        </label>
+        <input type="text" name="username" class="form-control" id="id_username" 
+               placeholder="Choose a username" required autofocus>
+        <div class="form-text">Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.</div>
+    </div>
+    
+    <!-- Password Field -->
+    <div class="mb-3">
+        <label for="id_password1" class="form-label">
+            <i class="fas fa-lock me-2"></i>Password
+        </label>
+        <input type="password" name="password1" class="form-control" id="id_password1" 
+               placeholder="Enter password" required>
+        <div class="form-text">
+            <small>• Your password can't be too similar to your other personal information.</small><br>
+            <small>• Your password must contain at least 8 characters.</small><br>
+            <small>• Your password can't be a commonly used password.</small><br>
+            <small>• Your password can't be entirely numeric.</small>
+        </div>
+    </div>
+    
+    <!-- Confirm Password Field -->
+    <div class="mb-4">
+        <label for="id_password2" class="form-label">
+            <i class="fas fa-lock me-2"></i>Confirm Password
+        </label>
+        <input type="password" name="password2" class="form-control" id="id_password2" 
+               placeholder="Confirm password" required>
+        <div class="form-text">Enter the same password as before, for verification.</div>
+    </div>
+    
+    <!-- Submit Button -->
+    <button type="submit" class="btn btn-movie mb-3">
+        <i class="fas fa-user-plus me-2"></i>Create Account
+    </button>
+    
+    <!-- Terms Notice -->
+    <div class="text-center mt-3">
+        <small>By registering, you agree to our Terms of Service and Privacy Policy</small>
+    </div>
+</form>
+{% endblock %}
+
+{% block nav_links %}
+<p>Already have an account? <a href="{% url 'login' %}">Login here</a></p>
+{% endblock %}

@@ -1,0 +1,54 @@
+<!-- 
+    Login Page
+    Displays the login form and handles user authentication.
+-->
+{% extends 'base/base.html' %}
+
+{% block title %}Login - MovieBooking{% endblock %}
+{% block page_title %}Welcome Back{% endblock %}
+{% block page_subtitle %}Login to your MovieBooking account{% endblock %}
+
+{% block content %}
+<form method="POST">
+    {% csrf_token %}
+    
+    <!-- Username Field -->
+    <div class="mb-3">
+        <label for="username" class="form-label">
+            <i class="fas fa-user me-2"></i>Username
+        </label>
+        <input type="text" name="username" class="form-control" id="username" 
+               placeholder="Enter your username" required autofocus>
+    </div>
+    
+    <!-- Password Field -->
+    <div class="mb-4">
+        <label for="password" class="form-label">
+            <i class="fas fa-key me-2"></i>Password
+        </label>
+        <input type="password" name="password" class="form-control" id="password" 
+               placeholder="Enter your password" required>
+        <div class="form-text">
+            <a href="#" class="text-decoration-none">Forgot password?</a>
+        </div>
+    </div>
+    
+    <!-- Remember Me Checkbox -->
+    <div class="form-check mb-3">
+        <input class="form-check-input" type="checkbox" id="rememberMe">
+        <label class="form-check-label" for="rememberMe">
+            Remember me
+        </label>
+    </div>
+    
+    <!-- Submit Button -->
+    <button type="submit" class="btn btn-movie mb-3">
+        <i class="fas fa-sign-in-alt me-2"></i>Login
+    </button>
+</form>
+{% endblock %}
+
+{% block nav_links %}
+<p>Don't have an account? <a href="{% url 'register' %}">Register here</a></p>
+<p>Admin access? <a href="/admin/">Admin Panel</a></p>
+{% endblock %}
