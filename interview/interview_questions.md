@@ -147,6 +147,87 @@
 21. **How would you integrate a third‑party payment gateway for ticket purchases?**
     - **Answer:** Choose a provider (Stripe, PayPal). Install its SDK (`stripe`). Create a view that creates a payment intent on the server, returns a client secret to the frontend, and uses Stripe.js to collect card details securely. After successful payment, mark the ticket as paid and send a confirmation email.
 
+## Models & Databases (Movies App)
+
+22. **What is a `SlugField` and why do we use `slugify` in the `save()` method?**
+
+    - **Answer:** A `SlugField` stores a URL-friendly version of a string (e.g., "The Dark Knight" -> "the-dark-knight"). We override the `save()` method to automatically generate this slug from the `title` or `name` field using Django's `slugify` utility. This ensures every object has a valid URL identifier without manual input.
+
+23. **Explain `ManyToManyField` vs `ForeignKey`. Why do we use M2M for Genres but ForeignKey for Language?**
+
+    - **Answer:**
+      - **ForeignKey (One-to-Many):** Used when an object belongs to primarily _one_ other entity. A movie typically has _one_ primary language, so we use `ForeignKey`.
+      - **ManyToManyField (Many-to-Many):** Used when an object can belong to multiple categories, and those categories can contain multiple objects. A movie can be both "Action" and "Thriller", and the "Action" genre contains many movies. Thus, `ManyToManyField` is correct for genres.
+
+24. **What does `on_delete=models.SET_NULL` do?**
+
+    - **Answer:** It defines what happens when the referenced object (e.g., a Language) is deleted. `SET_NULL` keeps the Movie record but sets its `language` field to `NULL`. This is safer than `CASCADE` (which would delete the movie) because we don't want to wipe out our movie database just because we removed a language from the system.
+
+25. **Why do we need `Pillow` for `ImageField`?**
+
+    - **Answer:** `ImageField` in Django is a wrapper around `FileField` that adds validation to ensure the uploaded file is a valid image. It relies on the **Pillow** library (Python Imaging Library fork) to open, verify, and process image files. Without Pillow installed, `ImageField` will throw an error.
+
+26. **What is the purpose of `related_name` in model relationships?**
+    - **Answer:** `related_name` allows you to define the name of the reverse relation from the related object back to this one. For example, `language = ForeignKey(Language, related_name='movies')` allows us to access `english_language_obj.movies.all()` to get all movies in English. If not set, Django defaults to `movie_set`.
+
+## Theater & Booking Logic (Advanced Models)
+
+27. **Why do we define `verbose_name_plural` in the `City` model's Meta class?**
+
+    - **Answer:** Django automatically pluralizes model names by adding an "s" (e.g., "Movie" -> "Movies"). For words like "City", the default would contain a spelling error ("Citys"). Setting `verbose_name_plural = 'cities'` tells Django explicitly what the correct plural form is for the Admin panel.
+
+28. **Explain the implication of `on_delete=models.CASCADE` in the `Showtime` model.**
+
+    - **Answer:** It maintains data integrity. Since a `Showtime` cannot strictly exist without a `Movie` or a `Screen`, `CASCADE` ensures that if a Movie is deleted from the database, all its scheduled showtimes are automatically deleted too. This prevents "orphan" records.
+
+29. **Why use `DecimalField` for `price` instead of `FloatField`?**
+
+    - **Answer:** `FloatField` uses binary floating-point representation which can introduce tiny precision errors (e.g., `0.1 + 0.2` might equal `0.30000000000000004`). In financial calculations, even small errors are unacceptable. `DecimalField` stores numbers as Python `Decimal` objects, guaranteeing exact precision for currency.
+
+30. **(Scenario) Two users try to book the last seat at the exact same millisecond. How do you prevent double-booking?**
+
+    - **Answer:** This is a classic concurrency race condition. You cannot just read `available_seats`, check if `> 0`, and then decrement.
+    - **Solution:** Use **Database Transactions** with **Row Locking**.
+
+    ```python
+    from django.db import transaction
+
+    with transaction.atomic():
+        # select_for_update() locks this specific row until the transaction finishes
+        show = Showtime.objects.select_for_update().get(id=show_id)
+        if show.available_seats > 0:
+            show.available_seats -= 1
+            show.save()
+            # ... process booking ...
+        else:
+            raise Exception("Housefull!")
+    ```
+
+## Views & Query Logic
+
+31. **What is the difference between `filter()` and `get()` in Django ORM?**
+
+    - **Answer:**
+      - `filter(**kwargs)`: Returns a **QuerySet** (a list of objects). returns an empty list `[]` if no matches found. Used when you expect multiple or zero items.
+      - `get(**kwargs)`: Returns a **single object** instance. Raises `DoesNotExist` error if 0 items found, and `MultipleObjectsReturned` error if >1 items found. Used when you need exactly one item (like a specific movie profile).
+
+32. **Why do we use `get_object_or_404()` instead of just `Movie.objects.get()`?**
+
+    - **Answer:** If `Movie.objects.get()` fails to find an object, it raises a `DoesNotExist` exception, which causes a "500 Internal Server Error" (a crash). `get_object_or_404()` catches this and handles it gracefully by returning a standard "404 Not Found" response, which is the correct HTTP behavior for missing pages.
+
+33. **What are `Q` objects used for?**
+
+    - **Answer:** By default, chaining arguments in `.filter(name="A", age=20)` works like an **AND** operator (name is A AND age is 20). `Q` objects allow complex lookups like **OR** logic.
+
+    ```python
+    from django.db.models import Q
+    # Find movies with title "Love" OR description containing "Romance"
+    Movie.objects.filter(Q(title="Love") | Q(description__icontains="Romance"))
+    ```
+
+34. **What is the `context` dictionary in a View function?**
+    - **Answer:** It's the mechanism to pass data from Python (the backend) to HTML (the frontend). The keys in the dictionary become the variable names available in the Django Template. For example, `context = {'user_name': 'Alice'}` allows you to use `{{ user_name }}` in the HTML file.
+
 ---
 
-_Feel free to ask for deeper explanations on any of these topics!_\_
+_Feel free to ask for deeper explanations on any of these topics!_

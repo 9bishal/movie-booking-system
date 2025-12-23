@@ -1,0 +1,139 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{{ movie.title }} - MovieBooking{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Movie Header -->
+    <div class="row mb-5">
+        <div class="col-md-4">
+            {% if movie.poster %}
+            <img src="{{ movie.poster.url }}" class="img-fluid rounded shadow" alt="{{ movie.title }}">
+            {% else %}
+            <div class="bg-dark text-white rounded shadow d-flex align-items-center justify-content-center" style="height: 400px;">
+                <i class="fas fa-film fa-5x"></i>
+            </div>
+            {% endif %}
+            
+            {% if movie.trailer_url %}
+            <div class="mt-3">
+                <a href="{{ movie.trailer_url }}" target="_blank" class="btn btn-danger w-100">
+                    <i class="fab fa-youtube me-2"></i>Watch Trailer
+                </a>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="col-md-8">
+            <h1 class="display-5 fw-bold">{{ movie.title }}</h1>
+            
+            <div class="mb-3">
+                <span class="badge bg-primary fs-6">{{ movie.certificate }}</span>
+                <span class="badge bg-info fs-6 ms-2">{{ movie.language.name }}</span>
+                <span class="badge bg-warning fs-6 ms-2">{{ movie.rating }}/10 <i class="fas fa-star"></i></span>
+                <span class="badge bg-secondary fs-6 ms-2">{{ movie.duration_formatted }}</span>
+            </div>
+            
+            <p class="lead">{{ movie.description }}</p>
+            
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <h5><i class="fas fa-user me-2"></i>Director</h5>
+                    <p>{{ movie.director|default:"Not specified" }}</p>
+                    
+                    <h5><i class="fas fa-users me-2"></i>Cast</h5>
+                    <p>{{ movie.cast|default:"Not specified" }}</p>
+                </div>
+                
+                <div class="col-md-6">
+                    <h5><i class="fas fa-tags me-2"></i>Genres</h5>
+                    <div class="mb-3">
+                        {% for genre in genres %}
+                        <span class="badge bg-primary me-1 mb-1">{{ genre.name }}</span>
+                        {% endfor %}
+                    </div>
+                    
+                    <h5><i class="fas fa-calendar me-2"></i>Release Date</h5>
+                    <p>{{ movie.release_date|date:"F d, Y" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Showtimes Section -->
+    <div class="card border-0 shadow">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0"><i class="fas fa-clock me-2"></i>Showtimes & Tickets</h4>
+        </div>
+        <div class="card-body">
+            {% if cities_with_showtimes %}
+                {% for city_data in cities_with_showtimes %}
+                <div class="mb-4">
+                    <h5 class="border-bottom pb-2">
+                        <i class="fas fa-map-marker-alt text-danger me-2"></i>{{ city_data.city.name }}
+                    </h5>
+                    
+                    {% for theater_data in city_data.theaters %}
+                    <div class="card mb-3 border">
+                        <div class="card-body">
+                            <h6 class="card-title">{{ theater_data.theater.name }}</h6>
+                            <p class="text-muted small mb-3">
+                                <i class="fas fa-map-pin me-1"></i>{{ theater_data.theater.address }}
+                                {% if theater_data.theater.contact_number %}
+                                <br><i class="fas fa-phone me-1"></i>{{ theater_data.theater.contact_number }}
+                                {% endif %}
+                            </p>
+                            
+                            <div class="facilities mb-3">
+                                {% if theater_data.theater.has_parking %}
+                                <span class="badge bg-success me-1">Parking</span>
+                                {% endif %}
+                                {% if theater_data.theater.has_food_court %}
+                                <span class="badge bg-info me-1">Food Court</span>
+                                {% endif %}
+                                {% if theater_data.theater.has_wheelchair_access %}
+                                <span class="badge bg-warning me-1">Wheelchair Access</span>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="showtimes">
+                                <p class="mb-2"><strong>Available Shows:</strong></p>
+                                <div class="d-flex flex-wrap gap-2">
+                                    {% for showtime in theater_data.showtimes %}
+                                    <a href="#" class="btn btn-outline-primary position-relative">
+                                        {{ showtime.get_formatted_time }}
+                                        <br>
+                                        <small>{{ showtime.screen.screen_type }}</small>
+                                        <br>
+                                        <small class="fw-bold">₹{{ showtime.price }}</small>
+                                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                            {{ showtime.available_seats }}
+                                            <span class="visually-hidden">seats available</span>
+                                        </span>
+                                    </a>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-calendar-times fa-4x text-muted mb-3"></i>
+                <h4>No showtimes available</h4>
+                <p class="text-muted">Check back later for showtimes in your city</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Back to Movies -->
+    <div class="mt-4 text-center">
+        <a href="{% url 'movie_list' %}" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Movies
+        </a>
+    </div>
+</div>
+{% endblock %}

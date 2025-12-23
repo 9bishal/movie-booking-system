@@ -2,13 +2,13 @@
     Login Page
     Displays the login form and handles user authentication.
 -->
-{% extends 'base/base.html' %}
+{% extends 'base/base_auth.html' %}
 
 {% block title %}Login - MovieBooking{% endblock %}
 {% block page_title %}Welcome Back{% endblock %}
 {% block page_subtitle %}Login to your MovieBooking account{% endblock %}
 
-{% block content %}
+{% block auth_content %}
 <form method="POST">
     {% csrf_token %}
     
