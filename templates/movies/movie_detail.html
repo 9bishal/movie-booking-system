@@ -100,7 +100,7 @@
                                 <p class="mb-2"><strong>Available Shows:</strong></p>
                                 <div class="d-flex flex-wrap gap-2">
                                     {% for showtime in theater_data.showtimes %}
-                                    <a href="#" class="btn btn-outline-primary position-relative">
+                                    <a href="{% url 'select_seats' showtime.id %}" class="btn btn-outline-primary position-relative">
                                         {{ showtime.get_formatted_time }}
                                         <br>
                                         <small>{{ showtime.screen.screen_type }}</small>

@@ -1,5 +1,6 @@
 import json
 import time
+from decimal import Decimal
 from django.core.cache import cache
 from django.conf import settings
 
@@ -160,8 +161,8 @@ class SeatManager:
 class PriceCalculator:
     """Calculate booking prices"""
     
-    TAX_RATE = 0.18  # 18% GST
-    CONVENIENCE_FEE = 30.00
+    TAX_RATE = Decimal('0.18')  # 18% GST
+    CONVENIENCE_FEE = Decimal('30.00')
     
     @staticmethod
     def calculate_booking_amount(showtime, seat_count, seat_type='standard'):
@@ -170,9 +171,9 @@ class PriceCalculator:
         
         # Apply seat type multiplier
         if seat_type == 'premium':
-            base_price *= 1.5
+            base_price *= Decimal('1.5')
         elif seat_type == 'sofa':
-            base_price *= 2.0
+            base_price *= Decimal('2.0')
         
         convenience_fee = PriceCalculator.CONVENIENCE_FEE
         tax_amount = (base_price + convenience_fee) * PriceCalculator.TAX_RATE

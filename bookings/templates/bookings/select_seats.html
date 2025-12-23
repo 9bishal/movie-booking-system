@@ -205,7 +205,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     bookNowBtn.addEventListener('click', async function() {
         const seatIds = Array.from(selectedSeats);
-        const showtimeId = {{ showtime.id }};
+        const showtimeId = "{{ showtime.id }}";
         
         try {
             bookNowBtn.disabled = true;

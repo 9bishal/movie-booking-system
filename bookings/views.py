@@ -30,7 +30,7 @@ def select_seats(request, showtime_id):
     """Show seat selection interface"""
     showtime = get_object_or_404(Showtime, id=showtime_id, is_active=True)
     
-    # 🕵️ Validation: Don't allow booking for movies that already finished.
+    # Validation: Don't allow booking for movies that already finished.
     if showtime.date < timezone.now().date():
         messages.error(request, 'This showtime has already passed.')
         return redirect('movie_detail', slug=showtime.movie.slug)
@@ -68,8 +68,8 @@ def select_seats(request, showtime_id):
 @login_required
 @csrf_exempt
 def reserve_seats(request, showtime_id):
-    """API endpoint to reserve seats"""
-    if request.method != 'POST':#mean if request is not post then return error
+    """API endpoint to store seat selection in session (Optimistic Locking Phase 1)"""
+    if request.method != 'POST':
         return JsonResponse({'error': 'Invalid request method'}, status=400)
     
     try:
@@ -79,30 +79,21 @@ def reserve_seats(request, showtime_id):
         if not seat_ids:
             return JsonResponse({'error': 'No seats selected'}, status=400)
         
-        # Security: Prevent single users from grabbing too many seats.
         if len(seat_ids) > 10:
             return JsonResponse({'error': 'Maximum 10 seats allowed per booking'}, status=400)
         
-        # Try to lock seats in Redis
-        success = SeatManager.reserve_seats(showtime_id, seat_ids, request.user.id)
+        # 🟢 OPTIMISTIC LOCKING:
+        # We DON'T lock the seats here anymore. We just save the intent in the session.
+        # The actual lock will happen when they click "Proceed to Payment".
+        reservation = request.session.get('seat_reservation', {})
+        reservation[str(showtime_id)] = seat_ids
+        request.session['seat_reservation'] = reservation 
         
-        if success:
-            # 💡 Tip: Store the selection in the session so the next page knows what you picked.
-            reservation = request.session.get('seat_reservation', {})
-            reservation[str(showtime_id)] = seat_ids
-            request.session['seat_reservation'] = reservation 
-            
-            return JsonResponse({
-                'success': True,
-                'message': f'{len(seat_ids)} seats reserved for 5 minutes',
-                'seat_ids': seat_ids,
-                'reservation_time': 300, 
-            })
-        else:
-            return JsonResponse({
-                'success': False,
-                'error': 'Some seats are no longer available. Someone else might have grabbed them!'
-            }, status=400)
+        return JsonResponse({
+            'success': True,
+            'message': 'Seats selected',
+            'seat_ids': seat_ids
+        })
             
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
@@ -169,12 +160,16 @@ def create_booking(request, showtime_id):
         data = json.loads(request.body)
         seat_ids = data.get('seat_ids', [])
         
-        # 🕵️ Race Condition Check: Are the seats STILL held for this user in Redis?
-        # This prevents session manipulation hacks.
-        reserved_seats = SeatManager.get_reserved_seats(showtime_id)
-        for seat_id in seat_ids:
-            if seat_id not in reserved_seats:
-                return JsonResponse({'error': 'Seats no longer reserved'}, status=400)
+        # 🟢 OPTIMISTIC LOCKING (Phase 2):
+        # Now we try to officially RESERVE the seats.
+        # This is where we catch the "Race Condition" if someone else beat them to it.
+        success = SeatManager.reserve_seats(showtime_id, seat_ids, request.user.id)
+        
+        if not success:
+             return JsonResponse({
+                 'success': False,
+                 'error': 'Oh no! One or more of these seats were just taken by another user.'
+             }, status=400)
         
         price_details = PriceCalculator.calculate_booking_amount(showtime, len(seat_ids))
         

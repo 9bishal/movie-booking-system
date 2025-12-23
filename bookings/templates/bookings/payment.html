@@ -129,7 +129,7 @@
         // Fix: Use a unique variable name or scope-limited declaration
         // Using 'var' or just keeping it in this function scope avoids redeclaration issues
         // if this script tag is somehow processed twice in the same global execution context
-        let timeRemaining = {{ time_remaining|default:0 }};
+        let timeRemaining = {{ time_remaining| default:0 }};
         const countdownEl = document.getElementById('countdown');
         
         function updateTimer() {
