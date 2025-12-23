@@ -1,0 +1,141 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Booking Summary - MovieBooking{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card border-0 shadow-lg">
+                <div class="card-header bg-primary text-white py-3">
+                    <h4 class="mb-0"><i class="fas fa-list-check me-2"></i>Review Your Booking</h4>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row align-items-center mb-4">
+                        <div class="col-md-3 text-center mb-3 mb-md-0">
+                            {% if movie.poster %}
+                            <img src="{{ movie.poster.url }}" alt="{{ movie.title }}" class="img-fluid rounded shadow" style="max-height: 200px;">
+                            {% else %}
+                            <div class="bg-light rounded d-flex align-items-center justify-content-center mx-auto shadow" style="width: 150px; height: 200px;">
+                                <i class="fas fa-film fa-3x text-muted"></i>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-9">
+                            <h2 class="h3 text-primary">{{ movie.title }}</h2>
+                            <p class="lead mb-2">{{ showtime.screen.theater.name }}</p>
+                            <div class="d-flex flex-wrap gap-3 text-muted">
+                                <span><i class="fas fa-calendar-day me-1"></i> {{ showtime.get_formatted_date }}</span>
+                                <span><i class="fas fa-clock me-1"></i> {{ showtime.get_formatted_time }}</span>
+                                <span><i class="fas fa-door-open me-1"></i> {{ showtime.screen.name }}</span>
+                                <span><i class="fas fa-language me-1"></i> {{ movie.language.name }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="bg-light p-4 rounded-3 h-100">
+                                <h5 class="mb-4 text-dark border-bottom pb-2">Seat Details</h5>
+                                <div class="mb-3">
+                                    <span class="text-muted d-block">Number of Seats:</span>
+                                    <span class="fs-4 fw-bold">{{ seat_count }}</span>
+                                </div>
+                                <div>
+                                    <span class="text-muted d-block mb-2">Selected Seats:</span>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        {% for seat in seat_ids %}
+                                        <span class="badge bg-white text-primary border border-primary px-3 py-2 fs-6">{{ seat }}</span>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="bg-light p-4 rounded-3 h-100">
+                                <h5 class="mb-4 text-dark border-bottom pb-2">Price Summary</h5>
+                                <table class="table table-borderless mb-0">
+                                    <tr>
+                                        <td class="ps-0">Base Ticket Price:</td>
+                                        <td class="text-end pe-0">₹{{ price_details.base_price }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="ps-0 text-muted small">Convenience Fee:</td>
+                                        <td class="text-end pe-0 text-muted small">₹{{ price_details.convenience_fee }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="ps-0 text-muted small">Tax (GST 18%):</td>
+                                        <td class="text-end pe-0 text-muted small">₹{{ price_details.tax_amount }}</td>
+                                    </tr>
+                                    <tr class="border-top">
+                                        <td class="ps-0 fw-bold fs-5">Amount Payable:</td>
+                                        <td class="text-end pe-0 fw-bold fs-5 text-primary">₹{{ total_amount }}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-footer bg-white p-4 border-0">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <button class="btn btn-outline-secondary btn-lg w-100" onclick="history.back()">
+                                <i class="fas fa-chevron-left me-2"></i>Change Seats
+                            </button>
+                        </div>
+                        <div class="col-md-6">
+                            <button id="confirm-booking-btn" class="btn btn-success btn-lg w-100 shadow">
+                                Proceed to Payment <i class="fas fa-arrow-right ms-2"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <p class="text-center text-muted small mt-4">
+                <i class="fas fa-info-circle me-1"></i> 
+                By clicking "Proceed to Payment", you agree to our Terms & Conditions.
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('confirm-booking-btn').addEventListener('click', async function() {
+    const showtimeId = {{ showtime.id }};
+    const seatIds = {{ seat_ids|safe }};
+    const btn = this;
+    
+    try {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creating Booking...';
+        
+        const response = await fetch(`/bookings/api/create-booking/${showtimeId}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ seat_ids: seatIds })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            window.location.href = data.redirect_url;
+        } else {
+            alert(data.error || 'Failed to create booking.');
+            btn.disabled = false;
+            btn.innerHTML = 'Proceed to Payment <i class="fas fa-arrow-right ms-2"></i>';
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred. Please try again.');
+        btn.disabled = false;
+        btn.innerHTML = 'Proceed to Payment <i class="fas fa-arrow-right ms-2"></i>';
+    }
+});
+</script>
+{% endblock %}

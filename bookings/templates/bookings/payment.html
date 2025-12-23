@@ -1,0 +1,158 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Payment - MovieBooking{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-lg overflow-hidden">
+                <div class="bg-primary p-4 text-white text-center">
+                    <h2 class="mb-0">Complete Your Payment</h2>
+                    <p class="opacity-75">Your seats are reserved for a limited time</p>
+                </div>
+                
+                <div class="card-body p-4">
+                    <!-- Timer -->
+                    <div class="alert alert-warning text-center mb-4 border-0 shadow-sm">
+                        <div class="fs-5 fw-bold mb-1">
+                            <i class="fas fa-clock me-2 pulse"></i>Time Remaining
+                        </div>
+                        <div id="countdown" class="display-6 fw-bold">00:00</div>
+                    </div>
+
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <h5 class="border-bottom pb-2 mb-3">Booking Summary</h5>
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><strong>Movie:</strong> {{ movie.title }}</li>
+                                <li class="mb-2"><strong>Date:</strong> {{ showtime.get_formatted_date }}</li>
+                                <li class="mb-2"><strong>Time:</strong> {{ showtime.get_formatted_time }}</li>
+                                <li class="mb-2"><strong>Seats:</strong> {{ booking.seats|join:", " }}</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            <h5 class="border-bottom pb-2 mb-3">Price Breakdown</h5>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Base Price:</span>
+                                <span>₹{{ booking.base_price }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2 text-muted small">
+                                <span>Convenience Fee:</span>
+                                <span>₹{{ booking.convenience_fee }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2 text-muted small">
+                                <span>Tax (GST 18%):</span>
+                                <span>₹{{ booking.tax_amount }}</span>
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between fw-bold fs-4 text-primary">
+                                <span>Total:</span>
+                                <span>₹{{ booking.total_amount }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Payment Options -->
+                    <div class="payment-methods mb-4">
+                        <h5 class="mb-3">Select Payment Method</h5>
+                        <div class="row g-3">
+                            <div class="col-6 col-md-3">
+                                <div class="payment-card active p-3 text-center border rounded cursor-pointer transition">
+                                    <i class="fas fa-credit-card fa-2x mb-2"></i>
+                                    <div class="small">Card</div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="payment-card p-3 text-center border rounded cursor-pointer transition">
+                                    <i class="fas fa-mobile-alt fa-2x mb-2"></i>
+                                    <div class="small">UPI</div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="payment-card p-3 text-center border rounded cursor-pointer transition">
+                                    <i class="fas fa-university fa-2x mb-2"></i>
+                                    <div class="small">Net Banking</div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="payment-card p-3 text-center border rounded cursor-pointer transition">
+                                    <i class="fas fa-wallet fa-2x mb-2"></i>
+                                    <div class="small">Wallet</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-3">
+                        <a href="{% url 'payment_success' booking.id %}" class="btn btn-primary btn-lg shadow-sm">
+                            <i class="fas fa-lock me-2"></i>Pay ₹{{ booking.total_amount }} securely
+                        </a>
+                        <button class="btn btn-outline-secondary btn-sm" onclick="history.back()">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Summary
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="card-footer bg-light text-center py-3 border-0">
+                    <p class="text-muted small mb-0">
+                        <i class="fas fa-shield-alt text-success me-1"></i>
+                        Secure, encrypted transaction. Your data is protected.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .payment-card {
+        border-color: #dee2e6;
+        background: #f8f9fa;
+    }
+    .payment-card:hover { border-color: #0d6efd; transform: translateY(-2px); }
+    .payment-card.active { border-color: #0d6efd; background: #e7f1ff; color: #0d6efd; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+    .cursor-pointer { cursor: pointer; }
+    .transition { transition: all 0.2s ease-in-out; }
+    
+    @keyframes pulse-animation {
+        0% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.1); opacity: 0.8; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    .pulse { animation: pulse-animation 2s infinite ease-in-out; }
+</style>
+
+<script>
+    // Use an IIFE to prevent variable redeclaration errors
+    (function() {
+        // Fix: Use a unique variable name or scope-limited declaration
+        // Using 'var' or just keeping it in this function scope avoids redeclaration issues
+        // if this script tag is somehow processed twice in the same global execution context
+        let timeRemaining = {{ time_remaining|default:0 }};
+        const countdownEl = document.getElementById('countdown');
+        
+        function updateTimer() {
+            if (timeRemaining <= 0) {
+                clearInterval(timerInterval);
+                window.location.reload(); // Reload will trigger expiration logic in view
+                return;
+            }
+            
+            const minutes = Math.floor(timeRemaining / 60);
+            const seconds = timeRemaining % 60;
+            
+            countdownEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            if (timeRemaining < 60) {
+                countdownEl.parentElement.classList.replace('alert-warning', 'alert-danger');
+            }
+            
+            timeRemaining--;
+        }
+        
+        updateTimer();
+        const timerInterval = setInterval(updateTimer, 1000);
+    })();
+</script>
+{% endblock %}

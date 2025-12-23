@@ -1,0 +1,241 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Select Seats - {{ movie.title }} - MovieBooking{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <!-- Main Content: Seat Selection -->
+        <div class="col-lg-9">
+            <div class="card border-0 shadow mb-4">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div>
+                            <h2 class="h4 mb-1">{{ movie.title }}</h2>
+                            <p class="text-muted mb-0">
+                                <i class="fas fa-map-marker-alt me-2"></i>{{ showtime.screen.theater.name }} | {{ showtime.get_formatted_time }}
+                            </p>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge bg-info text-dark px-3 py-2">
+                                <i class="fas fa-film me-2"></i>{{ showtime.screen.screen_type }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Legend -->
+                    <div class="d-flex justify-content-center gap-4 mb-5 flex-wrap small">
+                        <div class="d-flex align-items-center">
+                            <div class="seat available shadow-sm me-2"></div> Available
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <div class="seat reserved shadow-sm me-2"></div> Reserved
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <div class="seat selected shadow-sm me-2"></div> Selected
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <div class="seat booked shadow-sm me-2"></div> Sold
+                        </div>
+                    </div>
+
+                    <!-- Screen -->
+                    <div class="screen-container mb-5">
+                        <div class="screen shadow">SCREEN THIS WAY</div>
+                    </div>
+
+                    <!-- Seat Layout -->
+                    <div class="seat-layout mb-4 overflow-auto">
+                        {% for row_data in seat_layout %}
+                        <div class="d-flex justify-content-center mb-2">
+                            <div class="row-label me-3 text-muted fw-bold d-flex align-items-center">{{ row_data.0.row }}</div>
+                            <div class="d-flex gap-2">
+                                {% for seat in row_data %}
+                                <div class="seat {{ seat.status }} cursor-pointer" 
+                                     data-seat-id="{{ seat.seat_id }}" 
+                                     data-price="{{ showtime.price }}"
+                                     title="Seat {{ seat.seat_id }} (₹{{ showtime.price }})">
+                                    {{ seat.number }}
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar: Selection Summary -->
+        <div class="col-lg-3">
+            <div class="card border-0 shadow sticky-top" style="top: 20px;">
+                <div class="card-header bg-dark text-white py-3">
+                    <h5 class="mb-0">Booking Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div id="selection-empty" class="text-center py-4">
+                        <i class="fas fa-couch fa-3x text-light mb-3"></i>
+                        <p class="text-muted">No seats selected yet.</p>
+                    </div>
+                    
+                    <div id="selection-details" style="display: none;">
+                        <div class="mb-3">
+                            <label class="small text-muted mb-2">Selected Seats:</label>
+                            <div id="selected-seats-list" class="d-flex flex-wrap gap-2"></div>
+                        </div>
+                        
+                        <hr>
+                        
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Count:</span>
+                            <span id="seat-count" class="fw-bold">0</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-4">
+                            <span>Total:</span>
+                            <span class="fw-bold text-primary fs-5">₹<span id="total-amount">0</span></span>
+                        </div>
+                        
+                        <button id="book-now-btn" class="btn btn-primary w-100 btn-lg shadow-sm">
+                            Proceed to Summary
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .screen-container { perspective: 400px; text-align: center; }
+    .screen { 
+        background: #e9ecef;
+        height: 12px;
+        width: 80%;
+        margin: 0 auto;
+        transform: rotateX(-45deg);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        font-size: 10px;
+        color: #adb5bd;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 5px;
+    }
+    .seat {
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 500;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        user-select: none;
+    }
+    .seat.available { background: #fff; border: 1px solid #dee2e6; color: #6c757d; }
+    .seat.available:hover { background: #e7f1ff; border-color: #0d6efd; color: #0d6efd; transform: scale(1.1); }
+    .seat.selected { background: #0d6efd; border-color: #0d6efd; color: #fff; box-shadow: 0 0 10px rgba(13, 110, 253, 0.4); transform: scale(1.1); }
+    .seat.booked { background: #dee2e6; border-color: #dee2e6; color: #adb5bd; cursor: not-allowed !important; }
+    .seat.reserved { background: #ffc107; border-color: #ffc107; color: #000; cursor: not-allowed !important; }
+    .row-label { width: 25px; }
+    .cursor-pointer { cursor: pointer; }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const seats = document.querySelectorAll('.seat.available');
+    const selectedSeatsList = document.getElementById('selected-seats-list');
+    const seatCountEl = document.getElementById('seat-count');
+    const totalAmountEl = document.getElementById('total-amount');
+    const emptyState = document.getElementById('selection-empty');
+    const detailsState = document.getElementById('selection-details');
+    const bookNowBtn = document.getElementById('book-now-btn');
+    
+    let selectedSeats = new Set();
+    const MAX_SEATS = 10;
+    
+    seats.forEach(seat => {
+        seat.addEventListener('click', function() {
+            const seatId = this.dataset.seatId;
+            
+            if (this.classList.contains('selected')) {
+                this.classList.remove('selected');
+                selectedSeats.delete(seatId);
+            } else {
+                if (selectedSeats.size >= MAX_SEATS) {
+                    alert(`Maximum ${MAX_SEATS} seats allowed per booking.`);
+                    return;
+                }
+                this.classList.add('selected');
+                selectedSeats.add(seatId);
+            }
+            
+            updateUI();
+        });
+    });
+    
+    function updateUI() {
+        if (selectedSeats.size > 0) {
+            emptyState.style.display = 'none';
+            detailsState.style.display = 'block';
+            
+            selectedSeatsList.innerHTML = '';
+            let total = 0;
+            
+            Array.from(selectedSeats).sort().forEach(id => {
+                const badge = document.createElement('span');
+                badge.className = 'badge bg-primary px-2 py-1';
+                badge.textContent = id;
+                selectedSeatsList.appendChild(badge);
+                
+                // For simplicity, we assume price is same for all. 
+                // Real app would fetch per-seat category price.
+                const seatEl = document.querySelector(`.seat[data-seat-id="${id}"]`);
+                total += parseFloat(seatEl.dataset.price);
+            });
+            
+            seatCountEl.textContent = selectedSeats.size;
+            totalAmountEl.textContent = total.toFixed(2);
+        } else {
+            emptyState.style.display = 'block';
+            detailsState.style.display = 'none';
+        }
+    }
+    
+    bookNowBtn.addEventListener('click', async function() {
+        const seatIds = Array.from(selectedSeats);
+        const showtimeId = {{ showtime.id }};
+        
+        try {
+            bookNowBtn.disabled = true;
+            bookNowBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Reserving...';
+            
+            const response = await fetch(`/bookings/api/reserve-seats/${showtimeId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({ seat_ids: seatIds })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                window.location.href = `/bookings/summary/${showtimeId}/`;
+            } else {
+                alert(data.error || 'Failed to reserve seats. Please try again.');
+                window.location.reload();
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('A connection error occurred.');
+        } finally {
+            bookNowBtn.disabled = false;
+            bookNowBtn.innerHTML = 'Proceed to Summary';
+        }
+    });
+});
+</script>
+{% endblock %}

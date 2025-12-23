@@ -1,0 +1,76 @@
+{% extends 'base/base.html' %}
+
+{% block title %}My Bookings - MovieBooking{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0 fw-bold">My Bookings</h2>
+        <a href="{% url 'home' %}" class="btn btn-outline-primary shadow-sm">
+            <i class="fas fa-plus me-2"></i>New Booking
+        </a>
+    </div>
+
+    {% if bookings %}
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        {% for booking in bookings %}
+        <div class="col">
+            <div class="card h-100 border-0 shadow-sm hover-shadow transition">
+                <div class="card-header border-0 d-flex justify-content-between align-items-center {% if booking.status == 'CONFIRMED' %}bg-success-subtle text-success{% elif booking.status == 'PENDING' %}bg-warning-subtle text-warning-emphasis{% else %}bg-secondary-subtle text-secondary{% endif %}">
+                    <span class="small fw-bold">{{ booking.booking_number }}</span>
+                    <span class="badge {% if booking.status == 'CONFIRMED' %}bg-success{% elif booking.status == 'PENDING' %}bg-warning{% else %}bg-secondary{% endif %}">
+                        {{ booking.status }}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title fw-bold mb-1">{{ booking.showtime.movie.title }}</h5>
+                    <p class="text-muted small mb-3">
+                        <i class="fas fa-map-marker-alt me-1"></i> {{ booking.showtime.screen.theater.name }}
+                    </p>
+                    
+                    <div class="d-flex justify-content-between mb-2 small">
+                        <span><i class="fas fa-calendar-alt me-2"></i>{{ booking.showtime.get_formatted_date }}</span>
+                        <span><i class="fas fa-clock me-2"></i>{{ booking.showtime.get_formatted_time }}</span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <span class="small text-muted">Seats:</span>
+                        <div class="mt-1">
+                            {% for seat in booking.seats %}
+                            <span class="badge border border-secondary-subtle text-secondary fw-normal">{{ seat }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-white border-top-0 pb-3">
+                    <a href="{% url 'booking_detail' booking.id %}" class="btn btn-outline-dark w-100 btn-sm rounded-pill">
+                        View Ticket Details
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-5 bg-light rounded-4 border">
+        <div class="mb-4">
+            <i class="fas fa-ticket-alt fa-4x text-muted opacity-25"></i>
+        </div>
+        <h3>No bookings found</h3>
+        <p class="text-muted mb-4">You haven't booked any movies yet. Catch the latest blockbuster today!</p>
+        <a href="{% url 'home' %}" class="btn btn-primary btn-lg shadow">Browse Movies</a>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .hover-shadow:hover { 
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+        transform: translateY(-5px);
+    }
+    .transition { transition: all 0.3s ease; }
+    .bg-success-subtle { background-color: #d1e7dd; }
+    .bg-warning-subtle { background-color: #fff3cd; }
+    .bg-secondary-subtle { background-color: #e2e3e5; }
+</style>
+{% endblock %}

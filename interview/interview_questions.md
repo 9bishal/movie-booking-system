@@ -228,6 +228,54 @@
 34. **What is the `context` dictionary in a View function?**
     - **Answer:** It's the mechanism to pass data from Python (the backend) to HTML (the frontend). The keys in the dictionary become the variable names available in the Django Template. For example, `context = {'user_name': 'Alice'}` allows you to use `{{ user_name }}` in the HTML file.
 
+## System Design & Bookings
+
+35. **The "Double Booking" Problem (Race Condition):**
+
+    - **Scenario:** Two users try to book Seat A1 at the exact same millisecond. Both see it as "Available".
+    - **Question:** How do you prevent both from booking it?
+    - **Answer:**
+      1. **Database Transactions:** Use `transaction.atomic()` and `select_for_update()` to lock the row in the DB until the booking is done.
+      2. **Optimistic Locking:** Add a `version` field. If the version changes before you save, fail the request.
+      3. **Redis Locks (Our Approach):** Use an in-memory lock (Redis) to "hold" the seat for 10 minutes while payment is pending. If User A holds the lock, User B instantly sees "Unavailable".
+
+36. **Why use `JSONField` for storing seats `['A1', 'B2']` instead of a separate Table?**
+
+    - **Answer:**
+      - **Pros:** Faster reads (no complex JOINs needed to get just seat numbers), simpler schema for non-queryable data.
+      - **Cons:** Harder to query (e.g. "Find all bookings with seat A1" is slow in SQL).
+      - **Verdict:** For a booking history where we just need to _show_ the seats (read-only), JSON is perfect. For checking availability, we use a more robust system (Redis/Showtime model).
+
+37. **Why do we calculate Price/Tax on the Backend vs Frontend?**
+
+    - **Answer:** **Security.** Never trust data sent from the client. A malicious user could use Postman/Curl to send `{"total_amount": 1.00}` for a 500 rupee ticket. Always recalculate the final price on the server before talking to the Payment Gateway.
+
+38. **Source of Truth: Is seat info stored in Redis or the Database?**
+    - **Answer:** Both, but for different purposes:
+      - **Redis (Transient State):** Stores the "Live Status". It's the source of truth for **Availability** and **Temporary Locks**. If Redis clears, we just re-generate the map from the DB.
+      - **Database (Persistent Records):** Stores the "Final Truth". It's the source of truth for **Successful Bookings**. You cannot "lose" a ticket if Redis crashes because it's safely in the SQL Database.
+
+## Booking Workflow & Security
+
+39. **What is the lifecycle of a `Booking` status?**
+
+    - **Answer:**
+      - **PENDING**: Record created, waiting for payment. Seats are "Temporarily Locked" in Redis.
+      - **CONFIRMED**: Payment successful. Record updated. Seats marked "Booked" permanently.
+      - **EXPIRED**: User didn't pay in time (e.g., 10 mins). Record updated, seats released for others.
+      - **FAILED**: Payment failed. Seats released.
+
+40. **Why do we use `@login_required` on almost every booking view?**
+
+    - **Answer:**
+      - **Identity**: We need to know _who_ is buying the ticket to link the `user_id` to the `Booking` record.
+      - **Security**: Prevents bots or unauthenticated users from bulk-locking seats in Redis and "denying service" to real customers.
+
+41. **How do we prevent a user from booking seats they never actually selected?**
+    - **Answer:** **Double Verification.**
+      1. When seats are selected, we store them in the user's **Session** (server-side).
+      2. In the `create_booking` view, we check if the requested `seat_ids` match what is in the session _and_ what is currently locked in Redis. We never trust the IDs sent directly from the browser without checking our own server records first.
+
 ---
 
 _Feel free to ask for deeper explanations on any of these topics!_

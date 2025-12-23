@@ -1,0 +1,130 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Booking Details - {{ booking.booking_number }} - MovieBooking{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Digital Ticket Card -->
+            <div class="ticket shadow-lg rounded-4 overflow-hidden mb-4">
+                <div class="ticket-header bg-primary p-4 text-white position-relative">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-uppercase small mb-1 opacity-75">Booking Confirmation</p>
+                            <h2 class="h4 mb-0 fw-bold">{{ booking.booking_number }}</h2>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge {% if booking.status == 'CONFIRMED' %}bg-success{% elif booking.status == 'PENDING' %}bg-warning{% else %}bg-secondary{% endif %} fs-6 px-3">
+                                <i class="fas {% if booking.status == 'CONFIRMED' %}fa-check-circle{% else %}fa-clock{% endif %} me-2"></i>{{ booking.status }}
+                            </span>
+                        </div>
+                    </div>
+                    <!-- Decorative Semicircles -->
+                    <div class="decorative-cutout cutout-left"></div>
+                    <div class="decorative-cutout cutout-right"></div>
+                </div>
+
+                <div class="ticket-body bg-white p-4">
+                    <div class="row align-items-center mb-4">
+                        <div class="col-md-3 text-center mb-3 mb-md-0">
+                            {% if movie.poster %}
+                            <img src="{{ movie.poster.url }}" alt="{{ movie.title }}" class="img-fluid rounded shadow" style="max-height: 180px;">
+                            {% else %}
+                            <div class="bg-light rounded d-flex align-items-center justify-content-center mx-auto" style="width: 120px; height: 160px;">
+                                <i class="fas fa-film fa-2x text-muted"></i>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 border-end-dashed">
+                            <h3 class="h4 fw-bold text-dark">{{ movie.title }}</h3>
+                            <p class="text-muted mb-3"><i class="fas fa-language me-2"></i>{{ movie.language.name }} | {{ showtime.screen.screen_type }}</p>
+                            
+                            <div class="row g-3">
+                                <div class="col-6">
+                                    <small class="text-muted d-block text-uppercase">Date</small>
+                                    <span class="fw-bold">{{ showtime.get_formatted_date }}</span>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted d-block text-uppercase">Time</small>
+                                    <span class="fw-bold">{{ showtime.get_formatted_time }}</span>
+                                </div>
+                                <div class="col-12">
+                                    <small class="text-muted d-block text-uppercase">Theater & Screen</small>
+                                    <span class="fw-bold text-primary">{{ showtime.screen.theater.name }}</span>
+                                    <p class="small text-muted mb-0">{{ showtime.screen.name }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <i class="fas fa-qrcode fa-5x text-dark mb-2"></i>
+                            <p class="small text-muted mb-0">Scan at Entrance</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-light p-3 rounded-3 mb-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <small class="text-muted d-block text-uppercase">Your Seats</small>
+                                <div class="d-flex gap-2 mt-1">
+                                    {% for seat in booking.seats %}
+                                    <span class="fs-4 fw-bold text-primary">{{ seat }}{% if not forloop.last %}, {% endif %}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <small class="text-muted d-block text-uppercase">Total Paid</small>
+                                <span class="fs-4 fw-bold text-success">₹{{ booking.total_amount }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="small text-muted border-top pt-3">
+                        <div class="row text-center text-md-start">
+                            <div class="col-md-6 mb-2">
+                                <i class="fas fa-info-circle me-1"></i> Please arrive 15 mins early.
+                            </div>
+                            <div class="col-md-6 text-md-end">
+                                Support: support@moviebooking.com
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-grid gap-3 d-md-flex justify-content-md-center">
+                <button class="btn btn-outline-primary shadow-sm px-4" onclick="window.print()">
+                    <i class="fas fa-print me-2"></i>Print Ticket
+                </button>
+                <a href="{% url 'my_bookings' %}" class="btn btn-dark shadow-sm px-4">
+                    <i class="fas fa-arrow-left me-2"></i>Back to My Bookings
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .ticket { position: relative; }
+    .border-end-dashed { border-right: 2px dashed #e9ecef; }
+    @media (max-width: 767.98px) { .border-end-dashed { border-right: none; border-bottom: 2px dashed #e9ecef; padding-bottom: 20px; margin-bottom: 20px; } }
+    
+    .decorative-cutout {
+        position: absolute;
+        bottom: -15px;
+        width: 30px;
+        height: 30px;
+        background: #f8f9fa; /* Should match site background */
+        border-radius: 50%;
+        z-index: 2;
+    }
+    .cutout-left { left: -15px; }
+    .cutout-right { right: -15px; }
+    
+    @media print {
+        .navbar, .btn, .cutout-left, .cutout-right { display: none !important; }
+        .container { padding: 0 !important; margin: 0 !important; width: 100% !important; max-width: none !important; }
+        .ticket { border: 1px solid #ddd; box-shadow: none !important; }
+    }
+</style>
+{% endblock %}

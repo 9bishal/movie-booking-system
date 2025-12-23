@@ -531,7 +531,7 @@
                             <li><a class="dropdown-item" href="{% url 'profile' %}">
                                 <i class="fas fa-user me-2"></i>My Profile
                             </a></li>
-                            <li><a class="dropdown-item" href="#">
+                            <li><a class="dropdown-item" href="{% url 'my_bookings' %}">
                                 <i class="fas fa-ticket-alt me-2"></i>My Bookings
                             </a></li>
                             <li><a class="dropdown-item" href="#">
@@ -682,3 +682,10 @@
     {% endblock %}
 </body>
 </html>
+
+<!-- In the navbar (around line 40), add this: -->
+<li class="nav-item">
+    <a class="nav-link" href="{% url 'my_bookings' %}">
+        <i class="fas fa-ticket-alt me-1"></i>My Bookings
+    </a>
+</li>

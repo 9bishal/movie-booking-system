@@ -10,6 +10,7 @@ def home_redirect(request):
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),
+    path('bookings/', include('bookings.urls')),
     path('', include('movies.urls')),  # Include movies app URLs (handles home page)
 ]
 
