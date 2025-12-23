@@ -28,7 +28,7 @@ A BookMyShow clone built with Django.
 
 ### **Integrations (Planned)**
 
-- **Payment**: Razorpay
+- **Payment**: Razorpay / Stripe
 - **Email**: SendGrid
 - **Trailers**: YouTube API
 
@@ -51,7 +51,7 @@ python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 
 # Install dependencies
-pip install django
+pip install django redis decimal
 
 # Run migrations
 python manage.py migrate
@@ -59,6 +59,10 @@ python manage.py migrate
 # Run server
 python manage.py runserver
 ```
+
+## 🔐 Concurrency Control
+
+This project implements **Optimistic Locking** using Redis to handle high-concurrency seat bookings. Seats are only reserved when the user proceeds to the payment stage, ensuring maximum availability while preventing double-bookings.
 
 ## 🚀 Production Deployment
 
