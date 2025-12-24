@@ -29,3 +29,7 @@ venv.bak/
 
 # macOS
 .DS_Store
+
+# Celery
+celerybeat-schedule
+celerybeat-schedule.db

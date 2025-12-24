@@ -5,11 +5,16 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 import json
-
+from .razorpay_utils import razorpay_client
+from .email_utils import send_booking_confirmation_email
+from django.views.decorators.csrf import csrf_exempt
+from django.http import HttpResponse
 from movies.models import Movie
 from movies.theater_models import Showtime
 from .models import Booking, Transaction
 from .utils import SeatManager, PriceCalculator
+from .razorpay_utils import razorpay_client
+from django.conf import settings
 
 # ==============================================================================
 # ❓ THE BOOKING WORKFLOW (Step-by-Step)
@@ -27,7 +32,11 @@ from .utils import SeatManager, PriceCalculator
 # Anonymous users will be redirected to the login page automatically.
 @login_required
 def select_seats(request, showtime_id):
-    """Show seat selection interface"""
+    """
+    🎨 WHY: This is the interactive part of the booking.
+    HOW: We get the movie and time (showtime), and then check Redis to see 
+    which seats are already taken. We pass this to the HTML to draw the map.
+    """
     showtime = get_object_or_404(Showtime, id=showtime_id, is_active=True)
     
     # Validation: Don't allow booking for movies that already finished.
@@ -151,18 +160,22 @@ def booking_summary(request, showtime_id):
 @login_required
 @csrf_exempt
 def create_booking(request, showtime_id):
-    """Final step: Create the 'PENDING' record in the Database."""
+    """
+    🏗️ WHY: This is the 'Handshake'. 
+    The user is ready to pay, so we officially 'Lock' the seats in the database records.
+    """
     if request.method != 'POST':
         return JsonResponse({'error': 'Invalid method'}, status=400)
     
     try:
         showtime = get_object_or_404(Showtime, id=showtime_id)
+        # 📥 HOW: Get data from the browser (JavaScript)
         data = json.loads(request.body)
         seat_ids = data.get('seat_ids', [])
         
-        # 🟢 OPTIMISTIC LOCKING (Phase 2):
-        # Now we try to officially RESERVE the seats.
-        # This is where we catch the "Race Condition" if someone else beat them to it.
+        # 🟢 WHY: Optimistic Locking.
+        # We check one last time if the seats are still free.
+        # If two people click at the same time, only one will succeed here.
         success = SeatManager.reserve_seats(showtime_id, seat_ids, request.user.id)
         
         if not success:
@@ -197,10 +210,9 @@ def create_booking(request, showtime_id):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
-# ========== PAYMENT VIEW ==========
 @login_required
 def payment_page(request, booking_id):
-    """Show the payment landing page with a countdown timer."""
+    """Show the payment landing page with a countdown timer and Razorpay integration."""
     booking = get_object_or_404(Booking, id=booking_id, user=request.user)
     
     # 🕵️ Cleanup: If user takes too long to pay, expire the booking.
@@ -212,35 +224,81 @@ def payment_page(request, booking_id):
         messages.error(request, 'Payment window expired. Please try again.')
         return redirect('select_seats', showtime_id=booking.showtime.id)
     
+    # 💳 HOW: Create Razorpay Order
+    # We send the amount and receipt to Razorpay API to get an 'order_id'.
+    # ❓ WHY: This creates a single source of truth for this payment attempt.
+    # It prevents double-charging and allows us to track this specific transaction on Razorpay's dashboard.
+    order_data = razorpay_client.create_order(
+        amount=booking.total_amount,
+        receipt=f"booking_{booking.booking_number}"
+    )
+    
+    if not order_data['success']:
+        # 🛡️ WHY: Fail gracefully. If the gateway is down, we don't want a 500 error.
+        messages.error(request, f"Payment Gateway Error: {order_data['error']}")
+        return redirect('booking_summary', showtime_id=booking.showtime.id)
+
     context = {
         'booking': booking,
         'movie': booking.showtime.movie,
         'showtime': booking.showtime,
+        # ⏱️ WHY: UX - Let the user know they have a limited window to pay before seats are released.
         'time_remaining': int((booking.expires_at - timezone.now()).total_seconds()) if booking.expires_at else 0,
+        'razorpay_key_id': settings.RAZORPAY_KEY_ID,
+        'order_id': order_data['order_id'],
+        'amount': order_data['amount'],
+        'currency': order_data['currency'],
     }
     
     return render(request, 'bookings/payment.html', context)
 
-# ========== MOCK PAYMENT SUCCESS ==========
-# In a real app, this would be a callback/webhook from Stripe or Razorpay.
 @login_required
-def mock_payment_success(request, booking_id):
-    """Simulate a successful payment for testing."""
+def payment_success(request, booking_id):
+    """Callback view for Razorpay success"""
     booking = get_object_or_404(Booking, id=booking_id, user=request.user)
     
-    if booking.status == 'PENDING':
-        booking.status = 'CONFIRMED'
-        booking.payment_method = 'MOCK'
-        booking.payment_id = f"MOCK-{int(timezone.now().timestamp())}"
-        booking.confirmed_at = timezone.now()
-        booking.save()
-        
-        # 🔑 CRITICAL: Once paid, mark seats as BOOKED (permanent)
-        SeatManager.confirm_seats(booking.showtime.id, booking.seats)
-        
-        messages.success(request, f'Booking confirmed! Enjoy your movie.')
+    # 📥 HOW: Razorpay sends these IDs back to us after the user pays.
+    payment_id = request.GET.get('razorpay_payment_id')
+    order_id = request.GET.get('razorpay_order_id')
+    signature = request.GET.get('razorpay_signature')
     
-    return redirect('booking_detail', booking_id=booking.id)
+    # 🔐 WHY: SECURITY (Signature Verification). 
+    # NEVER trust the frontend URL parameters alone! A hacker could manually type '/success/'
+    # into the browser. We must verify the HMAC signature using our 'SECRET_KEY' to prove 
+    # that this success message actually came from Razorpay.
+    is_valid = razorpay_client.verify_payment_signature(order_id, payment_id, signature)
+    
+    if is_valid:
+        # 🛠️ HOW: Atomic Update.
+        # Check if status is still PENDING to avoid 'Replay Attacks' (submitting success twice).
+        if booking.status == 'PENDING':
+            booking.status = 'CONFIRMED'
+            booking.payment_method = 'RAZORPAY'
+            booking.payment_id = payment_id
+            booking.confirmed_at = timezone.now()
+            booking.save()
+            
+            # 🔨 HOW: Confirm seats permanently in Redis.
+            SeatManager.confirm_seats(booking.showtime.id, booking.seats)
+            
+            # ✉️ WHY: Asynchronous Task.
+            # Sending emails takes 2-3 seconds. If we did it here, the user's browser would 'hang'.
+            # By using .delay(), we push it to Celery and return the response to the user INSTANTLY.
+            from .email_utils import send_booking_confirmation_email
+            send_booking_confirmation_email.delay(booking.id)
+            
+            messages.success(request, 'Payment successful! Your booking is confirmed.')
+        return redirect('booking_detail', booking_id=booking.id)
+    else:
+        # 🚫 WHY: If verification fails, it's a security risk or data corruption.
+        messages.error(request, 'Payment verification failed. Please contact support.')
+        return redirect('payment_failed', booking_id=booking.id)
+
+@login_required
+def payment_failed(request, booking_id):
+    """View shown when payment fails"""
+    booking = get_object_or_404(Booking, id=booking_id, user=request.user)
+    return render(request, 'bookings/payment_failed.html', {'booking': booking})
 
 # ========== MY BOOKINGS & DETAILS ==========
 @login_required
@@ -259,3 +317,132 @@ def booking_detail(request, booking_id):
         'showtime': booking.showtime,
         'theater': booking.showtime.screen.theater,
     })
+
+
+@login_required
+def initiate_payment(request, booking_id):
+    boking=get_object_or_404(Booking, id=booking_id, user=request.user)
+    if booking.status !='PENDING':
+        messages.error(request, f"Booking is already {booking.status.lower()}")
+        return redirect('booking_detail', booking_id=booking.id)
+    
+    order_data=razorpay_client.create_order(
+        amount=float(booking.total_amount),
+        receipt=f"{booking.booking_number}",
+
+    )
+    if not order_data['success']:
+        messages.erroe(request, "Payment failed!! Please try again.")
+        return redirect('booking_detail', booking_id=booking.id)
+
+    # Save order ID to booking
+    booking.razorpay_order_id = order_data['order_id']
+    booking.save()
+    
+    context = {
+        'booking': booking,
+        'razorpay_key_id': settings.RAZORPAY_KEY_ID,
+        'order_id': order_data['order_id'],
+        'amount': order_data['amount'],
+        'currency': order_data['currency'],
+        'user': {
+            'name': request.user.get_full_name() or request.user.username,
+            'email': request.user.email,
+            'contact': '',  # Add phone field to user model if needed
+        }
+    }
+
+    return render(request, 'bookings/razorpay_payment.html', context)
+# ========== PAYMENT SUCCESS CALLBACK ==========
+@login_required
+def payment_success(request, booking_id):
+    """Handle successful payment callback"""
+    booking = get_object_or_404(Booking, id=booking_id, user=request.user)
+    
+    # Get payment details from request
+    razorpay_payment_id = request.GET.get('razorpay_payment_id')
+    razorpay_order_id = request.GET.get('razorpay_order_id')
+    razorpay_signature = request.GET.get('razorpay_signature')
+    
+    if not all([razorpay_payment_id, razorpay_order_id, razorpay_signature]):
+        messages.error(request, 'Invalid payment response')
+        return redirect('payment_page', booking_id=booking.id)
+    
+    # Verify payment signature
+    is_valid = razorpay_client.verify_payment_signature(
+        razorpay_order_id,
+        razorpay_payment_id,
+        razorpay_signature
+    )
+    
+    if not is_valid:
+        messages.error(request, 'Payment verification failed')
+        return redirect('payment_page', booking_id=booking.id)
+    
+    # Mark booking as confirmed
+    booking.mark_as_confirmed(razorpay_payment_id)
+    
+    messages.success(request, 'Payment successful! Booking confirmed.')
+    return redirect('booking_detail', booking_id=booking.id)
+
+# ========== PAYMENT FAILED CALLBACK ==========
+@login_required
+def payment_failed(request, booking_id):
+    """Handle failed payment callback"""
+    booking = get_object_or_404(Booking, id=booking_id, user=request.user)
+    
+    # Mark booking as failed
+    booking.mark_as_failed()
+    
+    messages.error(request, 'Payment failed. Please try again.')
+    return redirect('payment_page', booking_id=booking.id)
+
+# ========== RAZORPAY WEBHOOK ==========
+@csrf_exempt
+def razorpay_webhook(request):
+    """Handle Razorpay webhook for payment updates"""
+    if request.method != 'POST':
+        return HttpResponse(status=405)
+    
+    try:
+        # Get webhook data
+        webhook_body = request.body.decode('utf-8')
+        webhook_data = json.loads(webhook_body)
+        
+        # Verify webhook signature (important for production)
+        received_signature = request.headers.get('X-Razorpay-Signature', '')
+        
+        # For now, we'll trust the webhook (in production, verify signature)
+        event = webhook_data.get('event', '')
+        payload = webhook_data.get('payload', {})
+        payment = payload.get('payment', {})
+        entity = payment.get('entity', {})
+        
+        payment_id = entity.get('id')
+        order_id = entity.get('order_id')
+        status = entity.get('status')
+        
+        # Find booking by order_id
+        try:
+            booking = Booking.objects.get(razorpay_order_id=order_id)
+            
+            if event == 'payment.captured' and status == 'captured':
+                # Payment successful
+                booking.mark_as_confirmed(payment_id)
+                print(f"Webhook: Payment captured for booking {booking.booking_number}")
+                
+            elif event == 'payment.failed':
+                # Payment failed
+                booking.mark_as_failed()
+                print(f"Webhook: Payment failed for booking {booking.booking_number}")
+                
+        except Booking.DoesNotExist:
+            print(f"Webhook: No booking found for order {order_id}")
+        
+        return HttpResponse(status=200)
+        
+    except Exception as e:
+        print(f"Webhook error: {str(e)}")
+        return HttpResponse(status=400)
+
+

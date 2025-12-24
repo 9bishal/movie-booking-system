@@ -1,5 +1,7 @@
 # Interview Preparation – MovieBooking System
 
+> [!TIP] > **New to Django?** Start with our [Beginner Interview Questions](file:///Users/bishalkumarshah/.gemini/antigravity/scratch/movie-booking-system/interview/beginner_questions.md) for foundational concepts.
+
 ## Django & Authentication
 
 1. **Explain the Django authentication workflow** – how `register`, `login`, `logout`, and `profile` views interact with the auth system.
@@ -278,4 +280,53 @@
 
 ---
 
-_Feel free to ask for deeper explanations on any of these topics!_
+## Redis & Celery (System Design & SD level)
+
+35. **What is Celery, and why do we use it in a movie booking system?**
+
+    - **Answer:** Celery is an asynchronous task queue. We use it to offload long-running or non-critical tasks from the main request-response cycle. In our system, we use it for sending confirmation emails (which take 2-5 seconds via SMTP) and for scheduled maintenance like releasing expired seats. This keeps the user interface responsive.
+
+36. **Explain the role of a 'Broker' vs. a 'Result Backend' in the context of Celery.**
+
+    - **Answer:**
+      - **Broker (Redis):** Acts as a mediator (post office) between the Django app and the Celery worker. When a task is called with `.delay()`, Django puts a message into Redis. The Celery worker then picks it up.
+      - **Result Backend:** Stores the result of the task execution (Success/Failure/Return Value). We can use Redis or the Django Database for this. It's useful if you need to check if a specific task finished successfully later.
+
+37. **Why is 'Idempotency' critical in Celery tasks? Give an example from our project.**
+
+    - **Answer:** Idempotency means that running the same task multiple times has the same effect as running it once. This is critical because tasks can be retried if a worker crashes or a network error occurs.
+    - **Example:** The `confirm_booking` task should check if the booking is already `CONFIRMED` before processing. If it's already confirmed, it should do nothing. Without this, a retry might result in sending two emails or double-counting revenue.
+
+38. **How would you handle a task failure in Celery? Mention retries and dead-letter queues.**
+
+    - **Answer:** Use the `bind=True` argument and the `self.retry()` method. You should implement **Exponential Backoff** (e.g., wait 2s, then 4s, then 8s) to avoid overwhelming a failing service (like an Email API). For tasks that fail after all retries, they can be moved to a "Dead-Letter Queue" for manual investigation.
+
+39. **What is the difference between Redis as a 'Cache' and Redis as a 'Broker'?**
+
+    - **Answer:**
+      - **As a Cache:** We use Redis to store seat layouts and temporary reservation status for speed. Data here can be lost (it's "volatile") without breaking the system; we just fetch it from SQL again.
+      - **As a Broker:** We use it as a robust queue. If the Broker fails, the messages (tasks) could be lost if not configured for persistence. For a production system, we'd enable Redis AOF (Append Only File) to ensure tasks aren't lost on restart.
+
+40. **How do you prevent a 'Race Condition' when two users try to book the same seat using Redis?**
+
+    - **Answer:** We implementation **Optimistic Locking** or **Distributed Locking**.
+      - **Distributed Lock:** We attempt to set a key in Redis like `lock:seat_A1:show_101` with a short TTL (Time To Live). If the key already exists, the second user is told the seat is unavailable. This ensures unique access at the millisecond level.
+
+41. **Explain the difference between 'Task Queues' and 'Message Brokers'.**
+
+    - **Answer:** A **Message Broker** (Redis/RabbitMQ) is the infrastructure that carries messages. A **Task Queue** (Celery) is the framework built on top of the broker that manages how those messages are distributed to workers, retried, and monitored.
+
+42. **What is 'Celery Beat' and how does it differ from a standard Linux 'cron'?**
+
+    - **Answer:** Celery Beat is a scheduler that lives inside the Celery ecosystem.
+      - **Vs Cron:** Cron is system-wide and hard to manage within code. Celery Beat configurations (schedules) are part of your Django settings/codebase, making them version-controlled and easier to deploy alongside your app. It also understands Python data structures.
+
+43. **How would you scale a movie booking system experiencing a massive spike (e.g., Marvel movie launch)?**
+    - **Answer:**
+      1. **Horizontal Scaling:** Run more instances of the Celery Worker process.
+      2. **Priority Queues:** Create separate queues for `high-priority` tasks (Payments/Bookings) and `low-priority` tasks (Emails/Reminders) so that delays in emails don't slow down ticket sales.
+      3. **Redis Sharding:** If Redis becomes the bottleneck, use Redis Cluster to distribute the load.
+
+---
+
+_Feel free to ask for deeper explanations on any of these system design topics!_

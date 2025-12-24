@@ -159,14 +159,25 @@ class SeatManager:
 
 
 class PriceCalculator:
-    """Calculate booking prices"""
-    
+    """
+    🧮 WHY THIS EXISTS:
+    Calculating money is sensitive. We centralize it here so its consistent 
+    across the website.
+    """
+    # 💡 BEGINNER TIP: Why use 'Decimal' instead of 'float'?
+    # Floats (like 0.1) are imprecise in computers. Decimals are exactly like 
+    # paper-and-pen math. NEVER use floats for money!
     TAX_RATE = Decimal('0.18')  # 18% GST
     CONVENIENCE_FEE = Decimal('30.00')
     
     @staticmethod
     def calculate_booking_amount(showtime, seat_count, seat_type='standard'):
-        """Calculate total amount for booking"""
+        """
+        💸 HOW: Math Logic
+        1. Multiply seats by price.
+        2. Add a static convenience fee.
+        3. Calculate 18% tax on the result.
+        """
         base_price = showtime.price * seat_count
         
         # Apply seat type multiplier

@@ -1,6 +1,7 @@
 {% extends 'base/base.html' %}
 
-{% block title %}Payment - MovieBooking{% endblock %}
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+{% endblock %}
 
 {% block content %}
 <div class="container py-5">
@@ -81,13 +82,27 @@
                                     <div class="small">Wallet</div>
                                 </div>
                             </div>
+                            <!-- Replace the mock payment buttons with: -->
+                            <div class="d-grid gap-2">
+                                <a href="{% url 'initiate_payment' booking.id %}" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-lock me-2"></i>Pay with Razorpay
+                                </a>
+                                
+                                <!-- Keep mock buttons for testing -->
+                                <a href="{% url 'mock_payment_success' booking.id %}" class="btn btn-success btn-lg">
+                                    <i class="fas fa-check-circle me-2"></i>Mock Successful Payment
+                                </a>
+                                <a href="{% url 'mock_payment_failure' booking.id %}" class="btn btn-danger btn-lg">
+                                    <i class="fas fa-times-circle me-2"></i>Mock Failed Payment
+                                </a>
+                            </div>
                         </div>
                     </div>
 
                     <div class="d-grid gap-3">
-                        <a href="{% url 'payment_success' booking.id %}" class="btn btn-primary btn-lg shadow-sm">
-                            <i class="fas fa-lock me-2"></i>Pay ₹{{ booking.total_amount }} securely
-                        </a>
+                        <button id="razorpay-pay-button" class="btn btn-primary btn-lg shadow-sm">
+                            <i class="fas fa-lock me-2"></i>Pay ₹{{ booking.total_amount }} with Razorpay
+                        </button>
                         <button class="btn btn-outline-secondary btn-sm" onclick="history.back()">
                             <i class="fas fa-arrow-left me-2"></i>Back to Summary
                         </button>
@@ -126,16 +141,13 @@
 <script>
     // Use an IIFE to prevent variable redeclaration errors
     (function() {
-        // Fix: Use a unique variable name or scope-limited declaration
-        // Using 'var' or just keeping it in this function scope avoids redeclaration issues
-        // if this script tag is somehow processed twice in the same global execution context
-        let timeRemaining = {{ time_remaining| default:0 }};
+        let timeRemaining = parseInt("{{ time_remaining|default:0 }}");
         const countdownEl = document.getElementById('countdown');
         
         function updateTimer() {
             if (timeRemaining <= 0) {
                 clearInterval(timerInterval);
-                window.location.reload(); // Reload will trigger expiration logic in view
+                window.location.reload();
                 return;
             }
             
@@ -154,5 +166,36 @@
         updateTimer();
         const timerInterval = setInterval(updateTimer, 1000);
     })();
+
+    // 🚀 HOW: Razorpay Configuration Object
+    // This defines what the checkout overlay looks like and where the data goes.
+    const options = {
+        "key": "{{ razorpay_key_id }}", // Public Key (Safe to expose)
+        "amount": "{{ amount }}",       // Amount in Paise
+        "currency": "{{ currency }}",
+        "name": "MovieBooking",
+        "description": "Movie Ticket Booking",
+        "order_id": "{{ order_id }}",   // 🔑 WHY: Links this payment to our Backend Order
+        "handler": function (response) {
+            // ✅ HOW: Success Callback
+            // If the user's card/UPI is accepted, Razorpay returns a 'payment_id' and 'signature'.
+            // We then redirect to our internal 'payment_success' URL with these tokens.
+            window.location.href = `{% url 'payment_success' booking.id %}?razorpay_payment_id=${response.razorpay_payment_id}&razorpay_order_id=${response.razorpay_order_id}&razorpay_signature=${response.razorpay_signature}`;
+        },
+        "prefill": {
+            "name": "{{ user.username }}",
+            "email": "{{ user.email }}"
+        },
+        "theme": {
+            "color": "#0d6efd"
+        }
+    };
+    
+    // 💳 HOW: Initialize and Open Checkout
+    const rzp = new Razorpay(options);
+    document.getElementById('razorpay-pay-button').onclick = function(e) {
+        rzp.open();
+        e.preventDefault();
+    }
 </script>
 {% endblock %}
