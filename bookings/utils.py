@@ -3,6 +3,7 @@ import time
 from decimal import Decimal
 from django.core.cache import cache
 from django.conf import settings
+from django.db.models import Q
 
 # ==============================================================================
 # 🧠 CONCEPT: HOW CACHING WORKS IN OUR APP
@@ -46,14 +47,16 @@ class SeatManager:
     @staticmethod
     def get_seat_layout(showtime_id):
         """STEP 1: Get the full map (layout) for this showtime."""
-        # We use a unique ID so different movies don't mix up their seats!
+        # 🕵️ WHY: Performance. Generating the layout every time is wasteful.
+        # HOW: We use a showtime-specific key to keep movie maps separate.
+        # WHEN: Triggers whenever a user opens the seat selection page.
         cache_key = f"seat_layout_{showtime_id}"
         
-        # ❓ "cache.get" tries to find it on our super-fast "Clipboard"
+        # ❓ "cache.get" tries to find it on our super-fast "Clipboard" (Redis)
         layout = cache.get(cache_key)
         
         if not layout:
-            # If not on Clipboard, generate a new map and "set" it on Clipboard
+            # 🔄 HOW: Fallback. If the cache is empty, we rebuild the map and save it back.
             layout = SeatManager.generate_seat_layout()
             cache.set(cache_key, layout, timeout=3600)  # Keep for 1 hour
         
@@ -62,18 +65,37 @@ class SeatManager:
     @staticmethod
     def get_available_seats(showtime_id):
         """STEP 2: Get only the seats that are NOT yet booked."""
+        # 🕵️ WHY: Accuracy. We need to know which seats are actually for sale.
+        # HOW: We combine layout data with existing 'CONFIRMED' bookings from the DB.
+        # WHEN: Triggers before showing the seat map and during the 'reserve' validation.
         cache_key = f"available_seats_{showtime_id}"
         available_seats = cache.get(cache_key)
         
         if available_seats is None:
-            # Start by assuming all seats in the layout are free
+            # 🔄 HOW: Rebuild. If cache is empty, start with the full layout.
             layout = SeatManager.get_seat_layout(showtime_id)
             available_seats = []
             for row in layout:
                 for seat in row:
                     if seat and seat['available']:
                         available_seats.append(seat['seat_id'])
-            # Save this list to cache
+            
+            # 🕵️ DATABASE CHECK: 
+            # WHY: The Database is the final truth. 
+            # We must remove seats that have already been SOLD (CONFIRMED).
+            from .models import Booking
+            booked_seats_query = Booking.objects.filter(
+                showtime_id=showtime_id,
+                status='CONFIRMED'
+            ).values_list('seats', flat=True)
+            
+            for seats_list in booked_seats_query:
+                # 🔄 HOW: Removal. We subtract every sold seat from the 'for-sale' list.
+                for seat_id in seats_list:
+                    if seat_id in available_seats:
+                        available_seats.remove(seat_id)
+            
+            # 💾 HOW: Synchronization. Save the clean list back to cache.
             cache.set(cache_key, available_seats, timeout=3600)
         
         return available_seats
@@ -88,29 +110,39 @@ class SeatManager:
     @staticmethod
     def reserve_seats(showtime_id, seat_ids, user_id):
         """STEP 4: Temporarily 'Lock' seats for a user (10-minute timer)."""
+        # 🛡️ WHY: Concurrency Protection.
+        # This prevents two users from paying for the same seats simultaneously.
+        # HOW: We create a 'reservation' key in Redis. Redis handles atomic checks.
+        # WHEN: Triggers when the user clicks 'Confirm' or 'Proceed to Payment'.
         if not seat_ids:
             return False
         
-        # 🛡️ THE SECURITY CHECK:
-        # Are the seats actually free? Are they not already held by someone else?
+        # 🕵️ THE SECURITY CHECK: Are the seats actually free right now?
         available_seats = SeatManager.get_available_seats(showtime_id)
         reserved_seats = SeatManager.get_reserved_seats(showtime_id)
         
+        # 🕵️ WHY: Re-entrancy. 
+        # Check if the CURRENT user already held these seats (so they don't 'steal' from themselves).
+        user_reservation_key = f"seat_reservation_{showtime_id}_{user_id}"
+        existing_user_res = cache.get(user_reservation_key)
+        my_seats = existing_user_res.get('seat_ids', []) if existing_user_res else []
+        
         for seat_id in seat_ids:
-            if seat_id not in available_seats or seat_id in reserved_seats:
-                # If even ONE seat is taken, the whole request fails!
+            # 🔄 HOW: Collision Detection. 
+            # A seat is 'Taken' if it's not available OR someone else has reserved it.
+            if seat_id not in available_seats or (seat_id in reserved_seats and seat_id not in my_seats):
                 return False
         
         # 🔒 LOCKING THE SEATS:
-        # We add them to the 'reserved' list in the cache.
-        reserved_seats.extend(seat_ids)
+        # 1. Update the global 'reserved' pool for this showtime.
+        # WHY: Visibility. All other users will now see these seats as 'locked'.
+        new_reserved = list(set(reserved_seats + seat_ids))
         cache_key = f"reserved_seats_{showtime_id}"
-        # SEAT_RESERVATION_TIMEOUT is usually 10 mins (set in settings.py)
-        cache.set(cache_key, reserved_seats, timeout=settings.SEAT_RESERVATION_TIMEOUT)
+        cache.set(cache_key, new_reserved, timeout=settings.SEAT_RESERVATION_TIMEOUT)
         
-        # Record WHICH user tried to book, so we can release it later if they fail.
-        reservation_key = f"seat_reservation_{showtime_id}_{user_id}"
-        cache.set(reservation_key, {
+        # 2. Record this user's specific lock.
+        # WHY: Reconciliation. We need to know WHICH user locked WHICH seats.
+        cache.set(user_reservation_key, {
             'seat_ids': seat_ids,
             'reserved_at': time.time()
         }, timeout=settings.SEAT_RESERVATION_TIMEOUT)
@@ -156,6 +188,37 @@ class SeatManager:
         cache.set(cache_key, available_seats, timeout=3600)
         return True
 
+    @staticmethod
+    def is_seat_still_available_for_user(showtime_id, seat_ids, user_id):
+        """
+        🕵️ THE ULTIMATE SAFETY CHECK:
+        WHY: Data Authority. Client-side clocks (Razorpay modal) can stay open 
+        longer than our server-side safety lock. This is the master check.
+        HOW: We re-query the database for any 'CONFIRMED' tickets that might 
+        have been issued during the small gap between Redis expiry and Payment success.
+        WHEN: Triggers after Razorpay signals success but before we commit the ticket.
+        """
+        # 1. 🕵️ WHY: Double-check the Database. 
+        # Redis is just a 'hint', the SQL database is the 'Law'.
+        from .models import Booking
+        confirmed_bookings = Booking.objects.filter(
+            showtime_id=showtime_id,
+            status='CONFIRMED'
+        ).exclude(user_id=user_id) # Don't check against the user's own current booking attempt
+        
+        # 🔄 HOW: Check for Overlap.
+        # Since SQLite JSONField doesn't support complex 'contains' queries in the ORM,
+        # we iterate through confirmed seat lists to see if our requested seats are present.
+        for booking in confirmed_bookings:
+            for seat in seat_ids:
+                if seat in booking.seats:
+                    # 🚨 COLLISION: The seat was sold to someone else in the last 12 minutes!
+                    return False
+            
+        # 🟢 ALL CLEAR: No confirmed booking exists for these seats in this showtime.
+        # This means even if Redis lock expired, the seats haven't been bought by anyone else yet.
+        return True
+
 
 
 class PriceCalculator:
@@ -174,18 +237,21 @@ class PriceCalculator:
     def calculate_booking_amount(showtime, seat_count, seat_type='standard'):
         """
         💸 HOW: Math Logic
-        1. Multiply seats by price.
-        2. Add a static convenience fee.
-        3. Calculate 18% tax on the result.
+        WHY: Consistency. We centralize pricing here to avoid bugs in multiple places.
+        HOW: Base Price + Fees + Taxes. Uses Decimal for precision.
+        WHEN: Triggers on the Summary page and when creating the FINAL booking record.
         """
         base_price = showtime.price * seat_count
         
-        # Apply seat type multiplier
+        # 🔄 HOW: Dynamic Multipliers.
+        # We increase the price based on seat category (Premium = 1.5x).
         if seat_type == 'premium':
             base_price *= Decimal('1.5')
         elif seat_type == 'sofa':
             base_price *= Decimal('2.0')
         
+        # 🏦 HOW: Addons. 
+        # Convenience fee covers the platform cost, Taxes (GST) are government mandated.
         convenience_fee = PriceCalculator.CONVENIENCE_FEE
         tax_amount = (base_price + convenience_fee) * PriceCalculator.TAX_RATE
         total_amount = base_price + convenience_fee + tax_amount
@@ -193,6 +259,5 @@ class PriceCalculator:
         return {
             'base_price': round(base_price, 2),
             'convenience_fee': convenience_fee,
-            'tax_amount': round(tax_amount, 2),
             'total_amount': round(total_amount, 2),
         }

@@ -12,8 +12,13 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 import os
 from pathlib import Path
+from dotenv import load_dotenv
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Load environment variables from .env file
+load_dotenv(os.path.join(BASE_DIR, '.env'))
 
 
 # Quick-start development settings - unsuitable for production
@@ -95,7 +100,11 @@ CACHES={
 }
 SESSION_ENGINE="django.contrib.sessions.backends.cache"
 SESSION_CACHE_ALIAS="default"
-SEAT_RESERVATION_TIMEOUT=300
+# ⏲️ WHY: Concurrency Synchronization.
+# This timeout defines how long a seat stays "locked" while a user is paying.
+# 10 minutes (600s) is chosen to align with typical Razorpay bank redirect windows.
+# WHEN: Used by SeatManager in Redis 'set' calls.
+SEAT_RESERVATION_TIMEOUT=600 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 

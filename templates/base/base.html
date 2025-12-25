@@ -13,27 +13,36 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     
     <style>
-        /* BookMyShow Color Palette */
+        /* Modernized Cinematic Palette */
         :root {
             --primary-red: #f84464;
             --primary-red-dark: #d63753;
             --secondary-blue: #2b3148;
             --dark-bg: #1f243c;
-            --light-gray: #f5f5f5;
-            --medium-gray: #e0e0e0;
-            --text-dark: #333333;
-            --text-light: #666666;
+            --surface-bg: #ffffff;
+            --mesh-bg: radial-gradient(at 0% 0%, rgba(248, 68, 100, 0.05) 0px, transparent 50%), 
+                        radial-gradient(at 100% 100%, rgba(43, 49, 72, 0.05) 0px, transparent 50%);
+            --light-gray: #f8f9fa;
+            --medium-gray: #e9ecef;
+            --text-dark: #1a1f36;
+            --text-light: #6b7280;
             --white: #ffffff;
-            --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            --shadow-heavy: 0 8px 24px rgba(0, 0, 0, 0.2);
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+            --shadow-md: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+            --shadow-lg: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         body {
-            font-family: 'Roboto', 'Poppins', sans-serif;
-            background-color: var(--light-gray);
+            font-family: 'Poppins', 'Roboto', sans-serif;
+            background: var(--light-gray);
+            background-image: var(--mesh-bg);
+            background-attachment: fixed;
             color: var(--text-dark);
             min-height: 100vh;
-            padding-top: 80px; /* For fixed navbar */
+            padding-top: 80px;
+            overflow-x: hidden;
         }
 
         /* Navbar - BookMyShow Style */
@@ -289,30 +298,50 @@
             color: var(--primary-red);
         }
 
-        /* Messages */
-        .alert-bms {
-            border-radius: 8px;
+        /* Cinematic Toast Styles */
+        .toast-container {
+            padding-top: 90px !important; /* Move below fixed navbar */
+        }
+        
+        .toast {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            overflow: hidden;
             border: none;
-            padding: 15px 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            animation: toastIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes toastIn {
+            from { transform: translateX(100%) scale(0.9); opacity: 0; }
+            to { transform: translateX(0) scale(1); opacity: 1; }
+        }
+
+        .bg-success {
+            background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%) !important;
+            border-left: 5px solid #155724 !important;
+        }
+
+        .bg-error, .bg-danger {
+            background: linear-gradient(135deg, #f84464 0%, #d63753 100%) !important;
+            border-left: 5px solid #721c24 !important;
+        }
+
+        .bg-info {
+            background: linear-gradient(135deg, #17a2b8 0%, #117a8b 100%) !important;
+            border-left: 5px solid #0c5460 !important;
+        }
+
+        .toast-body {
+            color: white !important;
             font-weight: 500;
+            padding: 1rem 1.25rem;
         }
 
-        .alert-success {
-            background-color: #d4edda;
-            color: #155724;
-            border-left: 4px solid #28a745;
-        }
-
-        .alert-error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border-left: 4px solid #dc3545;
-        }
-
-        .alert-info {
-            background-color: #d1ecf1;
-            color: #0c5460;
-            border-left: 4px solid #17a2b8;
+        .btn-close-white {
+            filter: brightness(0) invert(1);
+            opacity: 0.8;
         }
 
         /* Booking Card */
@@ -560,14 +589,18 @@
         </div>
     </nav>
 
-    <!-- Messages -->
-    <div class="container mt-3">
+    <!-- Toast Container (Fixed in Corner) -->
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 2000;">
         {% if messages %}
             {% for message in messages %}
-            <div class="alert alert-bms alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-circle{% elif message.tags == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %} me-2"></i>
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <div class="toast align-items-center text-white bg-{{ message.tags|default:'primary' }} border-0 shadow-lg mb-2" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body d-flex align-items-center">
+                        <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-circle{% elif message.tags == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %} me-2 fs-5"></i>
+                        {{ message }}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
             </div>
             {% endfor %}
         {% endif %}
@@ -643,31 +676,33 @@
     
     <!-- Custom JS -->
     <script>
-        // Auto-dismiss alerts after 5 seconds
-        setTimeout(() => {
-            const alerts = document.querySelectorAll('.alert');
-            alerts.forEach(alert => {
-                const bsAlert = new bootstrap.Alert(alert);
-                bsAlert.close();
-            });
-        }, 5000);
-
-        // Smooth scroll for anchor links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
-                }
-            });
-        });
-
-        // Add active class to current page nav item
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize and show all toasts
+            var toastElList = [].slice.call(document.querySelectorAll('.toast'))
+            var toastList = toastElList.map(function(toastEl) {
+                var toast = new bootstrap.Toast(toastEl, {
+                    autohide: true,
+                    delay: 5000
+                });
+                toast.show();
+                return toast;
+            });
+
+            // Smooth scroll for anchor links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+
+            // Add active class to current page nav item
             const currentPath = window.location.pathname;
             document.querySelectorAll('.nav-link').forEach(link => {
                 if (link.getAttribute('href') === currentPath) {

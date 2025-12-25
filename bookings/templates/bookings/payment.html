@@ -1,7 +1,6 @@
 {% extends 'base/base.html' %}
 
-<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-{% endblock %}
+{% block title %}Complete Payment - Razorpay{% endblock %}
 
 {% block content %}
 <div class="container py-5">
@@ -15,6 +14,9 @@
                 
                 <div class="card-body p-4">
                     <!-- Timer -->
+                    <!-- ⏲️ WHY: UI Synchronization. We mirror the database's expiration to the user. -->
+                    <!-- HOW: Javascript decrements this value every second. -->
+                    <!-- WHEN: Calculated when the page loads from the booking.expires_at field. -->
                     <div class="alert alert-warning text-center mb-4 border-0 shadow-sm">
                         <div class="fs-5 fw-bold mb-1">
                             <i class="fas fa-clock me-2 pulse"></i>Time Remaining
@@ -55,57 +57,16 @@
                     </div>
 
                     <!-- Payment Options -->
-                    <div class="payment-methods mb-4">
-                        <h5 class="mb-3">Select Payment Method</h5>
-                        <div class="row g-3">
-                            <div class="col-6 col-md-3">
-                                <div class="payment-card active p-3 text-center border rounded cursor-pointer transition">
-                                    <i class="fas fa-credit-card fa-2x mb-2"></i>
-                                    <div class="small">Card</div>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-3">
-                                <div class="payment-card p-3 text-center border rounded cursor-pointer transition">
-                                    <i class="fas fa-mobile-alt fa-2x mb-2"></i>
-                                    <div class="small">UPI</div>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-3">
-                                <div class="payment-card p-3 text-center border rounded cursor-pointer transition">
-                                    <i class="fas fa-university fa-2x mb-2"></i>
-                                    <div class="small">Net Banking</div>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-3">
-                                <div class="payment-card p-3 text-center border rounded cursor-pointer transition">
-                                    <i class="fas fa-wallet fa-2x mb-2"></i>
-                                    <div class="small">Wallet</div>
-                                </div>
-                            </div>
-                            <!-- Replace the mock payment buttons with: -->
-                            <div class="d-grid gap-2">
-                                <a href="{% url 'initiate_payment' booking.id %}" class="btn btn-primary btn-lg">
-                                    <i class="fas fa-lock me-2"></i>Pay with Razorpay
-                                </a>
-                                
-                                <!-- Keep mock buttons for testing -->
-                                <a href="{% url 'mock_payment_success' booking.id %}" class="btn btn-success btn-lg">
-                                    <i class="fas fa-check-circle me-2"></i>Mock Successful Payment
-                                </a>
-                                <a href="{% url 'mock_payment_failure' booking.id %}" class="btn btn-danger btn-lg">
-                                    <i class="fas fa-times-circle me-2"></i>Mock Failed Payment
-                                </a>
-                            </div>
+                    <div class="payment-methods mb-4 text-center">
+                        <h5 class="mb-4 text-muted border-bottom pb-2">Select Payment Method</h5>
+                        <div class="d-grid gap-2">
+                            <button id="razorpay-pay-button" class="btn btn-primary btn-lg shadow-sm">
+                                <i class="fas fa-lock me-2"></i>Pay ₹{{ booking.total_amount }} with Razorpay
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm mt-3" onclick="history.back()">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Summary
+                            </button>
                         </div>
-                    </div>
-
-                    <div class="d-grid gap-3">
-                        <button id="razorpay-pay-button" class="btn btn-primary btn-lg shadow-sm">
-                            <i class="fas fa-lock me-2"></i>Pay ₹{{ booking.total_amount }} with Razorpay
-                        </button>
-                        <button class="btn btn-outline-secondary btn-sm" onclick="history.back()">
-                            <i class="fas fa-arrow-left me-2"></i>Back to Summary
-                        </button>
                     </div>
                 </div>
                 
@@ -121,12 +82,6 @@
 </div>
 
 <style>
-    .payment-card {
-        border-color: #dee2e6;
-        background: #f8f9fa;
-    }
-    .payment-card:hover { border-color: #0d6efd; transform: translateY(-2px); }
-    .payment-card.active { border-color: #0d6efd; background: #e7f1ff; color: #0d6efd; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
     .cursor-pointer { cursor: pointer; }
     .transition { transition: all 0.2s ease-in-out; }
     
@@ -137,65 +92,97 @@
     }
     .pulse { animation: pulse-animation 2s infinite ease-in-out; }
 </style>
+{% endblock %}
+
+{% block extra_scripts %}
+<!-- Razorpay Library -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 <script>
-    // Use an IIFE to prevent variable redeclaration errors
+    // 🚀 WHY: Gateway Interface. This wraps the Razorpay modal for a clean UI.
+    // HOW: It passes our Order ID and Customer data to Razorpay's library.
+    // WHEN: Triggers when the 'Pay' button is clicked.
+    function initRazorpay() {
+        const options = {
+            "key": "{{ razorpay_key_id }}", // WHY: Account ID. Connects this website to your Razorpay Dashboard.
+            "amount": "{{ amount }}", // WHY: Payment Value. Always in paise (e.g., 500.00 -> 50000).
+            "currency": "{{ currency }}",
+            "name": "Razorpay",
+            "description": "Ticket for {{ movie.title }} x {{ booking.seats|length }} seats",
+            "order_id": "{{ order_id }}", // WHY: Security Anchor. Links this payment to our database Order record.
+            "handler": function (response) {
+                // 🛡️ WHY: Data Verification Chain (Mandatory).
+                // Once the user pays, Razorpay gives us these 3 tokens. 
+                // We MUST send them to our server to verify they are real.
+                window.location.href = `{% url 'payment_success' booking.id %}?razorpay_payment_id=${response.razorpay_payment_id}&razorpay_order_id=${response.razorpay_order_id}&razorpay_signature=${response.razorpay_signature}`;
+            },
+            "prefill": {
+                "name": "{{ user.username }}",
+                "email": "{{ user.email }}"
+            },
+            "theme": { "color": "#0d6efd" }
+        };
+        
+        try {
+            const isMock = {{ is_mock|yesno:"true,false" }};
+            const rzp = isMock ? null : new Razorpay(options);
+            
+            document.getElementById('razorpay-pay-button').onclick = function(e) {
+                e.preventDefault();
+                const btn = this;
+                
+                if (isMock) {
+                    // 🎭 WHY: Seamless Local Testing.
+                    // Allows us to develop the full 'Thank You' page flow without a live Internet/Bank connection.
+                    btn.disabled = true;
+                    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Simulating Secure Payment...';
+                    
+                    setTimeout(() => {
+                        // 🔄 HOW: Simulate the Success Token Handshake.
+                        options.handler({
+                            razorpay_payment_id: "pay_mock_" + Math.random().toString(36).substr(2, 9),
+                            razorpay_order_id: options.order_id,
+                            razorpay_signature: "sig_mock_verified"
+                        });
+                    }, 1500);
+                } else {
+                    rzp.open();
+                }
+            };
+        } catch (e) {
+            console.error("Razorpay fail:", e);
+        }
+    }
+
+    // Timer Logic
     (function() {
         let timeRemaining = parseInt("{{ time_remaining|default:0 }}");
         const countdownEl = document.getElementById('countdown');
-        
         function updateTimer() {
             if (timeRemaining <= 0) {
-                clearInterval(timerInterval);
-                window.location.reload();
+                location.reload();
                 return;
             }
-            
-            const minutes = Math.floor(timeRemaining / 60);
-            const seconds = timeRemaining % 60;
-            
-            countdownEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            
-            if (timeRemaining < 60) {
-                countdownEl.parentElement.classList.replace('alert-warning', 'alert-danger');
+            const mins = Math.floor(timeRemaining / 60);
+            const secs = timeRemaining % 60;
+            if (countdownEl) {
+                countdownEl.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+                if (timeRemaining < 60) {
+                    countdownEl.parentElement.className = 'alert alert-danger text-center mb-4 border-0 shadow-sm';
+                }
             }
-            
             timeRemaining--;
         }
-        
         updateTimer();
-        const timerInterval = setInterval(updateTimer, 1000);
+        setInterval(updateTimer, 1000);
     })();
 
-    // 🚀 HOW: Razorpay Configuration Object
-    // This defines what the checkout overlay looks like and where the data goes.
-    const options = {
-        "key": "{{ razorpay_key_id }}", // Public Key (Safe to expose)
-        "amount": "{{ amount }}",       // Amount in Paise
-        "currency": "{{ currency }}",
-        "name": "MovieBooking",
-        "description": "Movie Ticket Booking",
-        "order_id": "{{ order_id }}",   // 🔑 WHY: Links this payment to our Backend Order
-        "handler": function (response) {
-            // ✅ HOW: Success Callback
-            // If the user's card/UPI is accepted, Razorpay returns a 'payment_id' and 'signature'.
-            // We then redirect to our internal 'payment_success' URL with these tokens.
-            window.location.href = `{% url 'payment_success' booking.id %}?razorpay_payment_id=${response.razorpay_payment_id}&razorpay_order_id=${response.razorpay_order_id}&razorpay_signature=${response.razorpay_signature}`;
-        },
-        "prefill": {
-            "name": "{{ user.username }}",
-            "email": "{{ user.email }}"
-        },
-        "theme": {
-            "color": "#0d6efd"
-        }
-    };
-    
-    // 💳 HOW: Initialize and Open Checkout
-    const rzp = new Razorpay(options);
-    document.getElementById('razorpay-pay-button').onclick = function(e) {
-        rzp.open();
-        e.preventDefault();
+    // Run init
+    if (typeof Razorpay !== 'undefined') {
+        initRazorpay();
+    } else {
+        // Fallback if script loads slowly
+        document.querySelector('script[src*="checkout.js"]').onload = initRazorpay;
     }
 </script>
 {% endblock %}

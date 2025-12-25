@@ -1,106 +1,282 @@
 {% extends 'base/base.html' %}
 
-{% block title %}Home - MovieBooking{% endblock %}
+{% block title %}MovieBooking | Book Movie Tickets Online{% endblock %}
+
+{% block hero_section %}
+<div class="hero-banner mb-4">
+    <h1 class="display-4 fw-bold mb-4">🎬 Book Your Movie Tickets</h1>
+    <p class="lead mb-4">Experience the magic of cinema with the best seats in town</p>
+    <div class="search-container">
+        <i class="fas fa-search search-icon"></i>
+        <input type="text" class="search-input" placeholder="Search movies, theaters, or events...">
+        <button class="btn btn-bms-primary position-absolute" style="right: 5px; top: 5px; bottom: 5px;">
+            <i class="fas fa-search"></i> Search
+        </button>
+    </div>
+    <div class="mt-4">
+        <a href="{% url 'movie_list' %}" class="btn btn-bms-primary btn-lg px-5">
+            <i class="fas fa-ticket-alt me-2"></i>Browse Movies
+        </a>
+    </div>
+</div>
+{% endblock %}
 
 {% block content %}
-<div class="container-fluid px-0">
-    <!-- Hero Section -->
-    <div class="bg-dark text-white py-5" style="background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1536440136628-849c177e76a1?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80'); background-size: cover;">
-        <div class="container text-center py-5">
-            <h1 class="display-4 fw-bold mb-4">🎬 Book Your Movie Tickets</h1>
-            <p class="lead mb-4">Experience the magic of cinema with the best seats in town</p>
-            <a href="{% url 'movie_list' %}" class="btn btn-primary btn-lg px-5">
-                <i class="fas fa-ticket-alt me-2"></i>Browse Movies
+<!-- Quick Actions Bar -->
+<div class="row mb-5">
+    <div class="col-12">
+        <div class="booking-card d-flex justify-content-around align-items-center flex-wrap">
+            <a href="#" class="text-center text-decoration-none hover-lift">
+                <div class="rounded-circle bg-bms-red p-3 d-inline-flex mb-2">
+                    <i class="fas fa-film fa-2x text-white"></i>
+                </div>
+                <h6 class="mb-0">Movies</h6>
+                <small class="text-muted">In Theaters</small>
+            </a>
+            <a href="#" class="text-center text-decoration-none hover-lift">
+                <div class="rounded-circle bg-bms-blue p-3 d-inline-flex mb-2">
+                    <i class="fas fa-video fa-2x text-white"></i>
+                </div>
+                <h6 class="mb-0">Stream</h6>
+                <small class="text-muted">Watch Online</small>
+            </a>
+            <a href="#" class="text-center text-decoration-none hover-lift">
+                <div class="rounded-circle bg-warning p-3 d-inline-flex mb-2">
+                    <i class="fas fa-calendar-alt fa-2x text-white"></i>
+                </div>
+                <h6 class="mb-0">Events</h6>
+                <small class="text-muted">Concerts & Plays</small>
+            </a>
+            <a href="#" class="text-center text-decoration-none hover-lift">
+                <div class="rounded-circle bg-success p-3 d-inline-flex mb-2">
+                    <i class="fas fa-gift fa-2x text-white"></i>
+                </div>
+                <h6 class="mb-0">Offers</h6>
+                <small class="text-muted">Great Deals</small>
             </a>
         </div>
     </div>
+</div>
+
+<!-- Featured Movies -->
+<div class="row mb-5">
+    <div class="col-12 d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-bms-blue">
+            <i class="fas fa-star me-2"></i>Featured Movies
+        </h2>
+        <a href="{% url 'movie_list' %}" class="btn btn-bms-outline">View All</a>
+    </div>
     
-    <!-- Featured Movies -->
-    <div class="container py-5">
-        <h2 class="mb-4"><i class="fas fa-star me-2"></i>Featured Movies</h2>
-        <div class="row">
-            {% for movie in featured_movies %}
-            <div class="col-md-4 col-lg-2 mb-4">
-                <div class="card h-100 border-0 shadow-sm">
-                    {% if movie.poster %}
-                    <img src="{{ movie.poster.url }}" class="card-img-top" alt="{{ movie.title }}" style="height: 200px; object-fit: cover;">
-                    {% else %}
-                    <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center" style="height: 200px;">
-                        <i class="fas fa-film fa-3x text-white"></i>
-                    </div>
-                    {% endif %}
-                    <div class="card-body">
-                        <h6 class="card-title">{{ movie.title|truncatechars:20 }}</h6>
-                        <p class="text-muted small mb-2">
-                            <i class="fas fa-clock me-1"></i> {{ movie.duration_formatted }}
-                        </p>
-                        <a href="{% url 'movie_detail' movie.slug %}" class="btn btn-sm btn-outline-primary w-100">Details</a>
-                    </div>
+    {% for movie in featured_movies %}
+    <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6 mb-4">
+        <div class="movie-card cursor-pointer">
+            {% if movie.poster %}
+            <img src="{{ movie.poster.url }}" alt="{{ movie.title }}" class="movie-card-img">
+            {% else %}
+            <div class="movie-card-img bg-secondary d-flex align-items-center justify-content-center">
+                <i class="fas fa-film fa-4x text-white"></i>
+            </div>
+            {% endif %}
+            <div class="movie-card-body">
+                <h5 class="movie-card-title">{{ movie.title|truncatechars:20 }}</h5>
+                <div class="movie-card-genre mb-2">
+                    {% if movie.genre %}{{ movie.genre.name }}{% else %}Action{% endif %}
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="movie-card-rating">
+                        <i class="fas fa-star me-1"></i>
+                        {% if movie.rating %}{{ movie.rating|floatformat:1 }}{% else %}7.5{% endif %}
+                    </span>
+                    <a href="{% url 'movie_detail' movie.slug %}" class="btn btn-sm btn-bms-primary">Book</a>
                 </div>
             </div>
-            {% empty %}
-            <div class="col-12 text-center py-5">
-                <i class="fas fa-film fa-4x text-muted mb-3"></i>
-                <h4>No movies available yet</h4>
-                <p>Check back soon for upcoming movies!</p>
-            </div>
-            {% endfor %}
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="booking-card text-center py-5">
+            <i class="fas fa-film fa-4x text-muted mb-3"></i>
+            <h4 class="text-bms-blue">No featured movies available</h4>
+            <p class="text-muted">Check back soon for upcoming movies!</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Now Showing -->
+<div class="row mb-5">
+    <div class="col-12 d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-bms-blue">
+            <i class="fas fa-play-circle me-2"></i>Now Showing
+        </h2>
+        <div class="nav-tabs-bms">
+            <a class="nav-link active">All</a>
+            <a class="nav-link">2D</a>
+            <a class="nav-link">3D</a>
+            <a class="nav-link">IMAX</a>
         </div>
     </div>
     
-    <!-- Now Showing -->
-    <div class="container py-5 bg-light">
-        <h2 class="mb-4"><i class="fas fa-play-circle me-2"></i>Now Showing</h2>
-        <div class="row">
-            {% for movie in now_showing %}
-            <div class="col-md-3 mb-4">
-                <div class="card h-100 border-0 shadow">
-                    {% if movie.poster %}
-                    <img src="{{ movie.poster.url }}" class="card-img-top" alt="{{ movie.title }}" style="height: 300px; object-fit: cover;">
-                    {% else %}
-                    <div class="card-img-top bg-dark d-flex align-items-center justify-content-center" style="height: 300px;">
-                        <i class="fas fa-film fa-4x text-white"></i>
-                    </div>
+    {% for movie in now_showing %}
+    <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
+        <div class="movie-card">
+            {% if movie.poster %}
+            <img src="{{ movie.poster.url }}" alt="{{ movie.title }}" class="movie-card-img">
+            {% else %}
+            <div class="movie-card-img bg-dark d-flex align-items-center justify-content-center">
+                <i class="fas fa-film fa-4x text-white"></i>
+            </div>
+            {% endif %}
+            <div class="movie-card-body">
+                <h5 class="movie-card-title">{{ movie.title }}</h5>
+                <div class="d-flex align-items-center mb-3">
+                    <span class="badge bg-primary me-2">{{ movie.certificate }}</span>
+                    {% if movie.language %}
+                    <span class="badge bg-info me-2">{{ movie.language.name }}</span>
                     {% endif %}
-                    <div class="card-body">
-                        <h5 class="card-title">{{ movie.title }}</h5>
-                        <div class="mb-2">
-                            <span class="badge bg-primary">{{ movie.certificate }}</span>
-                            <span class="badge bg-info ms-1">{{ movie.language.name }}</span>
-                            <span class="badge bg-warning ms-1">{{ movie.rating }}/10</span>
-                        </div>
-                        <p class="card-text small text-muted">{{ movie.description|truncatechars:100 }}</p>
-                        <a href="{% url 'movie_detail' movie.slug %}" class="btn btn-primary w-100">
-                            <i class="fas fa-ticket-alt me-2"></i>Book Tickets
-                        </a>
+                    {% if movie.duration_formatted %}
+                    <span class="text-muted small">
+                        <i class="fas fa-clock me-1"></i> {{ movie.duration_formatted }}
+                    </span>
+                    {% endif %}
+                </div>
+                <p class="text-muted small mb-3">{{ movie.description|truncatechars:100 }}</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="movie-card-rating">
+                            <i class="fas fa-star me-1"></i>
+                            {% if movie.rating %}{{ movie.rating|floatformat:1 }}{% else %}7.5{% endif %}
+                        </span>
                     </div>
+                    <a href="{% url 'movie_detail' movie.slug %}" class="btn btn-bms-primary">
+                        <i class="fas fa-ticket-alt me-2"></i>Book Now
+                    </a>
                 </div>
             </div>
-            {% empty %}
-            <div class="col-12 text-center py-4">
-                <p class="text-muted">No movies showing currently</p>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="booking-card text-center py-4">
+            <p class="text-muted mb-0">No movies showing currently</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Genres -->
+<div class="row mb-4">
+    <div class="col-12 mb-4">
+        <h2 class="text-bms-blue">
+            <i class="fas fa-tags me-2"></i>Browse by Genre
+        </h2>
+    </div>
+    
+    {% for genre in genres %}
+    <div class="col-4 col-sm-3 col-md-2 col-lg-1 mb-3">
+        <a href="{% url 'movie_list' %}?genre={{ genre.slug }}" class="text-decoration-none">
+            <div class="booking-card text-center p-3 hover-lift">
+                <i class="{{ genre.icon }} fa-2x mb-3 text-bms-red"></i>
+                <h6 class="card-title mb-0 text-dark">{{ genre.name }}</h6>
             </div>
-            {% endfor %}
+        </a>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Special Offers -->
+<div class="row">
+    <div class="col-12 mb-4">
+        <h2 class="text-bms-blue">
+            <i class="fas fa-gift me-2"></i>Special Offers
+        </h2>
+    </div>
+    
+    <div class="col-md-4 mb-3">
+        <div class="booking-card bg-gradient" style="background: linear-gradient(135deg, var(--primary-red) 0%, #ff6b6b 100%);">
+            <div class="d-flex align-items-center">
+                <div class="rounded-circle bg-white p-3 me-3">
+                    <i class="fas fa-gift fa-2x text-bms-red"></i>
+                </div>
+                <div>
+                    <h4 class="text-white mb-1">20% OFF</h4>
+                    <p class="text-white mb-0 small">On your first booking</p>
+                    <small class="text-white opacity-75">Use code: WELCOME20</small>
+                </div>
+            </div>
         </div>
     </div>
     
-    <!-- Genres -->
-    <div class="container py-5">
-        <h2 class="mb-4"><i class="fas fa-tags me-2"></i>Browse by Genre</h2>
-        <div class="row">
-            {% for genre in genres %}
-            <div class="col-6 col-md-3 col-lg-2 mb-3">
-                <a href="{% url 'movie_list' %}?genre={{ genre.slug }}" class="text-decoration-none">
-                    <div class="card text-center border-0 shadow-sm h-100">
-                        <div class="card-body">
-                            <i class="{{ genre.icon }} fa-2x mb-3 text-primary"></i>
-                            <h6 class="card-title">{{ genre.name }}</h6>
-                        </div>
-                    </div>
-                </a>
+    <div class="col-md-4 mb-3">
+        <div class="booking-card bg-gradient" style="background: linear-gradient(135deg, var(--secondary-blue) 0%, #3a416f 100%);">
+            <div class="d-flex align-items-center">
+                <div class="rounded-circle bg-white p-3 me-3">
+                    <i class="fas fa-ticket-alt fa-2x text-bms-blue"></i>
+                </div>
+                <div>
+                    <h4 class="text-white mb-1">Buy 1 Get 1</h4>
+                    <p class="text-white mb-0 small">Every Wednesday</p>
+                    <small class="text-white opacity-75">On all movies</small>
+                </div>
             </div>
-            {% endfor %}
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-3">
+        <div class="booking-card bg-gradient" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+            <div class="d-flex align-items-center">
+                <div class="rounded-circle bg-white p-3 me-3">
+                    <i class="fas fa-crown fa-2x text-success"></i>
+                </div>
+                <div>
+                    <h4 class="text-white mb-1">Premium</h4>
+                    <p class="text-white mb-0 small">Exclusive benefits</p>
+                    <small class="text-white opacity-75">Join for free</small>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+
+<!-- Newsletter -->
+<div class="row mt-5">
+    <div class="col-12">
+        <div class="booking-card bg-bms-blue text-center text-white">
+            <h3 class="mb-3">Stay Updated</h3>
+            <p class="mb-4 opacity-75">Get the latest movie news, offers, and updates</p>
+            <div class="row justify-content-center">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <input type="email" class="form-control" placeholder="Enter your email">
+                        <button class="btn btn-bms-primary" type="button">Subscribe</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Initialize search functionality
+    document.querySelector('.search-input').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            const query = this.value.trim();
+            if (query) {
+                window.location.href = `/movies/?search=${encodeURIComponent(query)}`;
+            }
+        }
+    });
+    
+    // Add hover effects to genre cards
+    document.querySelectorAll('.hover-lift').forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px)';
+        });
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+</script>
 {% endblock %}
