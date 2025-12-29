@@ -52,3 +52,50 @@ class TransactionAdmin(admin.ModelAdmin):
     list_filter = ['status', 'payment_gateway', 'created_at']
     search_fields = ['transaction_id', 'booking__booking_number']
     readonly_fields = ['created_at']
+
+
+
+actions=['confirm_booking', 'cancel_booking', 'expire_booking']
+def confirm_payments(self, reques, queryset):
+    updated=0
+    for booking in queryset.filter(status="PENDING"):
+        booking.marks_as_confirmed(f"MANUAL-{request.user.username}")
+        updated+=1
+    self.message_user(request, f"{updated} bookings confirmed successfully.")
+confirm_payments.short_description = "Confirm selected bookings"
+
+
+
+def cancel_bookings(self, request, queryset):
+    """Cancel selected bookings"""
+    updated = 0
+    for booking in queryset.exclude(status='CANCELLED'):
+        booking.status = 'CANCELLED'
+        booking.save()
+        updated += 1
+    
+    self.message_user(request, f'{updated} bookings cancelled successfully.')
+cancel_bookings.short_description = "Cancel selected bookings"
+
+
+def export_as_csv(self, request, queryset):
+    import csv
+    from django.http import HttpResponse
+    response=HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="selected_bookings.csv"'
+    writer=csv.writer(response)
+    writer.writerow(['Booking ID', 'User', 'Movie', 'Amount', 'Status', 'Date'])    
+
+    for booking in queryset:
+        writer.writerow([
+            booking.booking_number,
+            booking.user.username,
+            booking.showtime.movie.title,
+            booking.total_amount,
+            booking.status,
+            booking.created_at.strftime('%Y-%m-%d %H:%M')
+        ])
+    return response
+
+
+export_as_csv.short_description = "Export selected bookings to CSV" 
