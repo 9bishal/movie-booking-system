@@ -1,4 +1,5 @@
 {% extends 'base/base.html' %}
+{% load embed_video_tags %}
 
 {% block title %}{{ movie.title }} - MovieBooking{% endblock %}
 
@@ -16,22 +17,51 @@
             {% endif %}
             
             {% if movie.trailer_url %}
-            <div class="mt-3">
-                <a href="{{ movie.trailer_url }}" target="_blank" class="btn btn-danger w-100">
-                    <i class="fab fa-youtube me-2"></i>Watch Trailer
-                </a>
+            <div class="mt-4">
+                <h5 class="mb-3"><i class="fab fa-youtube text-danger me-2"></i>Official Trailer</h5>
+                <div class="ratio ratio-16x9 shadow rounded overflow-hidden">
+                    {% video movie.trailer_url 'small' %}
+                </div>
             </div>
             {% endif %}
         </div>
         
         <div class="col-md-8">
-            <h1 class="display-5 fw-bold">{{ movie.title }}</h1>
+            <div class="mb-4">
+                <h1 class="display-4 fw-bold">{{ movie.title }}</h1>
+                <div class="d-flex flex-wrap align-items-center gap-3 mt-3">
+                    <!-- Interest Button -->
+                    <button class="btn btn-primary px-4 py-2 rounded-pill shadow-sm d-flex align-items-center gap-2 interest-btn {% if is_interested %}active{% else %}btn-outline-primary{% endif %}" 
+                            onclick="toggleInterest(this, '{{ movie.id }}')">
+                        <i class="{% if is_interested %}fas{% else %}far{% endif %} fa-thumbs-up fs-5"></i>
+                        <span class="fw-bold">{% if is_interested %}Interested{% else %}Interested?{% endif %}</span>
+                    </button>
+
+                    <!-- Wishlist Button -->
+                    <button class="btn btn-outline-danger px-4 py-2 rounded-pill shadow-sm d-flex align-items-center gap-2 wishlist-btn {% if in_wishlist %}active bg-danger text-white{% endif %}" 
+                            onclick="toggleWishlist(this, '{{ movie.id }}')">
+                        <i class="{% if in_wishlist %}fas{% else %}far{% endif %} fa-heart fs-5"></i>
+                        <span class="fw-bold">{% if in_wishlist %}In Watchlist{% else %}Watch Later{% endif %}</span>
+                    </button>
+
+                    <div class="text-muted d-flex align-items-center ms-lg-2">
+                        <div class="bg-primary bg-opacity-10 text-primary p-2 rounded-circle me-2 d-flex align-items-center justify-content-center" style="width: 35px; height: 35px;">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <span class="fw-bold text-dark me-1 interest-count-{{ movie.id }}">{{ movie.interest_count }}</span> Count Interested
+                    </div>
+                </div>
+            </div>
             
             <div class="mb-3">
                 <span class="badge bg-primary fs-6">{{ movie.certificate }}</span>
                 <span class="badge bg-info fs-6 ms-2">{{ movie.language.name }}</span>
-                <span class="badge bg-warning fs-6 ms-2">{{ movie.rating }}/10 <i class="fas fa-star"></i></span>
-                <span class="badge bg-secondary fs-6 ms-2">{{ movie.duration_formatted }}</span>
+                <span class="badge bg-warning text-dark fs-6 ms-2">
+                    <i class="fas fa-star me-1"></i>{{ movie.rating|floatformat:1 }}/10
+                </span>
+                <span class="badge bg-secondary fs-6 ms-2">
+                    <i class="far fa-clock me-1"></i>{{ movie.duration_formatted }}
+                </span>
             </div>
             
             <p class="lead">{{ movie.description }}</p>
@@ -76,11 +106,17 @@
                     {% for theater_data in city_data.theaters %}
                     <div class="card mb-3 border">
                         <div class="card-body">
-                            <h6 class="card-title">{{ theater_data.theater.name }}</h6>
+                            <h6 class="card-title fw-bold">
+                                {{ theater_data.theater.name }}
+                                <a href="https://www.google.com/maps/search/?api=1&query={{ theater_data.theater.name|urlencode }}+{{ theater_data.theater.address|urlencode }}" 
+                                   target="_blank" class="ms-2 text-primary small text-decoration-none" title="View on Maps">
+                                    <i class="fas fa-map-marked-alt"></i>
+                                </a>
+                            </h6>
                             <p class="text-muted small mb-3">
-                                <i class="fas fa-map-pin me-1"></i>{{ theater_data.theater.address }}
+                                <i class="fas fa-map-pin me-1 text-danger"></i>{{ theater_data.theater.address }}
                                 {% if theater_data.theater.contact_number %}
-                                <br><i class="fas fa-phone me-1"></i>{{ theater_data.theater.contact_number }}
+                                <br><i class="fas fa-phone me-1 text-success"></i>{{ theater_data.theater.contact_number }}
                                 {% endif %}
                             </p>
                             
@@ -128,6 +164,221 @@
             {% endif %}
         </div>
     </div>
+
+    <!-- User Reviews Section -->
+    <div class="row mt-5">
+        <div class="col-md-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="mb-0"><i class="fas fa-comments me-2"></i>User Reviews</h3>
+                {% if user.is_authenticated and not user_review %}
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addReviewModal">
+                    <i class="fas fa-plus me-2"></i>Write a Review
+                </button>
+                {% endif %}
+            </div>
+
+            {% if user_review %}
+            <div class="card border-primary mb-4 shadow-sm">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <span class="fw-bold">Your Review</span>
+                    <button class="btn btn-sm btn-light" data-bs-toggle="modal" data-bs-target="#addReviewModal">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <h5 class="card-title mb-0">{{ user_review.title }}</h5>
+                        <span class="badge bg-warning text-dark">
+                            <i class="fas fa-star me-1"></i>{{ user_review.rating }}/10
+                        </span>
+                    </div>
+                    <p class="card-text">{{ user_review.content }}</p>
+                    <small class="text-muted">Posted on {{ user_review.created_at|date:"F d, Y" }}</small>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if reviews %}
+                {% for review in reviews %}
+                {% if review.user != user %}
+                <div class="card mb-3 border-0 shadow-sm review-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 40px; height: 40px;">
+                                    {{ review.user.username|first|upper }}
+                                </div>
+                                <div>
+                                    <h6 class="mb-0 fw-bold">{{ review.user.username }}</h6>
+                                    <small class="text-muted">{{ review.created_at|timesince }} ago</small>
+                                </div>
+                            </div>
+                            <span class="badge bg-warning text-dark">
+                                <i class="fas fa-star me-1"></i>{{ review.rating }}/10
+                            </span>
+                        </div>
+                        <h5 class="card-title">{{ review.title }}</h5>
+                        <p class="card-text">{{ review.content }}</p>
+                        
+                        <!-- Review Actions (Likes) -->
+                        <div class="d-flex align-items-center mt-3 pt-3 border-top">
+                            <button class="btn btn-sm btn-outline-secondary me-3 review-like-btn" 
+                                    onclick="likeReview('{{ review.id }}', true, this)">
+                                <i class="far fa-thumbs-up me-1"></i> 
+                                <span class="likes-count">{{ review.likes }}</span>
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary review-dislike-btn" 
+                                    onclick="likeReview('{{ review.id }}', false, this)">
+                                <i class="far fa-thumbs-down me-1"></i> 
+                                <span class="dislikes-count">{{ review.dislikes }}</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+            {% else %}
+                {% if not user_review %}
+                <div class="text-center py-5 bg-light rounded">
+                    <i class="far fa-comment-dots fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">No reviews yet. Be the first to share your experience!</p>
+                </div>
+                {% endif %}
+            {% endif %}
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Movie Rating</h5>
+                    <div class="text-center">
+                        <h1 class="display-3 fw-bold text-primary mb-0">{{ movie.rating|floatformat:1 }}</h1>
+                        <div class="text-warning mb-2">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star-half-alt"></i>
+                        </div>
+                        <p class="text-muted small">Based on {{ movie.rating_count }} reviews</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Review Modal -->
+    <div class="modal fade" id="addReviewModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form action="{% url 'add_review' movie.id %}" method="POST">
+                    {% csrf_token %}
+                    <div class="modal-header">
+                        <h5 class="modal-title">Write a Review</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Your Rating (1-10)</label>
+                            <input type="range" name="rating" class="form-range" min="1" max="10" step="1" 
+                                   value="{{ user_review.rating|default:8 }}" oninput="this.nextElementSibling.value = this.value">
+                            <output class="fw-bold text-primary">{{ user_review.rating|default:8 }}</output>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Review Headline</label>
+                            <input type="text" name="title" class="form-control" placeholder="Summarize your experience" 
+                                   value="{{ user_review.title|default:'' }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Review Details</label>
+                            <textarea name="content" class="form-control" rows="4" placeholder="What did you like or dislike?" 
+                                      required>{{ user_review.content|default:'' }}</textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Submit Review</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recommendations Section -->
+    <div class="row mt-5">
+        <div class="col-12 mb-4">
+            <h3 class="fw-bold px-2 py-1 border-start border-primary border-4">You Might Also Like</h3>
+        </div>
+        {% for rec in recommended_movies %}
+        <div class="col-6 col-md-3 mb-4">
+            <div class="card h-100 movie-card-mini shadow-sm border-0 cursor-pointer overflow-hidden rounded-3" onclick="window.location.href='{{ rec.get_absolute_url }}'">
+                <img src="{% if rec.poster %}{{ rec.poster.url }}{% else %}/static/images/default-poster.jpg{% endif %}" class="card-img-top" style="height: 250px; object-fit: cover;">
+                <div class="card-body p-2">
+                    <h6 class="card-title text-truncate mb-1 fw-bold">{{ rec.title }}</h6>
+                    <div class="d-flex justify-content-between align-items-center small">
+                        <span class="text-warning"><i class="fas fa-star pe-1"></i>{{ rec.rating }}</span>
+                        <span class="text-muted">{{ rec.release_date|date:"Y" }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <p class="text-muted ps-3">No recommendations found.</p>
+        {% endfor %}
+    </div>
+
+    <!-- Recently Added Section -->
+    <div class="row mt-5 mb-5">
+        <div class="col-12 mb-4">
+            <h3 class="fw-bold px-2 py-1 border-start border-primary border-4">Recently Added</h3>
+        </div>
+        {% for recent in recently_added %}
+        <div class="col-6 col-md-3 mb-4">
+            <div class="card h-100 movie-card-mini shadow-sm border-0 cursor-pointer overflow-hidden rounded-3" onclick="window.location.href='{{ recent.get_absolute_url }}'">
+                <img src="{% if recent.poster %}{{ recent.poster.url }}{% else %}/static/images/default-poster.jpg{% endif %}" class="card-img-top" style="height: 250px; object-fit: cover;">
+                <div class="card-body p-2">
+                    <h6 class="card-title text-truncate mb-1 fw-bold">{{ recent.title }}</h6>
+                    <div class="d-flex justify-content-between align-items-center small">
+                        <span class="text-warning"><i class="fas fa-star pe-1"></i>{{ recent.rating }}</span>
+                        <span class="text-muted">{{ recent.language.name }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <script>
+        async function likeReview(reviewId, isLike, btn) {
+            const response = await fetch(`/review/${reviewId}/like/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken'),
+                },
+                body: JSON.stringify({ is_like: isLike })
+            });
+            const data = await response.json();
+            if (data.success) {
+                const card = btn.closest('.review-card') || btn.closest('.card');
+                card.querySelector('.likes-count').textContent = data.likes;
+                card.querySelector('.dislikes-count').textContent = data.dislikes;
+                
+                // Toggle active states
+                if (isLike) {
+                    btn.classList.toggle('btn-primary');
+                    btn.classList.toggle('btn-outline-secondary');
+                    btn.querySelector('i').classList.toggle('fas');
+                    btn.querySelector('i').classList.toggle('far');
+                } else {
+                    btn.classList.toggle('btn-danger');
+                    btn.classList.toggle('btn-outline-secondary');
+                    btn.querySelector('i').classList.toggle('fas');
+                    btn.querySelector('i').classList.toggle('far');
+                }
+            }
+        }
+    </script>
     
     <!-- Back to Movies -->
     <div class="mt-4 text-center">

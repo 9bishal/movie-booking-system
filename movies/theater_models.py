@@ -1,5 +1,4 @@
 from django.db import models
-from .models import Movie
 from django.utils.text import slugify
 
 # ========== CITY MODEL ==========
@@ -85,7 +84,7 @@ class Screen(models.Model):
 # The most complex model: links a Movie, a Screen, and a Time.
 # This represents an actual show that users can book.
 class Showtime(models.Model):
-    movie = models.ForeignKey(Movie, on_delete=models.CASCADE)
+    movie = models.ForeignKey('movies.Movie', on_delete=models.CASCADE)
     screen = models.ForeignKey(Screen, on_delete=models.CASCADE)
     
     # Date and Time are stored separately for easier filtering (e.g., "All shows today").

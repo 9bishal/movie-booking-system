@@ -1,0 +1,18 @@
+<div class="row mb-4">
+    <div class="col-12 mb-4">
+        <h2 class="text-bms-blue">
+            <i class="fas fa-tags me-2"></i>Browse by Genre
+        </h2>
+    </div>
+    
+    {% for genre in genres %}
+    <div class="col-4 col-sm-3 col-md-2 col-lg-1 mb-3">
+        <a href="{% url 'movie_list' %}?genre={{ genre.slug }}" class="text-decoration-none">
+            <div class="booking-card text-center p-3 hover-lift">
+                <i class="{{ genre.icon }} fa-2x mb-3 text-bms-red"></i>
+                <h6 class="card-title mb-0 text-dark">{{ genre.name }}</h6>
+            </div>
+        </a>
+    </div>
+    {% endfor %}
+</div>

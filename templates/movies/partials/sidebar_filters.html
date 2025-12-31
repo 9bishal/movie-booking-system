@@ -1,0 +1,58 @@
+<div class="col-md-3 col-lg-2 bg-light p-4">
+    <h4><i class="fas fa-filter me-2"></i>Filters</h4>
+    <hr>
+    
+    <!-- Search -->
+    <div class="mb-4">
+        <h6>Search</h6>
+        <form method="GET" action="{% url 'movie_list' %}">
+            <div class="input-group">
+                <input type="text" name="q" class="form-control" placeholder="Search movies..." value="{{ query }}">
+                <button class="btn btn-outline-primary" type="submit">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Genres -->
+    <div class="mb-4">
+        <h6>Genres</h6>
+        <div class="list-group">
+            <a href="{% url 'movie_list' %}" 
+               class="list-group-item list-group-item-action {% if not selected_genre %}active{% endif %}">
+                All Genres
+            </a>
+            {% for genre in genres %}
+            <a href="{% url 'movie_list' %}?genre={{ genre.slug }}" 
+               class="list-group-item list-group-item-action {% if selected_genre == genre.slug %}active{% endif %}">
+                <i class="{{ genre.icon }} me-2"></i>{{ genre.name }}
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- Languages -->
+    <div class="mb-4">
+        <h6>Languages</h6>
+        <div class="list-group">
+            <a href="{% url 'movie_list' %}" 
+               class="list-group-item list-group-item-action {% if not selected_language %}active{% endif %}">
+                All Languages
+            </a>
+            {% for language in languages %}
+            <a href="{% url 'movie_list' %}?language={{ language.code }}" 
+               class="list-group-item list-group-item-action {% if selected_language == language.code %}active{% endif %}">
+                {{ language.name }}
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- Clear Filters -->
+    {% if selected_genre or selected_language or query %}
+    <a href="{% url 'movie_list' %}" class="btn btn-outline-danger w-100">
+        <i class="fas fa-times me-2"></i>Clear Filters
+    </a>
+    {% endif %}
+</div>

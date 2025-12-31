@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils.text import slugify
 
+from embed_video.fields import EmbedVideoField
 # ========== GENRE MODEL ==========
 # This model acts as a lookup table for movie genres.
 # Using a separate model allows us to manage genres dynamically in the Admin panel.
@@ -46,7 +47,6 @@ class Language(models.Model):
 class Movie(models.Model):
     """Main movie model"""
     title = models.CharField(max_length=200)
-    
     # Unique slug for SEO-friendly movie detail URLs (e.g., /movies/titanic-1997/)
     slug = models.SlugField(max_length=200, unique=True)
     
@@ -63,6 +63,12 @@ class Movie(models.Model):
         ('R', 'R - Restricted'),
     ], default='UA')
     
+    status = models.CharField(max_length=20, choices=[
+        ('now_showing', 'Now Showing'),
+        ('coming_soon', 'Coming Soon'),
+        ('expired', 'Expired'),
+    ], default='now_showing')
+
     rating = models.FloatField(default=0.0)  # IMDb style rating
     
     # ImageField requires the 'Pillow' library. 'upload_to' defines the subdirectory in MEDIA_ROOT.
@@ -110,7 +116,49 @@ class Movie(models.Model):
     def get_genres_list(self):
         """Return comma separated genres string for display"""
         return ", ".join([genre.name for genre in self.genres.all()])
-    
+
+    # Add rating count
+    rating_count = models.IntegerField(default=0)
+    total_rating = models.FloatField(default=0.0)
+
+    @property
+    def youtube_id(self):
+        import re
+        pattern = r'(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})'
+        match = re.search(pattern, self.trailer_url)
+        if match:
+            return match.group(1)
+        return None 
+
+    def update_rating(self, new_rating):
+        self.total_rating += new_rating
+        self.rating_count += 1
+        self.rating = self.total_rating / self.rating_count
+        self.save()
+
+    def get_average_rating(self):
+        """Get average rating with one decimal"""
+        if self.rating_count > 0:
+            return round(self.total_rating / self.rating_count, 1)
+        return 0.0
+    def get_rating_percentage(self):
+        """Get rating as percentage for stars"""
+        return (self.rating / 10) * 100 if self.rating else 0
+
+    def get_absolute_url(self):
+        from django.urls import reverse
+        return reverse('movie_detail', kwargs={'slug': self.slug})
+
+    @property
+    def wishlist_count(self):
+        """Return the number of times this movie is in wishlists"""
+        return self.wishlisted_by.count()
+
+    @property
+    def interest_count(self):
+        """Return the number of times this movie is marked as interested"""
+        return self.interests.count()
+
     class Meta:
         # Default ordering: Newest releases first, then alphabetical by title
         ordering = ['-release_date', 'title']

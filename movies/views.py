@@ -1,8 +1,17 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView, DetailView
 from .models import Movie, Genre, Language
 from .theater_models import City, Showtime
 from django.db.models import Q
+from .reviews_models import Review, ReviewLike, Wishlist, Interest
+from django.contrib import messages
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
+from embed_video.backends import detect_backend
+from django.core.cache import cache
+
 
 # ==============================================================================
 # ❓ WHAT ARE VIEWS?
@@ -20,50 +29,38 @@ def movie_list(request):
     movies = Movie.objects.filter(is_active=True).order_by('-release_date')
     
     # Get filters from request (e.g., /movies/?genre=action)
-    genre_filter = request.GET.get('genre', '')
-    language_filter = request.GET.get('language', '')
-    search_query = request.GET.get('search', '')
+    query = request.GET.get('q', '') # General search query
     
-    # Apply filters
-    if genre_filter:
-        # Django 'Double Underscore' syntax (__) allows us to query related fields.
-        # Here we check if the genres' slug matches the filter.
-        movies = movies.filter(genres__slug=genre_filter)
+    # 1. Search Query
     
-    if language_filter:
-        movies = movies.filter(language__code=language_filter)
-    
-    # ❓ WHY USE Q Objects?
-    # Standard filter() arguments are "AND"ed together (e.g. title="X" AND year=2024).
-    # 'Q' objects allow us to use "OR" logic (|).
-    # Here we search if the query is in the Title OR Description OR Director OR Cast.
-    if search_query:
+    if query:
         movies = movies.filter(
-            Q(title__icontains=search_query) |
-            Q(description__icontains=search_query) |
-            Q(director__icontains=search_query) |
-            Q(cast__icontains=search_query)
+            Q(title__icontains=query) |
+            Q(description__icontains=query) |
+            Q(director__icontains=query) |
+            Q(cast__icontains=query)
         )
     
-    # Get all genres and languages for filter sidebar
-    genres = Genre.objects.all()
-    languages = Language.objects.all()
-    
-    # ❓ WHAT IS CONTEXT?
-    # Context is a dictionary that passes data from this Python file
-    # to the HTML template. The keys ('movies') are what you access in HTML tags ({{ movies }}).
+    # Get user's wishlist and interests if logged in
+    user_wishlist = set()
+    user_interests = set()
+    if request.user.is_authenticated:
+        user_wishlist = set(Wishlist.objects.filter(user=request.user).values_list('movie_id', flat=True))
+        user_interests = set(Interest.objects.filter(user=request.user).values_list('movie_id', flat=True))
+
     context = {
         'movies': movies,
-        'genres': genres,
-        'languages': languages,
-        'selected_genre': genre_filter,
-        'selected_language': language_filter,
-        'search_query': search_query,
+        'genres': Genre.objects.all(),
+        'languages': Language.objects.all(),
+        'selected_genre': request.GET.get('genre', ''),
+        'selected_language': request.GET.get('language', ''),
+        'query': query,
+        'user_wishlist': user_wishlist,
+        'user_interests': user_interests,
     }
     
-    # render() combines the request, the template, and the data (context)
-    # to produce the final HTML page sent to the user.
     return render(request, 'movies/movie_list.html', context)
+
 
 # ========== MOVIE DETAIL VIEW ==========
 def movie_detail(request, slug):
@@ -105,10 +102,36 @@ def movie_detail(request, slug):
                 'theaters': list(theaters.values())
             })
     
+    in_wishlist = False
+    is_interested = False
+    user_review = None
+    if request.user.is_authenticated:
+        in_wishlist = Wishlist.objects.filter(user=request.user, movie=movie).exists()
+        is_interested = Interest.objects.filter(user=request.user, movie=movie).exists()
+        user_review = Review.objects.filter(user=request.user, movie=movie).first()
+
+    # Get reviews for this movie
+    reviews = Review.objects.filter(movie=movie).order_by('-created_at')
+
+    # Get recommended movies (same genre, excluding current)
+    recommended_movies = Movie.objects.filter(
+        genres__in=movie.genres.all(),
+        is_active=True
+    ).exclude(id=movie.id).distinct()[:4]
+
+    # Get recently added movies
+    recently_added = Movie.objects.filter(is_active=True).order_by('-created_at').exclude(id=movie.id)[:4]
+
     context = {
         'movie': movie,
         'cities_with_showtimes': cities_with_showtimes,
         'genres': movie.genres.all(),
+        'in_wishlist': in_wishlist,
+        'is_interested': is_interested,
+        'reviews': reviews,
+        'user_review': user_review,
+        'recommended_movies': recommended_movies,
+        'recently_added': recently_added,
     }
     
     return render(request, 'movies/movie_detail.html', context)
@@ -138,10 +161,330 @@ def home(request):
     # Get all genres
     genres = Genre.objects.all()[:10]
     
+    # Get user's wishlist and interests if logged in
+    user_wishlist = set()
+    user_interests = set()
+    if request.user.is_authenticated:
+        user_wishlist = set(Wishlist.objects.filter(user=request.user).values_list('movie_id', flat=True))
+        user_interests = set(Interest.objects.filter(user=request.user).values_list('movie_id', flat=True))
+    
     context = {
         'featured_movies': featured_movies,
         'now_showing': now_showing,
         'genres': genres,
+        'user_wishlist': user_wishlist,
+        'user_interests': user_interests,
     }
     
     return render(request, 'movies/home.html', context)
+
+
+
+
+
+
+
+
+# ========== MOVIE TRAILER VIEW ==========
+def movie_trailer(request, slug):
+    """Movie detail page with embedded trailer"""
+    movie = get_object_or_404(Movie, slug=slug, is_active=True)
+    
+    # Get trailer backend
+    trailer = None
+    if movie.trailer_url:
+        backend = detect_backend(movie.trailer_url)
+        trailer = {
+            'url': movie.trailer_url,
+            'backend': backend,
+            'youtube_id': movie.youtube_id,
+        }
+    
+    # Get showtimes
+    showtimes = Showtime.objects.filter(
+        movie=movie,
+        is_active=True,
+        date__gte=timezone.now().date()
+    ).order_by('date', 'start_time')[:10]
+    
+    # Get reviews
+    reviews = Review.objects.filter(movie=movie).order_by('-created_at')[:5]
+    
+    # Check if user has reviewed
+    user_review = None
+    if request.user.is_authenticated:
+        user_review = Review.objects.filter(user=request.user, movie=movie).first()
+    
+    # Check if in wishlist
+    in_wishlist = False
+    if request.user.is_authenticated:
+        in_wishlist = Wishlist.objects.filter(user=request.user, movie=movie).exists()
+    
+    context = {
+        'movie': movie,
+        'trailer': trailer,
+        'showtimes': showtimes,
+        'reviews': reviews,
+        'user_review': user_review,
+        'in_wishlist': in_wishlist,
+        'genres': movie.genres.all(),
+    }
+    
+    return render(request, 'movies/movie_trailer.html', context)
+
+
+
+@login_required
+def toggle_wishlist(request, movie_id):
+    """Add/remove movie from wishlist"""
+    movie = get_object_or_404(Movie, id=movie_id)
+    
+    if request.method == 'POST':
+        wishlist_item, created = Wishlist.objects.get_or_create(
+            user=request.user,
+            movie=movie
+        )
+        
+        if not created:
+            wishlist_item.delete()
+            message = f'Removed {movie.title} from wishlist'
+            action = 'removed'
+        else:
+            message = f'Added {movie.title} to wishlist'
+            action = 'added'
+        
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': True,
+                'action': action,
+                'message': message,
+                'wishlist_count': movie.wishlist_count,
+            })
+        
+        messages.success(request, message)
+        return redirect('movie_detail', slug=movie.slug)
+    
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
+@login_required
+def toggle_interest(request, movie_id):
+    """Add/remove movie from interest list"""
+    movie = get_object_or_404(Movie, id=movie_id)
+    
+    if request.method == 'POST':
+        interest_item, created = Interest.objects.get_or_create(
+            user=request.user,
+            movie=movie
+        )
+        
+        if not created:
+            interest_item.delete()
+            message = f'No longer interested in {movie.title}'
+            action = 'removed'
+        else:
+            message = f'Marked {movie.title} as interested'
+            action = 'added'
+        
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': True,
+                'action': action,
+                'message': message,
+                'interest_count': movie.interest_count,
+            })
+        
+        messages.success(request, message)
+        return redirect('movie_detail', slug=movie.slug)
+    
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
+@login_required
+def wishlist_view(request):
+    """User's wishlist"""
+    wishlist_items = Wishlist.objects.filter(user=request.user).select_related('movie')
+    
+    user_wishlist = set(wishlist_items.values_list('movie_id', flat=True))
+    
+    context = {
+        'wishlist_items': wishlist_items,
+        'user_wishlist': user_wishlist,
+    }
+    
+    return render(request, 'movies/wishlist.html', context)
+
+# ========== REVIEW VIEWS ==========
+@login_required
+def add_review(request, movie_id):
+    """Add or update review"""
+    movie = get_object_or_404(Movie, id=movie_id)
+    
+    if request.method == 'POST':
+        rating = request.POST.get('rating')
+        title = request.POST.get('title')
+        content = request.POST.get('content')
+        
+        if not all([rating, title, content]):
+            messages.error(request, 'Please fill all fields')
+            return redirect('movie_trailer', slug=movie.slug)
+        
+        # Create or update review
+        review, created = Review.objects.update_or_create(
+            user=request.user,
+            movie=movie,
+            defaults={
+                'rating': rating,
+                'title': title,
+                'content': content,
+            }
+        )
+        
+        message = 'Review updated!' if not created else 'Review added successfully!'
+        messages.success(request, message)
+        
+        return redirect('movie_trailer', slug=movie.slug)
+    
+    return redirect('movie_trailer', slug=movie.slug)
+
+@csrf_exempt
+@login_required
+def like_review(request, review_id):
+    """Like or dislike a review"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            review = Review.objects.get(id=review_id)
+            is_like = data.get('is_like', True)
+            
+            # Check if user already liked/disliked
+            existing_like = ReviewLike.objects.filter(
+                user=request.user,
+                review=review
+            ).first()
+            
+            if existing_like:
+                if existing_like.is_like == is_like:
+                    # Remove like/dislike
+                    existing_like.delete()
+                    if is_like:
+                        review.likes -= 1
+                    else:
+                        review.dislikes -= 1
+                    action = 'removed'
+                else:
+                    # Change like to dislike or vice versa
+                    existing_like.is_like = is_like
+                    existing_like.save()
+                    if is_like:
+                        review.likes += 1
+                        review.dislikes -= 1
+                    else:
+                        review.likes -= 1
+                        review.dislikes += 1
+                    action = 'changed'
+            else:
+                # New like/dislike
+                ReviewLike.objects.create(
+                    user=request.user,
+                    review=review,
+                    is_like=is_like
+                )
+                if is_like:
+                    review.likes += 1
+                else:
+                    review.dislikes += 1
+                action = 'added'
+            
+            review.save()
+            return JsonResponse({
+                'success': True,
+                'action': action,
+                'likes': review.likes,
+                'dislikes': review.dislikes
+            })
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+    return JsonResponse({'success': False, 'error': 'Invalid request'})
+
+# ========== AUTOCOMPLETE API ==========
+def movie_autocomplete(request):
+    """Autocomplete for search"""
+    query = request.GET.get('q', '')
+    
+    if not query or len(query) < 2:
+        return JsonResponse({'results': []})
+    
+    # Cache autocomplete results
+    cache_key = f'autocomplete_{query.lower()}'
+    results = cache.get(cache_key)
+    
+    if not results:
+        movies = Movie.objects.filter(
+            Q(title__icontains=query) |
+            Q(cast__icontains=query) |
+            Q(director__icontains=query),
+            is_active=True
+        )[:10]
+        
+        results = [
+            {
+                'id': movie.id,
+                'title': movie.title,
+                'year': movie.release_date.year,
+                'rating': movie.rating,
+                'poster_url': movie.poster.url if movie.poster else '',
+                'url': movie.get_absolute_url(),
+            }
+            for movie in movies
+        ]
+        
+        cache.set(cache_key, results, timeout=300)  # Cache for 5 minutes
+    
+    return JsonResponse({'results': results})
+
+# ========== YOUTUBE TRAILER SEARCH (Optional) ==========
+def search_youtube_trailer(request, movie_id):
+    """Search YouTube for movie trailer (admin only)"""
+    if not request.user.is_staff:
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
+    
+    movie = get_object_or_404(Movie, id=movie_id)
+    
+    import requests
+    
+    search_query = f"{movie.title} {movie.release_date.year} official trailer"
+    api_key = settings.YOUTUBE_API_KEY
+    
+    if not api_key:
+        return JsonResponse({'error': 'YouTube API key not configured'})
+    
+    try:
+        # Search YouTube
+        url = f"https://www.googleapis.com/youtube/v3/search"
+        params = {
+            'part': 'snippet',
+            'q': search_query,
+            'key': api_key,
+            'maxResults': 5,
+            'type': 'video',
+        }
+        
+        response = requests.get(url, params=params)
+        data = response.json()
+        
+        videos = []
+        for item in data.get('items', []):
+            video_id = item['id']['videoId']
+            title = item['snippet']['title']
+            thumbnail = item['snippet']['thumbnails']['high']['url']
+            
+            videos.append({
+                'video_id': video_id,
+                'title': title,
+                'thumbnail': thumbnail,
+                'url': f'https://www.youtube.com/watch?v={video_id}',
+            })
+        
+        return JsonResponse({'videos': videos})
+        
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)

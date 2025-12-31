@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -511,6 +512,57 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        /* Autocomplete Results Box */
+        .autocomplete-results {
+            position: absolute;
+            width: 100%;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            z-index: 1000;
+            max-height: 400px;
+            overflow-y: auto;
+            display: none;
+            text-align: left;
+        }
+        
+        .autocomplete-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            border-bottom: 1px solid #f1f5f9;
+            cursor: pointer;
+            transition: background 0.2s;
+            color: var(--text-dark);
+        }
+        
+        .autocomplete-item:hover {
+            background: #f7fafc;
+        }
+        
+        .autocomplete-item:last-child {
+            border-bottom: none;
+        }
+        
+        .autocomplete-poster {
+            width: 45px;
+            height: 65px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-right: 15px;
+        }
+
+        .autocomplete-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 2px;
+        }
+
+        /* Wishlist button active state */
+        .btn-icon.active i {
+            font-weight: 900;
+            color: var(--primary-red) !important;
+        }
     </style>
 </head>
 <body>
@@ -551,6 +603,11 @@
                 
                 <ul class="navbar-nav align-items-center">
                     {% if user.is_authenticated %}
+                    <li class="nav-item me-3">
+                        <a class="nav-link-bms nav-link position-relative" href="{% url 'wishlist' %}" title="My Wishlist">
+                            <i class="fas fa-heart text-danger fs-5"></i>
+                        </a>
+                    </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link-bms nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
                             <i class="fas fa-user-circle me-2" style="font-size: 1.2rem;"></i>
@@ -712,15 +769,11 @@
         });
     </script>
     
+    <!-- Global Custom Scripts -->
+    <script src="{% static 'js/main.js' %}"></script>
+    
     {% block extra_scripts %}
     <!-- Page-specific scripts go here -->
     {% endblock %}
 </body>
 </html>
-
-<!-- In the navbar (around line 40), add this: -->
-<li class="nav-item">
-    <a class="nav-link" href="{% url 'my_bookings' %}">
-        <i class="fas fa-ticket-alt me-1"></i>My Bookings
-    </a>
-</li>
