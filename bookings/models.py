@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from movies.theater_models import Showtime
 import uuid 
 from django.utils import timezone
+from decimal import Decimal
 
 # ==============================================================================
 # 💡 DATA MODELING CONCEPTS
@@ -79,10 +80,18 @@ class Booking(models.Model):
             self.total_amount=self.base_price + self.convenience_fee + self.tax_amount
             
         if self.status == 'PENDING' and not self.expires_at:
-            # Reserve seats for 10 minutes only
-            self.expires_at = timezone.now() + timezone.timedelta(minutes=10)
+            # Reserve seats based on settings timeout
+            from django.conf import settings
+            timeout = getattr(settings, 'SEAT_RESERVATION_TIMEOUT', 600)
+            self.expires_at = timezone.now() + timezone.timedelta(seconds=timeout)
         
         super().save(*args, **kwargs)
+
+    def get_seats_display(self):
+        """Return seats as a comma-separated string"""
+        if isinstance(self.seats, list):
+            return ", ".join(self.seats)
+        return str(self.seats)
 
     def get_formatted_total(self):
         return f"₹{self.total_amount:.2f}"

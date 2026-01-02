@@ -259,5 +259,6 @@ class PriceCalculator:
         return {
             'base_price': round(base_price, 2),
             'convenience_fee': convenience_fee,
+            'tax_amount': round(tax_amount, 2),
             'total_amount': round(total_amount, 2),
         }

@@ -16,6 +16,13 @@ urlpatterns = [
     path('', include('movies.urls')),  # Include movies app URLs (handles home page)
 ]
 
-# Serve media files in development
+# Serve media files and Debug Toolbar in development
 if settings.DEBUG:
+    try:
+        import debug_toolbar
+        urlpatterns = [
+            path('__debug__/', include(debug_toolbar.urls)),
+        ] + urlpatterns
+    except ImportError:
+        pass
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

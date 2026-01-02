@@ -134,7 +134,17 @@ async function initiateRazorpayCheckout(data) {
             "name": "{{ user.username }}",
             "email": "{{ user.email }}"
         },
-        "theme": { "color": "#0d6efd" }
+        "theme": { "color": "#0d6efd" },
+        "modal": {
+            "ondismiss": function() {
+                // 🔄 WHY: User Experience. 
+                // If they close the modal, they might want to try again or click 'Change Seats'.
+                // We must re-enable the button so they aren't stuck.
+                const btn = document.getElementById('confirm-booking-btn');
+                btn.disabled = false;
+                btn.innerHTML = 'Proceed to pay with Razorpay <i class="fas fa-arrow-right ms-2"></i>';
+            }
+        }
     };
 
     if (data.is_mock) {

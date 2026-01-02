@@ -12,8 +12,8 @@ class Dashboard {
     }
     
     init() {
-        // Load initial data
-        this.loadRevenueData();
+        // Load initial data (default 30 days)
+        this.loadRevenueData(30);
         this.loadUserData();
         this.loadMovieData();
         this.loadTheaterData();
@@ -56,9 +56,9 @@ class Dashboard {
         }
     }
     
-    async loadRevenueData() {
+    async loadRevenueData(days = 30) {
         try {
-            const response = await fetch('/admin/dashboard/api/revenue-data/');
+            const response = await fetch(`/admin/dashboard/api/revenue-data/?days=${days}`);
             const data = await response.json();
             
             this.updateStats(data);
@@ -419,8 +419,17 @@ class Dashboard {
     }
     
     updateDateRange(range) {
-        console.log('Update date range to:', range);
-        // Placeholder for date range filtering logic
+        const days = parseInt(range);
+        if (isNaN(days)) return;
+        
+        // Update UI dropdown text
+        const dropdownBtn = document.querySelector('.dropdown-toggle');
+        if (dropdownBtn) {
+            dropdownBtn.innerHTML = `<i class="fas fa-calendar me-2"></i>Last ${days} Days`;
+        }
+        
+        // Reload revenue data with new range
+        this.loadRevenueData(days);
     }
     
     updateRevenueChart(type) {

@@ -16,6 +16,7 @@ class BookingAdmin(admin.ModelAdmin):
     list_display = ['booking_number', 'user', 'showtime', 'total_seats', 'total_amount', 'status', 'created_at', 'payment_status']
     list_filter = ['status', 'created_at', 'showtime__movie']
     search_fields = ['booking_number', 'user__username', 'showtime__movie__title']
+    actions = ['confirm_payments', 'cancel_bookings', 'export_as_csv']
     
     # ❓ WHY readonly?
     # Booking ID and timestamps are system-generated. Editing them manually destroys data integrity.
@@ -55,47 +56,49 @@ class TransactionAdmin(admin.ModelAdmin):
 
 
 
-actions=['confirm_booking', 'cancel_booking', 'expire_booking']
-def confirm_payments(self, reques, queryset):
-    updated=0
-    for booking in queryset.filter(status="PENDING"):
-        booking.marks_as_confirmed(f"MANUAL-{request.user.username}")
-        updated+=1
-    self.message_user(request, f"{updated} bookings confirmed successfully.")
-confirm_payments.short_description = "Confirm selected bookings"
+    @admin.action(description="Confirm selected bookings")
+    def confirm_payments(self, request, queryset):
+        from django.utils import timezone
+        updated = 0
+        for booking in queryset.filter(status="PENDING"):
+            booking.status = 'CONFIRMED'
+            booking.payment_id = f"MANUAL-{request.user.username}"
+            booking.confirmed_at = timezone.now()
+            booking.payment_method = 'MANUAL'
+            booking.save()
+            # Free up seats in Redis if necessary
+            from .utils import SeatManager
+            SeatManager.confirm_seats(booking.showtime.id, booking.seats)
+            updated += 1
+        self.message_user(request, f"{updated} bookings confirmed successfully.")
 
+    @admin.action(description="Cancel selected bookings")
+    def cancel_bookings(self, request, queryset):
+        """Cancel selected bookings"""
+        updated = 0
+        for booking in queryset.exclude(status='CANCELLED'):
+            booking.status = 'CANCELLED'
+            booking.save()
+            # Note: In a real app, you'd want to release seats in Redis/DB too
+            updated += 1
+        self.message_user(request, f'{updated} bookings cancelled successfully.')
 
+    @admin.action(description="Export selected bookings to CSV")
+    def export_as_csv(self, request, queryset):
+        import csv
+        from django.http import HttpResponse
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="selected_bookings.csv"'
+        writer = csv.writer(response)
+        writer.writerow(['Booking ID', 'User', 'Movie', 'Amount', 'Status', 'Date'])    
 
-def cancel_bookings(self, request, queryset):
-    """Cancel selected bookings"""
-    updated = 0
-    for booking in queryset.exclude(status='CANCELLED'):
-        booking.status = 'CANCELLED'
-        booking.save()
-        updated += 1
-    
-    self.message_user(request, f'{updated} bookings cancelled successfully.')
-cancel_bookings.short_description = "Cancel selected bookings"
-
-
-def export_as_csv(self, request, queryset):
-    import csv
-    from django.http import HttpResponse
-    response=HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename="selected_bookings.csv"'
-    writer=csv.writer(response)
-    writer.writerow(['Booking ID', 'User', 'Movie', 'Amount', 'Status', 'Date'])    
-
-    for booking in queryset:
-        writer.writerow([
-            booking.booking_number,
-            booking.user.username,
-            booking.showtime.movie.title,
-            booking.total_amount,
-            booking.status,
-            booking.created_at.strftime('%Y-%m-%d %H:%M')
-        ])
-    return response
-
-
-export_as_csv.short_description = "Export selected bookings to CSV" 
+        for booking in queryset:
+            writer.writerow([
+                booking.booking_number,
+                booking.user.username,
+                booking.showtime.movie.title,
+                booking.total_amount,
+                booking.status,
+                booking.created_at.strftime('%Y-%m-%d %H:%M')
+            ])
+        return response

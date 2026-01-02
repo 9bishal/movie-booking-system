@@ -35,9 +35,10 @@ def revenue_data(request):
     HOW: Aggregates `Booking` records by date for the last 30 days and by week for the last 4 weeks.
     WHEN: Called via AJAX by `dashboard.js` when the dashboard loads or refreshes.
     """
-    # Get date range (last 30 days)
+    # Get date range from request (default 30 days)
+    days = int(request.GET.get('days', 30))
     end_date = timezone.now().date()
-    start_date = end_date - timedelta(days=30)
+    start_date = end_date - timedelta(days=days)
     
     # Generate dates
     dates = []

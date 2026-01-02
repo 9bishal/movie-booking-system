@@ -8,6 +8,8 @@ from .reviews_models import Review, ReviewLike, Wishlist, Interest
 from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.utils import timezone
+from django.conf import settings
 import json
 from embed_video.backends import detect_backend
 from django.core.cache import cache
@@ -105,10 +107,15 @@ def movie_detail(request, slug):
     in_wishlist = False
     is_interested = False
     user_review = None
+    user_wishlist = set()
+    user_interests = set()
+    
     if request.user.is_authenticated:
         in_wishlist = Wishlist.objects.filter(user=request.user, movie=movie).exists()
         is_interested = Interest.objects.filter(user=request.user, movie=movie).exists()
         user_review = Review.objects.filter(user=request.user, movie=movie).first()
+        user_wishlist = set(Wishlist.objects.filter(user=request.user).values_list('movie_id', flat=True))
+        user_interests = set(Interest.objects.filter(user=request.user).values_list('movie_id', flat=True))
 
     # Get reviews for this movie
     reviews = Review.objects.filter(movie=movie).order_by('-created_at')
@@ -132,6 +139,8 @@ def movie_detail(request, slug):
         'user_review': user_review,
         'recommended_movies': recommended_movies,
         'recently_added': recently_added,
+        'user_wishlist': user_wishlist,
+        'user_interests': user_interests,
     }
     
     return render(request, 'movies/movie_detail.html', context)

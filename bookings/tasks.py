@@ -17,10 +17,10 @@ def release_expired_bookings():
     from .models import Booking
     from .utils import SeatManager
 
-    expired_time = timezone.now() - timedelta(minutes=5)
+    # Find 'PENDING' bookings that have passed their 'expires_at' time
     expired_bookings = Booking.objects.filter(
         status='PENDING',
-        created_at__lt=expired_time
+        expires_at__lt=timezone.now()
     )
     released_count = 0
     for booking in expired_bookings:
