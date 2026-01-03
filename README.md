@@ -1,4 +1,3 @@
-
 # 🎬 Movie Booking System
 
 [![Django](https://img.shields.io/badge/Django-5.x-green)](https://www.djangoproject.com/)
@@ -12,6 +11,29 @@
 [![Vercel](https://img.shields.io/badge/Vercel-Planned-black)](https://vercel.com/)
 
 A **BookMyShow-like Movie Ticket Booking System** built using **Django**, focusing on **high-concurrency seat booking**, **seat locking**, **payments**, and **scalable production deployment**.
+
+---
+
+## 📚 Documentation
+
+**🎓 New to the system? Start here!**
+
+We've created comprehensive beginner-friendly guides to help you understand how everything works:
+
+### Essential Guides (Read in Order)
+1. **[DOCUMENTATION_INDEX.md](./DOCUMENTATION_INDEX.md)** - Start here! Complete guide index
+2. **[Understanding Redis](./UNDERSTANDING_REDIS.md)** - How seat locking works ⭐
+3. **[Understanding Celery](./UNDERSTANDING_CELERY.md)** - Background tasks explained ⚙️
+4. **[Understanding Razorpay](./UNDERSTANDING_RAZORPAY.md)** - Payment integration 💳
+5. **[How Everything Works Together](./HOW_EVERYTHING_WORKS_TOGETHER.md)** - Complete system flow 🎬
+
+### Technical Documentation
+- **[Complete Fix Summary](./COMPLETE_FIX_SUMMARY.md)** - All system fixes and improvements
+- **[Celery Expiry Fix](./CELERY_EXPIRY_REDIS_FIX_COMPLETE.md)** - Background expiry implementation
+- **[Refresh & Cancel Fix](./REFRESH_AND_CANCEL_FIX.md)** - Page refresh handling
+- **[Redis Fix Complete](./REDIS_FIX_COMPLETE.md)** - Redis key cleanup fix
+
+**💡 Tip**: Each guide includes real-world examples, analogies, and step-by-step explanations perfect for beginners!
 
 ---
 
@@ -444,4 +466,3 @@ Project Link: [https://github.com/9bishal/movie-booking-system](https://github.c
 ---
 
 **Happy Coding! 🚀🎬**
-```

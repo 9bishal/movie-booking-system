@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking Confirmed - Movie Booking System</title>
+    <style>
+        /* Reset Styles */
+        body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+        table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+        img { -ms-interpolation-mode: bicubic; border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; }
+        
+        /* Main Styles */
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100% !important;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f4f4f7;
+            line-height: 1.6;
+            color: #333333;
+        }
+        
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff;
+            padding: 40px 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0 0 10px 0;
+            font-size: 32px;
+            font-weight: 600;
+        }
+        
+        .header p {
+            margin: 0;
+            font-size: 16px;
+            opacity: 0.95;
+        }
+        
+        .content {
+            padding: 40px 30px;
+            background-color: #ffffff;
+        }
+        
+        .greeting {
+            font-size: 18px;
+            color: #2d3748;
+            margin-bottom: 20px;
+        }
+        
+        .ticket-container {
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            border: 3px dashed #48bb78;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 30px 0;
+        }
+        
+        .movie-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .booking-details {
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        
+        .detail-label {
+            font-weight: 600;
+            color: #4a5568;
+        }
+        
+        .detail-value {
+            color: #2d3748;
+            font-weight: 500;
+        }
+        
+        .qr-section {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px dashed #cbd5e0;
+        }
+        
+        .qr-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 20px;
+        }
+        
+        .qr-code {
+            display: inline-block;
+            padding: 15px;
+            background: #ffffff;
+            border: 3px solid #667eea;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+        }
+        
+        .qr-instruction {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #718096;
+            font-style: italic;
+        }
+        
+        .total-amount {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 25px 0;
+        }
+        
+        .total-label {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+        
+        .total-value {
+            font-size: 32px;
+            font-weight: 700;
+        }
+        
+        .message {
+            text-align: center;
+            font-size: 18px;
+            color: #4a5568;
+            margin: 30px 0;
+        }
+        
+        .footer {
+            background-color: #2d3748;
+            color: #ffffff;
+            padding: 30px;
+            text-align: center;
+            font-size: 14px;
+        }
+        
+        .footer-links {
+            margin: 20px 0;
+        }
+        
+        .footer-link {
+            color: #90cdf4;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+        
+        .social-icons {
+            margin: 20px 0;
+        }
+        
+        .social-icon {
+            display: inline-block;
+            margin: 0 8px;
+            font-size: 24px;
+        }
+        
+        /* Mobile Responsive */
+        @media only screen and (max-width: 600px) {
+            .header h1 { font-size: 24px !important; }
+            .movie-title { font-size: 22px !important; }
+            .content { padding: 20px !important; }
+            .ticket-container { padding: 20px !important; }
+            .qr-code img { max-width: 200px !important; }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🎬 Booking Confirmed!</h1>
+            <p>Your movie tickets are ready</p>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="content">
+            <div class="greeting">
+                Hello <strong>{{ user.get_full_name|default:user.username }}</strong>,
+            </div>
+            
+            <p>Great news! Your booking has been confirmed successfully. Get ready for an amazing movie experience!</p>
+            
+            <!-- Ticket Container -->
+            <div class="ticket-container">
+                <div class="movie-title">{{ movie.title }}</div>
+                
+                <!-- Booking Details -->
+                <div class="booking-details">
+                    <div class="detail-row">
+                        <span class="detail-label">🎫 Booking ID:</span>
+                        <span class="detail-value">{{ booking.booking_number }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">📅 Date:</span>
+                        <span class="detail-value">{{ showtime.get_formatted_date }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">🕐 Time:</span>
+                        <span class="detail-value">{{ showtime.get_formatted_time }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">🏛️ Theater:</span>
+                        <span class="detail-value">{{ theater.name }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">📍 Screen:</span>
+                        <span class="detail-value">{{ showtime.screen.name }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">💺 Seats:</span>
+                        <span class="detail-value">{{ booking.get_seats_display }}</span>
+                    </div>
+                </div>
+                
+                <!-- Total Amount -->
+                <div class="total-amount">
+                    <div class="total-label">Total Amount Paid</div>
+                    <div class="total-value">₹{{ total_amount }}</div>
+                </div>
+                
+                <!-- QR Code Section -->
+                {% if qr_code %}
+                <div class="qr-section">
+                    <div class="qr-title">🎫 Your Digital Ticket</div>
+                    <div class="qr-code">
+                        <img src="data:image/png;base64,{{ qr_code }}" 
+                             alt="Booking QR Code" 
+                             style="max-width: 250px; display: block;">
+                    </div>
+                    <p class="qr-instruction">
+                        📱 Show this QR code at the theater entrance for quick entry
+                    </p>
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="message">
+                🍿 Enjoy your movie! 🎬
+            </div>
+            
+            <p style="color: #718096; font-size: 14px; margin-top: 30px;">
+                <strong>Important:</strong> Please arrive at least 15 minutes before showtime. 
+                You can also find this ticket in your bookings section on our website.
+            </p>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <p style="margin-bottom: 15px; font-size: 16px; font-weight: 600;">
+                Movie Booking System
+            </p>
+            <p style="opacity: 0.9; margin-bottom: 20px;">
+                Your trusted partner for movie tickets
+            </p>
+            
+            <div class="footer-links">
+                <a href="#" class="footer-link">My Bookings</a>
+                <a href="#" class="footer-link">Browse Movies</a>
+                <a href="#" class="footer-link">Support</a>
+            </div>
+            
+            <div class="social-icons">
+                <span class="social-icon">📘</span>
+                <span class="social-icon">📸</span>
+                <span class="social-icon">🐦</span>
+            </div>
+            
+            <p style="margin-top: 20px; font-size: 12px; opacity: 0.8;">
+                © 2026 Movie Booking System. All rights reserved.
+            </p>
+            <p style="font-size: 12px; opacity: 0.7; margin-top: 10px;">
+                This is an automated email. Please do not reply to this message.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

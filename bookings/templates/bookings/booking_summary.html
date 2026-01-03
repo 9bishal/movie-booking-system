@@ -235,13 +235,58 @@ function openRazorpayModal(paymentData) {
         "name": "Movie Booking System",
         "description": `${paymentData.movie_title} - ${paymentData.seat_count} seat(s)`,
         "order_id": paymentData.order_id,
-        "callback_url": paymentData.callback_url,
-        "redirect": true,
+        // ✅ REMOVED: "redirect": true - We use MODAL mode so handler works!
         "prefill": {
             "name": paymentData.user_name,
             "email": paymentData.user_email
         },
         "theme": { "color": "#0d6efd" },
+        // 🎯 CRITICAL: This handler is called when payment succeeds
+        "handler": function(response) {
+            console.log('✅ Payment successful! Response:', response);
+            
+            // Stop the timer first
+            if (timerInterval) {
+                clearInterval(timerInterval);
+            }
+            
+            // 🚀 IMMEDIATELY hide the summary page to prevent ANY flash
+            // This happens BEFORE any redirect, ensuring smooth transition
+            document.body.innerHTML = `
+                <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                            display: flex; align-items: center; justify-content: center; 
+                            z-index: 999999; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+                    <div style="text-align: center; color: white; padding: 40px;">
+                        <div style="margin-bottom: 30px;">
+                            <div style="width: 80px; height: 80px; border: 8px solid rgba(255,255,255,0.3); 
+                                        border-top-color: white; border-radius: 50%; 
+                                        animation: spin 1s linear infinite; margin: 0 auto;"></div>
+                        </div>
+                        <h1 style="font-size: 36px; margin-bottom: 15px; font-weight: 600; text-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                            ✅ Payment Successful!
+                        </h1>
+                        <p style="font-size: 18px; opacity: 0.95; margin-bottom: 10px;">
+                            Redirecting to your ticket...
+                        </p>
+                        <p style="font-size: 14px; opacity: 0.8;">
+                            Please wait while we prepare your booking details
+                        </p>
+                    </div>
+                </div>
+                <style>
+                    @keyframes spin {
+                        0% { transform: rotate(0deg); }
+                        100% { transform: rotate(360deg); }
+                    }
+                </style>
+            `;
+            
+            // Redirect to payment_success view for verification and ticket display
+            const successUrl = `/bookings/${paymentData.booking_id}/payment/success/?razorpay_payment_id=${response.razorpay_payment_id}&razorpay_order_id=${response.razorpay_order_id}&razorpay_signature=${response.razorpay_signature}`;
+            console.log('🔄 Redirecting to:', successUrl);
+            window.location.href = successUrl;
+        },
         "modal": {
             "ondismiss": async function() {
                 // User closed the payment modal - treat as cancellation

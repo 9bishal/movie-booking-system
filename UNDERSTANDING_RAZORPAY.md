@@ -75,7 +75,7 @@ def process_payment(card_number, cvv, expiry):
 ```python
 # Supporting just credit cards = losing 60% of customers
 # In India: UPI, Paytm, PhonePe, Google Pay are more popular
-# Each integration = months of work
+# Each integration = months of work 
 ```
 
 #### Problem 3: Manual Refunds
@@ -244,7 +244,7 @@ def select_seats(request):
 ```python
 # File: bookings/views.py
 
-def booking_summary(request, booking_id):
+def booking_summary(request, booking_id): 
     booking = Booking.objects.get(id=booking_id)
     
     # Show summary page with "Proceed to Payment" button
@@ -302,8 +302,8 @@ var options = {
         verifyPayment(response);
     },
     
-    "modal": {
-        "ondismiss": function() {
+    "modal": { 
+        "ondismiss": function() {  
             // User closed modal without paying ❌
             console.log("Payment cancelled");
             cancelBooking();

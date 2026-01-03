@@ -1,0 +1,35 @@
+🎬 BOOKING CONFIRMED - Movie Booking System
+
+Hello {{ user.get_full_name|default:user.username }},
+
+Great news! Your booking has been confirmed successfully.
+
+========================================
+BOOKING DETAILS
+========================================
+
+🎫 Booking ID: {{ booking.booking_number }}
+🎬 Movie: {{ movie.title }}
+📅 Date: {{ showtime.get_formatted_date }}
+🕐 Time: {{ showtime.get_formatted_time }}
+🏛️ Theater: {{ theater.name }}
+📍 Screen: {{ showtime.screen.name }}
+💺 Seats: {{ booking.get_seats_display }}
+
+========================================
+AMOUNT PAID: ₹{{ total_amount }}
+========================================
+
+IMPORTANT:
+- Please arrive at least 15 minutes before showtime
+- Show your QR code (attached) at the theater entrance
+- You can also access your ticket from "My Bookings" on our website
+
+🍿 Enjoy your movie! 🎬
+
+---
+Movie Booking System
+Your trusted partner for movie tickets
+
+© 2026 Movie Booking System. All rights reserved.
+This is an automated email. Please do not reply to this message.

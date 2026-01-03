@@ -30,7 +30,7 @@ When you reserve a seat:
 
 ### Key Characteristics
 - **Fast**: Stores data in RAM (memory), not disk → 1000x faster than database
-- **Temporary**: Data can expire automatically (perfect for "hold this seat for 10 minutes")
+- **Temporary**: Data can expire automatically (perfect for "hold this seat for 12 minutes")
 - **Simple**: Just key-value pairs like a dictionary in Python
 - **In-Memory**: All data in RAM → super fast but lost if server restarts (unless configured otherwise)
 
@@ -96,7 +96,7 @@ def reserve_seat():
 │  3. If free, reserve in Redis for 10 minutes                │
 │  4. Create PENDING booking in database                       │
 └────────────────────────┬────────────────────────────────────┘
-                         │
+                         │ 
             ┌────────────┴────────────┐
             ▼                         ▼
     ┌───────────────┐         ┌───────────────┐
@@ -143,9 +143,9 @@ Step 3a: User Completes Payment ✅
 └────────────────────────────────────────┘
            Status: ✅ Booking Confirmed!
 
-Step 3b: User Abandons Payment ❌
+Step 3b: User Abandons Payment ❌ 
 ┌────────────────────────────────────────┐
-│ Time Passes: 10 minutes elapse...     │
+│ Time Passes: 12 minutes elapse...     │
 │ Redis: Auto-deletes seat locks (TTL)   │
 │ Celery Task: Finds expired booking     │
 │ Django: Update booking (status=EXPIRED)│
@@ -304,7 +304,7 @@ def select_seats(request, showtime_id, seat_ids=['A1', 'A2']):
         'reserved_at': time.time()
     }, 600)
     
-    return "Seats reserved! Complete payment in 10 minutes"
+    return "Seats reserved! Complete payment in 12 minutes"
 ```
 
 **Redis State:**

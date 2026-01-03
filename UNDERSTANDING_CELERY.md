@@ -112,7 +112,7 @@ def book_ticket(user, showtime, seats):
 #### Solution 2: Automatic Cleanup
 ```python
 # Celery Beat runs this every minute
-@periodic_task(run_every=60)
+@periodic_task(run_every=60) 
 def cleanup_expired_bookings():
     expired = Booking.objects.filter(
         status='PENDING',
@@ -173,7 +173,7 @@ def send_email(self, booking_id):
                               │   CELERY WORKER      │
                               │   (Background Job)   │
                               │                      │
-                              │  1. Take task from   │
+                              │  1. Take task from   │ 
                               │     queue            │
                               │  2. Execute it       │
                               │  3. Mark as done     │
@@ -202,7 +202,7 @@ def send_email(self, booking_id):
 #### 4. **Celery Beat** (Scheduler)
 - Like a cron job
 - Runs tasks on a schedule (every minute, every hour, etc.)
-- Example: Clean up expired bookings every 60 seconds
+- Example: Clean up expired bookings every 60 seconds 
 
 ---
 
@@ -238,7 +238,7 @@ def send_booking_confirmation_email(booking_id):
 **Why async:** Email servers can be slow, don't make user wait
 
 #### 2. **Scheduled Tasks** (Run Periodically)
-```python
+```python 
 # File: bookings/tasks.py
 
 @shared_task
@@ -297,7 +297,7 @@ def create_booking(request):
     # Total time: ~2 seconds ✅
 ```
 
-#### **Step 2: User Completes Payment (6:05 PM)**
+#### **Step 2: User Completes Payment (6:05 PM)** 
 ```python
 # File: bookings/views.py
 
@@ -311,7 +311,7 @@ def payment_success(request, booking_id):
     #                               ^^^^^ 
     #                          This makes it async!
     
-    # 3. Queue SMS task (instant)
+    # 3. Queue SMS task (instant) 
     send_booking_sms.delay(booking_id)
     
     # 4. User sees success page immediately
@@ -329,7 +329,7 @@ def payment_success(request, booking_id):
 
 [Background - Celery Worker picks up tasks]
 6:05:02 PM - Celery: Start sending email...
-6:05:07 PM - Celery: Email sent ✅
+6:05:07 PM - Celery: Email sent ✅ 
 6:05:07 PM - Celery: Start sending SMS...
 6:05:10 PM - Celery: SMS sent ✅
 
@@ -350,7 +350,7 @@ def payment_success(request, booking_id):
 # (Still no expired bookings)
 
 # 6:11 PM - Celery Beat: Check again
-@shared_task
+@shared_task 
 def release_expired_bookings():
     expired = Booking.objects.filter(
         status='PENDING',

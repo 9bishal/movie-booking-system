@@ -3,6 +3,7 @@
 Centralizes all email communication logic. It handles template rendering, 
 QR code generation, and uses Celery to send emails asynchronously.
 """
+import logging
 import qrcode
 import base64
 from io import BytesIO
@@ -12,6 +13,11 @@ from django.conf import settings
 from celery import shared_task
 from django.utils import timezone
 from datetime import timedelta
+
+# Initialize logger for tracking email events
+logger = logging.getLogger(__name__)
+
+
 
 @shared_task
 def send_booking_confirmation_email(booking_id):
@@ -26,6 +32,8 @@ def send_booking_confirmation_email(booking_id):
     try:
         booking = Booking.objects.get(id=booking_id)
         user = booking.user
+        
+        logger.info(f"📧 Generating confirmation email for booking {booking.booking_number}")
         
         # Generate QR Code
         qr_data = (f"Booking ID: {booking.booking_number}\n"
@@ -65,22 +73,30 @@ def send_booking_confirmation_email(booking_id):
         email = EmailMultiAlternatives(subject, text_content, from_email, to_email)
         email.attach_alternative(html_content, "text/html")
         email.attach(f'booking_{booking.booking_number}.png', qr_image, 'image/png')
-        # To embed in HTML, we use CID
-        # But for simplicity in this template restoration, we just attach it
         
         email.send()
+        
+        logger.info(f"✅ Confirmation email sent to {user.email}")
         return f"Email sent successfully to {user.email}"
     except Exception as e:
+        logger.error(f"❌ Error sending email for booking {booking_id}: {str(e)}")
         return f"Error sending email: {str(e)}"
 
 @shared_task
 def send_payment_failed_email(booking_id):
-    """Send payment failed email"""
+    """
+    ❌ Send payment failed email to user
+    
+    WHEN: Called when payment fails or is cancelled
+    WHAT: Notifies user that payment failed and seats are released
+    """
     from .models import Booking
     
     try:
         booking = Booking.objects.get(id=booking_id)
         user = booking.user
+        
+        logger.info(f"📧 Generating payment failed email for booking {booking.booking_number}")
         
         context = {
             'booking': booking,
@@ -99,17 +115,31 @@ def send_payment_failed_email(booking_id):
         email.attach_alternative(html_content, "text/html")
         email.send()
         
+        logger.info(f"✅ Payment failed email sent to {user.email}")
         return f"Payment failed email sent to {user.email}"
     except Exception as e:
+        logger.error(f"❌ Error sending payment failed email: {str(e)}")
         return f"Error sending payment failed email: {str(e)}"
 
 @shared_task
 def send_seat_reminder_email(booking_id):
-    """Send reminder email before showtime"""
+    """
+    ⏰ Send reminder email before showtime
+    
+    WHEN: Called ~24 hours before the movie
+    WHAT: Reminds user about their booking and showtime
+    """
     from .models import Booking
     
     try:
         booking = Booking.objects.get(id=booking_id)
+        
+        # Only send reminder if booking is confirmed
+        if booking.status != 'CONFIRMED':
+            logger.warning(f"⚠️ Booking {booking.booking_number} is not confirmed. Skipping reminder.")
+            return f"Booking not confirmed. Reminder skipped."
+        
+        logger.info(f"📧 Generating reminder email for booking {booking.booking_number}")
         
         context = {
             'booking': booking,
@@ -119,10 +149,10 @@ def send_seat_reminder_email(booking_id):
             'theater': booking.showtime.screen.theater,
         }
         
-        text_content = render_to_string('bookings/emails/booking_confirmation.txt', context) # Reusing for now
+        text_content = render_to_string('bookings/emails/booking_confirmation.txt', context)
         html_content = render_to_string('bookings/emails/booking_confirmation.html', context)
         
-        subject = f'⏰ Reminder: Your movie starts soon!'
+        subject = f'⏰ Reminder: Your movie "{booking.showtime.movie.title}" starts soon!'
         from_email = settings.DEFAULT_FROM_EMAIL
         to_email = [booking.user.email]
         
@@ -130,6 +160,8 @@ def send_seat_reminder_email(booking_id):
         email.attach_alternative(html_content, "text/html")
         email.send()
         
+        logger.info(f"✅ Reminder email sent for booking {booking.booking_number}")
         return f"Reminder sent for booking {booking.booking_number}"
     except Exception as e:
+        logger.error(f"❌ Error sending reminder email: {str(e)}")
         return f"Error sending reminder: {str(e)}"
