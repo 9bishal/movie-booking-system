@@ -172,7 +172,7 @@ function startExpiryTimer(bookingId, expirySeconds) {
         
         // Timer expired!
         if (remainingSecs <= 0) {
-            console.log('⏱️ Timer expired! Closing Razorpay modal and redirecting...');
+            console.log('⏱️ Timer expired! Closing Razorpay modal and cancelling booking...');
             clearInterval(timerInterval);
             
             // Close Razorpay modal if it's open
@@ -182,6 +182,28 @@ function startExpiryTimer(bookingId, expirySeconds) {
                 } catch (e) {
                     console.error('Error closing Razorpay:', e);
                 }
+            }
+            
+            // CRITICAL: Cancel booking and release seats via API
+            if (bookingId) {
+                fetch(`/bookings/cancel/${bookingId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({ 
+                        reason: 'Payment timer expired',
+                        showtime_id: {{ showtime.id }}
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Booking cancelled due to timer expiry:', data);
+                })
+                .catch(error => {
+                    console.error('Error cancelling booking:', error);
+                });
             }
             
             // Show alert

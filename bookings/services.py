@@ -216,8 +216,8 @@ class BookingService:
             booking.status = 'CANCELLED'
             booking.save(update_fields=['status'])
             
-            # Release seats
-            SeatManager.release_seats(booking.showtime.id, booking.seats)
+            # Release seats - CRITICAL: Pass both seat_ids AND user_id to clear all Redis keys
+            SeatManager.release_seats(booking.showtime.id, booking.seats, user_id=booking.user.id)
             
             logger.info(f"Booking {booking.booking_number} cancelled: {reason}")
             return True, None
@@ -248,10 +248,10 @@ class BookingService:
             booking.status = 'EXPIRED'
             booking.save(update_fields=['status'])
             
-            # Release seats
-            SeatManager.release_seats(booking.showtime.id, booking.seats)
+            # Release seats - CRITICAL: Pass both seat_ids AND user_id to clear all Redis keys
+            SeatManager.release_seats(booking.showtime.id, booking.seats, user_id=booking.user.id)
             
-            logger.info(f"Booking {booking.booking_number} expired")
+            logger.info(f"Booking {booking.booking_number} expired and seats released (including user reservation)")
             return True, None
             
         except Exception as e:
@@ -290,8 +290,8 @@ class BookingService:
                 for old_booking in other_pending:
                     old_booking.status = 'EXPIRED'
                     old_booking.save(update_fields=['status'])
-                    # Release seats for each old booking
-                    SeatManager.release_seats(old_booking.showtime.id, old_booking.seats)
+                    # Release seats for each old booking - CRITICAL: Pass user_id to clear all Redis keys
+                    SeatManager.release_seats(old_booking.showtime.id, old_booking.seats, user_id=old_booking.user.id)
                     logger.info(f"Also expired old booking: {old_booking.booking_number}")
             
             # Force expire the current booking
@@ -299,14 +299,10 @@ class BookingService:
             booking.save(update_fields=['status'])
             logger.info(f"Booking {booking.booking_number} status changed to EXPIRED")
             
-            # CRITICAL: Release seats from Redis immediately
+            # CRITICAL: Release seats from Redis immediately with both seat_ids AND user_id
             # This clears: reserved_seats list, user reservation, and individual locks
-            released = SeatManager.release_seats(booking.showtime.id, booking.seats)
+            released = SeatManager.release_seats(booking.showtime.id, booking.seats, user_id=booking.user.id)
             logger.info(f"SeatManager.release_seats returned: {released}")
-            
-            # EXTRA CLEANUP: Also release by user_id to ensure user's reservation is cleared
-            SeatManager.release_seats(booking.showtime.id, user_id=booking.user.id)
-            logger.info(f"Also released seats by user_id: {booking.user.id}")
             
             # VERIFY: Check if seats were actually released
             from django.core.cache import cache
