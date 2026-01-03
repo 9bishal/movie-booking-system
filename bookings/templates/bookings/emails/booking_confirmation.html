@@ -28,6 +28,18 @@
             <p><strong>Screen:</strong> {{ showtime.screen.name }}</p>
             <p><strong>Seats:</strong> {{ booking.get_seats_display }}</p>
             <p><strong>Total Amount:</strong> ₹{{ total_amount }}</p>
+            
+            {% if qr_code %}
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 2px dashed #ddd;">
+                <h4 style="margin-bottom: 15px;">🎫 Your QR Code Ticket</h4>
+                <img src="data:image/png;base64,{{ qr_code }}" 
+                     alt="QR Code" 
+                     style="max-width: 250px; border: 3px solid #667eea; padding: 10px; background: white; border-radius: 10px;">
+                <p style="margin-top: 15px; font-size: 14px; color: #666;">
+                    <em>Show this QR code at the theater entrance</em>
+                </p>
+            </div>
+            {% endif %}
         </div>
         <p>Enjoy your movie! 🍿</p>
         <p><strong>The MovieBooking Team</strong></p>
