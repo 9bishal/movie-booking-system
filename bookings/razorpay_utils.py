@@ -25,13 +25,19 @@ class RazorpayClient:
         else:
             print("⚠️ WARNING: Running in MOCK PAYMENT MODE. No real transactions will occur.")
     
-    def create_order(self, amount, currency="INR", receipt="receipt"):
+    def create_order(self, amount, currency="INR", receipt="receipt", notes=None):
         """
         💳 HOW: Order Creation
         WHY: Handshake. We need to register the transaction intent with Razorpay 
         to get a secure 'order_id' that prevents duplicate payments.
         HOW: We convert the amount to 'Paise' (Razorpay standard) and send it with a receipt ID.
         WHEN: Triggers when the user confirms their selection and clicks 'Proceed to pay'.
+        
+        Args:
+            amount: Amount in rupees (will be converted to paise)
+            currency: Currency code (default: INR)
+            receipt: Receipt ID for tracking
+            notes: Optional dictionary of metadata (booking_id, user_id, etc.)
         """
         data = {
             "amount": int(amount * 100),  # Razorpay expects amount in paise
@@ -39,6 +45,10 @@ class RazorpayClient:
             "receipt": receipt,
             "payment_capture": 1  # Auto capture payment
         }
+        
+        # Add notes if provided
+        if notes:
+            data["notes"] = notes
         
         if self.is_mock:
             # 🎭 Return a fake order for local testing

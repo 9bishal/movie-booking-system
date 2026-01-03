@@ -1,9 +1,13 @@
 import json
 import time
+import logging
 from decimal import Decimal
 from django.core.cache import cache
 from django.conf import settings
 from django.db.models import Q
+
+# Initialize logger
+logger = logging.getLogger(__name__)
 
 # ==============================================================================
 # 🧠 CONCEPT: HOW CACHING WORKS IN OUR APP
@@ -151,25 +155,60 @@ class SeatManager:
     
     @staticmethod
     def release_seats(showtime_id, seat_ids=None, user_id=None):
-        """RESCUE: Someone closed the tab or payment failed? Free the seats!"""
+        """
+        RESCUE: Someone closed the tab or payment failed? Free the seats!
+        CRITICAL: Also clears individual seat locks to prevent stuck reservations
+        """
+        logger.info(f"release_seats called - showtime_id: {showtime_id}, seat_ids: {seat_ids}, user_id: {user_id}")
+        
         cache_key = f"reserved_seats_{showtime_id}"
         reserved_seats = cache.get(cache_key) or []
+        seats_to_release = []
+        
+        logger.info(f"Current reserved_seats before release: {reserved_seats}")
         
         if seat_ids:
             # Free specific seats
+            seats_to_release = seat_ids
             for sid in seat_ids:
-                if sid in reserved_seats: reserved_seats.remove(sid)
+                if sid in reserved_seats: 
+                    reserved_seats.remove(sid)
+                    logger.info(f"Removed seat {sid} from reserved list")
+            
+            # CRITICAL: Also clear user reservation key when releasing specific seats
+            if user_id:
+                reservation_key = f"seat_reservation_{showtime_id}_{user_id}"
+                cache.delete(reservation_key)
+                logger.info(f"Deleted user reservation key: {reservation_key}")
+                
         elif user_id:
             # Free all seats this user was trying to buy
             reservation_key = f"seat_reservation_{showtime_id}_{user_id}"
             user_res = cache.get(reservation_key)
+            logger.info(f"User reservation found: {user_res}")
+            
             if user_res:
-                for sid in user_res.get('seat_ids', []):
-                    if sid in reserved_seats: reserved_seats.remove(sid)
+                seats_to_release = user_res.get('seat_ids', [])
+                logger.info(f"Seats to release from user reservation: {seats_to_release}")
+                for sid in seats_to_release:
+                    if sid in reserved_seats: 
+                        reserved_seats.remove(sid)
+                        logger.info(f"Removed seat {sid} from reserved list")
                 cache.delete(reservation_key)
+                logger.info(f"Deleted user reservation key: {reservation_key}")
+        
+        # CRITICAL: Clear individual seat locks for each seat
+        # These locks use pattern: seat_lock:{showtime_id}:{seat_id}
+        for seat_id in seats_to_release:
+            lock_key = f"seat_lock:{showtime_id}:{seat_id}"
+            deleted = cache.delete(lock_key)
+            logger.debug(f"Tried to delete lock key {lock_key}, result: {deleted}")
         
         # Save the updated list back to cache
         cache.set(cache_key, reserved_seats, timeout=settings.SEAT_RESERVATION_TIMEOUT)
+        logger.info(f"Updated reserved_seats after release: {reserved_seats}")
+        
+        logger.info(f"Released {len(seats_to_release)} seats for showtime {showtime_id}")
         return True
     
     @staticmethod

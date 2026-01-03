@@ -11,29 +11,42 @@ from datetime import timedelta
 @shared_task
 def release_expired_bookings():
     """
-    🧹 WHY: Cleanup - If a user reserves seats but never pays, we must release them.
-    HOW: Find 'PENDING' bookings older than 5 mins, mark as EXPIRED, and free Redis seats.
+    🧹 CLEANUP: Expire bookings past their payment window
+    
+    WHY: Automatically free seats when users don't pay within 12 minutes
+    HOW: Find PENDING bookings past expires_at, use service layer to expire
+    WHEN: Runs every minute via Celery Beat
+    
+    UPDATED: Now uses BookingService for consistent expiration logic
     """
     from .models import Booking
-    from .utils import SeatManager
+    from .services import BookingService
+    import logging
+    
+    logger = logging.getLogger(__name__)
 
     # Find 'PENDING' bookings that have passed their 'expires_at' time
     expired_bookings = Booking.objects.filter(
         status='PENDING',
         expires_at__lt=timezone.now()
     )
-    released_count = 0
-    for booking in expired_bookings:
-        booking.status = 'EXPIRED'
-        booking.save()
-        
-        # Release seats
-        SeatManager.release_seats(booking.showtime.id, booking.seats)
-        released_count += 1
-        
-        print(f"Released seats for expired booking {booking.booking_number}")
     
-    return f"Released {released_count} expired bookings"
+    released_count = 0
+    failed_count = 0
+    
+    for booking in expired_bookings:
+        # Use service layer for consistent expiration
+        success, error = BookingService.expire_booking(booking)
+        
+        if success:
+            released_count += 1
+            logger.info(f"Released seats for expired booking {booking.booking_number}")
+        else:
+            failed_count += 1
+            logger.error(f"Failed to expire booking {booking.booking_number}: {error}")
+    
+    logger.info(f"Booking expiration task complete: {released_count} expired, {failed_count} failed")
+    return f"Released {released_count} expired bookings, {failed_count} failed"
 
 @shared_task
 def send_showtime_reminders():

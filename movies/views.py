@@ -333,8 +333,8 @@ def add_review(request, movie_id):
         content = request.POST.get('content')
         
         if not all([rating, title, content]):
-            messages.error(request, 'Please fill all fields')
-            return redirect('movie_trailer', slug=movie.slug)
+            messages.error(request, '❌ Please fill in all fields: rating, headline, and review content.')
+            return redirect('movie_detail', slug=movie.slug)
         
         # Create or update review
         review, created = Review.objects.update_or_create(
@@ -347,10 +347,12 @@ def add_review(request, movie_id):
             }
         )
         
-        message = 'Review updated!' if not created else 'Review added successfully!'
-        messages.success(request, message)
+        if created:
+            messages.success(request, f'🎉 Thanks for your review! Your {rating}/10 rating for "{movie.title}" has been posted.')
+        else:
+            messages.success(request, f'✅ Review updated! Your new {rating}/10 rating for "{movie.title}" has been saved.')
         
-        return redirect('movie_trailer', slug=movie.slug)
+        return redirect('movie_detail', slug=movie.slug)
     
     return redirect('movie_trailer', slug=movie.slug)
 

@@ -5,6 +5,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 import json
+import logging
 from .razorpay_utils import razorpay_client
 from .email_utils import send_booking_confirmation_email
 from django.views.decorators.csrf import csrf_exempt
@@ -14,6 +15,9 @@ from movies.theater_models import Showtime
 from .models import Booking, Transaction
 from .utils import SeatManager, PriceCalculator
 from django.conf import settings
+
+# Initialize logger
+logger = logging.getLogger(__name__)
 
 # ==============================================================================
 # ❓ THE BOOKING WORKFLOW (Step-by-Step)
@@ -129,6 +133,14 @@ def booking_summary(request, showtime_id):
     """Review screen before making the final payment"""
     showtime = get_object_or_404(Showtime, id=showtime_id)
     
+    # Check if user already has a PENDING booking for this showtime
+    # This will be passed to client-side JS for refresh detection
+    existing_booking = Booking.objects.filter(
+        user=request.user,
+        showtime=showtime,
+        status='PENDING'
+    ).first()
+    
     # 🕵️ Safety Check: Check session to see if they actually selected seats.
     reservation = request.session.get('seat_reservation', {})
     
@@ -160,6 +172,7 @@ def booking_summary(request, showtime_id):
         'price_details': price_details,
         'total_amount': price_details['total_amount'],
         'expires_in_seconds': remaining_seconds if remaining_seconds > 0 else 600,
+        'booking': existing_booking,  # For client-side refresh detection
     }
     
     return render(request, 'bookings/booking_summary.html', context)
@@ -229,9 +242,9 @@ def create_booking(request, showtime_id):
             }, status=500)
 
         # 🔗 SYNC: Save the order ID to the booking record for verification later.
-        # WHY: Security Anchor. This ensures we only accept a success response
-        # that specifically matches this created order, preventing payment hijacking.
-        # WHEN: Triggers immediately after Razorpay confirms order creation.
+        #WHY: Security Anchor. This ensures we only accept a success response
+        #that specifically matches this created order, preventing payment hijacking.
+        #WHEN: Triggers immediately after Razorpay confirms order creation.
         booking.razorpay_order_id = order_data['order_id']
         booking.save()
 
@@ -451,5 +464,67 @@ def booking_detail(request, booking_id):
     }
     
     return render(request, 'bookings/booking_detail.html', context)
+
+# ========== CANCEL BOOKING API ==========
+@login_required
+@csrf_exempt
+def cancel_booking_api(request, booking_id):
+    """
+    🚫 WHY: Cancel a PENDING booking and release seats immediately
+    Used when:
+    1. User refreshes the summary page
+    2. User closes Razorpay modal
+    3. User explicitly cancels booking
+    """
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Invalid method'}, status=400)
+    
+    try:
+        booking = get_object_or_404(Booking, id=booking_id, user=request.user)
+        
+        # Only cancel PENDING bookings
+        if booking.status != 'PENDING':
+            return JsonResponse({
+                'success': False,
+                'error': f'Cannot cancel booking with status: {booking.status}'
+            }, status=400)
+        
+        # Get reason from request
+        data = json.loads(request.body) if request.body else {}
+        reason = data.get('reason', 'User cancelled booking')
+        showtime_id = data.get('showtime_id', booking.showtime.id)
+        
+        # Cancel the booking
+        booking.status = 'CANCELLED'
+        booking.save()
+        
+        # Release seats from Redis
+        SeatManager.release_seats(showtime_id, booking.seats, request.user.id)
+        
+        # Clear session
+        if 'seat_reservation' in request.session:
+            reservation = request.session['seat_reservation']
+            if str(showtime_id) in reservation:
+                del reservation[str(showtime_id)]
+                request.session['seat_reservation'] = reservation
+        
+        logger.info(
+            f"Booking {booking.booking_number} cancelled by user {request.user.id}. "
+            f"Reason: {reason}. Seats released: {booking.seats}"
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Booking cancelled and seats released',
+            'booking_id': booking.id,
+            'seats_released': booking.seats
+        })
+        
+    except Exception as e:
+        logger.error(f"Error cancelling booking {booking_id}: {e}")
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
 
 

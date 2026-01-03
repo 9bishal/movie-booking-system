@@ -37,18 +37,20 @@ async function toggleWishlist(button, movieId) {
             if (data.action === 'added') {
                 if(icon) {
                     icon.classList.remove('far');
-                    icon.classList.add('fas', 'text-danger');
+                    icon.classList.add('fas');
                 }
                 if(label) label.textContent = 'In Watchlist';
-                btn.classList.add('active', 'bg-danger', 'text-white');
+                btn.classList.remove('btn-outline-danger');
+                btn.classList.add('btn-danger', 'text-white');
                 showToast(`Added to watchlist`, 'success');
             } else {
                 if(icon) {
-                    icon.classList.remove('fas', 'text-danger');
+                    icon.classList.remove('fas');
                     icon.classList.add('far');
                 }
                 if(label) label.textContent = 'Watch Later';
-                btn.classList.remove('active', 'bg-danger', 'text-white');
+                btn.classList.remove('btn-danger', 'text-white');
+                btn.classList.add('btn-outline-danger');
                 showToast('Removed from watchlist', 'info');
             }
         }
@@ -91,8 +93,8 @@ async function toggleInterest(button, movieId) {
                     icon.classList.add('fas');
                 }
                 if(label) label.textContent = 'Interested';
-                btn.classList.add('active');
-                btn.classList.remove('btn-outline-primary');
+                btn.classList.remove('btn-outline-success');
+                btn.classList.add('btn-success');
                 showToast(`Interested!`, 'success');
             } else {
                 if(icon) {
@@ -100,8 +102,8 @@ async function toggleInterest(button, movieId) {
                     icon.classList.add('far');
                 }
                 if(label) label.textContent = 'Interested?';
-                btn.classList.remove('active');
-                btn.classList.add('btn-outline-primary');
+                btn.classList.remove('btn-success');
+                btn.classList.add('btn-outline-success');
             }
             
             // Update counts if they exist on the page

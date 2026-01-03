@@ -9,14 +9,18 @@
             <div class="card border-0 shadow-lg overflow-hidden">
                 <div class="bg-primary p-4 text-white text-center">
                     <h2 class="mb-0">Complete Your Payment</h2>
-                    <p class="opacity-75">Your seats are reserved for a limited time</p>
+                    <p class="opacity-75">Your seats are reserved - complete payment to confirm</p>
                 </div>
                 
                 <div class="card-body p-4">
+                    <!-- Info Alert -->
+                    <div class="alert alert-info text-center mb-4 border-0 shadow-sm">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Payment Gateway Ready</strong><br>
+                        <small>Click the button below to open Razorpay and complete your payment</small>
+                    </div>
+
                     <!-- Timer -->
-                    <!-- ⏲️ WHY: UI Synchronization. We mirror the database's expiration to the user. -->
-                    <!-- HOW: Javascript decrements this value every second. -->
-                    <!-- WHEN: Calculated when the page loads from the booking.expires_at field. -->
                     <div class="alert alert-warning text-center mb-4 border-0 shadow-sm">
                         <div class="fs-5 fw-bold mb-1">
                             <i class="fas fa-clock me-2 pulse"></i>Time Remaining
@@ -58,13 +62,13 @@
 
                     <!-- Payment Options -->
                     <div class="payment-methods mb-4 text-center">
-                        <h5 class="mb-4 text-muted border-bottom pb-2">Select Payment Method</h5>
+                        <h5 class="mb-4 text-muted border-bottom pb-2">Complete Payment</h5>
                         <div class="d-grid gap-2">
-                            <button id="razorpay-pay-button" class="btn btn-primary btn-lg shadow-sm">
+                            <button id="razorpay-pay-button" class="btn btn-success btn-lg shadow-sm">
                                 <i class="fas fa-lock me-2"></i>Pay ₹{{ booking.total_amount }} with Razorpay
                             </button>
                             <button class="btn btn-outline-secondary btn-sm mt-3" onclick="history.back()">
-                                <i class="fas fa-arrow-left me-2"></i>Back to Summary
+                                <i class="fas fa-arrow-left me-2"></i>Back to Booking
                             </button>
                         </div>
                     </div>
@@ -73,7 +77,7 @@
                 <div class="card-footer bg-light text-center py-3 border-0">
                     <p class="text-muted small mb-0">
                         <i class="fas fa-shield-alt text-success me-1"></i>
-                        Secure, encrypted transaction. Your data is protected.
+                        Secure payment powered by Razorpay. Your data is encrypted and protected.
                     </p>
                 </div>
             </div>
@@ -99,90 +103,143 @@
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 <script>
-    // 🚀 WHY: Gateway Interface. This wraps the Razorpay modal for a clean UI.
-    // HOW: It passes our Order ID and Customer data to Razorpay's library.
-    // WHEN: Triggers when the 'Pay' button is clicked.
-    function initRazorpay() {
-        const options = {
-            "key": "{{ razorpay_key_id }}", // WHY: Account ID. Connects this website to your Razorpay Dashboard.
-            "amount": "{{ amount }}", // WHY: Payment Value. Always in paise (e.g., 500.00 -> 50000).
-            "currency": "{{ currency }}",
-            "name": "Razorpay",
-            "description": "Ticket for {{ movie.title }} x {{ booking.seats|length }} seats",
-            "order_id": "{{ order_id }}", // WHY: Security Anchor. Links this payment to our database Order record.
-            "handler": function (response) {
-                // 🛡️ WHY: Data Verification Chain (Mandatory).
-                // Once the user pays, Razorpay gives us these 3 tokens. 
-                // We MUST send them to our server to verify they are real.
-                window.location.href = `{% url 'payment_success' booking.id %}?razorpay_payment_id=${response.razorpay_payment_id}&razorpay_order_id=${response.razorpay_order_id}&razorpay_signature=${response.razorpay_signature}`;
-            },
-            "prefill": {
-                "name": "{{ user.username }}",
-                "email": "{{ user.email }}"
-            },
-            "theme": { "color": "#0d6efd" }
-        };
-        
-        try {
-            const isMock = {{ is_mock|yesno:"true,false" }};
-            const rzp = isMock ? null : new Razorpay(options);
-            
-            document.getElementById('razorpay-pay-button').onclick = function(e) {
-                e.preventDefault();
-                const btn = this;
-                
-                if (isMock) {
-                    // 🎭 WHY: Seamless Local Testing.
-                    // Allows us to develop the full 'Thank You' page flow without a live Internet/Bank connection.
-                    btn.disabled = true;
-                    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Simulating Secure Payment...';
-                    
-                    setTimeout(() => {
-                        // 🔄 HOW: Simulate the Success Token Handshake.
-                        options.handler({
-                            razorpay_payment_id: "pay_mock_" + Math.random().toString(36).substr(2, 9),
-                            razorpay_order_id: options.order_id,
-                            razorpay_signature: "sig_mock_verified"
-                        });
-                    }, 1500);
-                } else {
-                    rzp.open();
-                }
-            };
-        } catch (e) {
-            console.error("Razorpay fail:", e);
+    // 🚨 Prevent accidental page refresh during payment
+    let paymentInProgress = false;
+    
+    window.addEventListener('beforeunload', function (e) {
+        if (paymentInProgress) {
+            // Modern browsers ignore custom messages, but we still set returnValue
+            e.preventDefault();
+            e.returnValue = '';
+            return '';
         }
-    }
-
-    // Timer Logic
+    });
+    
+    // Note: Refresh handling is now done server-side
+    // If user refreshes, they'll be redirected back to seat selection
+    
+    // ⏰ Countdown Timer
     (function() {
         let timeRemaining = parseInt("{{ time_remaining|default:0 }}");
         const countdownEl = document.getElementById('countdown');
+        
         function updateTimer() {
+            // ⏰ CRITICAL: Timer expired - booking is no longer valid
             if (timeRemaining <= 0) {
-                location.reload();
+                // Clear interval
+                clearInterval(timerInterval);
+                
+                // Disable payment button
+                const payBtn = document.getElementById('razorpay-pay-button');
+                if (payBtn) {
+                    payBtn.disabled = true;
+                    payBtn.innerHTML = '<i class="fas fa-times-circle me-2"></i>Booking Expired';
+                    payBtn.className = 'btn btn-danger btn-lg shadow-sm';
+                }
+                
+                // Show expiry message
+                if (countdownEl) {
+                    countdownEl.textContent = 'EXPIRED';
+                    countdownEl.parentElement.innerHTML = `
+                        <div class="fs-5 fw-bold mb-2 text-danger">
+                            <i class="fas fa-exclamation-triangle me-2"></i>Booking Expired
+                        </div>
+                        <p class="mb-3">Your seat reservation has expired. Please select seats again.</p>
+                        <a href="{% url 'select_seats' booking.showtime.id %}" class="btn btn-primary">
+                            <i class="fas fa-redo me-2"></i>Select Seats Again
+                        </a>
+                    `;
+                }
+                
+                // Redirect after 5 seconds
+                setTimeout(() => {
+                    window.location.href = "{% url 'select_seats' booking.showtime.id %}";
+                }, 5000);
+                
                 return;
             }
+            
+            // Update countdown display
             const mins = Math.floor(timeRemaining / 60);
             const secs = timeRemaining % 60;
             if (countdownEl) {
                 countdownEl.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+                
+                // Change to red when less than 1 minute remaining
                 if (timeRemaining < 60) {
-                    countdownEl.parentElement.className = 'alert alert-danger text-center mb-4 border-0 shadow-sm';
+                    countdownEl.parentElement.className = 'alert alert-danger text-center mb-4 border-0 shadow-sm animate__animated animate__pulse animate__infinite';
                 }
             }
+            
             timeRemaining--;
         }
+        
         updateTimer();
-        setInterval(updateTimer, 1000);
+        const timerInterval = setInterval(updateTimer, 1000);
+        
+        // Clear interval when page unloads
+        window.addEventListener('beforeunload', () => clearInterval(timerInterval));
     })();
-
-    // Run init
-    if (typeof Razorpay !== 'undefined') {
-        initRazorpay();
-    } else {
-        // Fallback if script loads slowly
-        document.querySelector('script[src*="checkout.js"]').onload = initRazorpay;
-    }
+    
+    // 🚀 Razorpay Checkout - Opens in new window/tab
+    const options = {
+        "key": "{{ razorpay_key_id }}",
+        "amount": "{{ amount }}",
+        "currency": "{{ currency }}",
+        "name": "Movie Booking System",
+        "description": "Ticket for {{ movie.title }} x {{ booking.seats|length }} seats",
+        "order_id": "{{ order_id }}",
+        "callback_url": window.location.origin + "{% url 'payment_success' booking.id %}",
+        "redirect": true,  // Redirect to payment page instead of modal
+        "prefill": {
+            "name": "{{ user.username }}",
+            "email": "{{ user.email }}"
+        },
+        "theme": { "color": "#0d6efd" },
+        "modal": {
+            "ondismiss": function() {
+                console.log('Payment cancelled by user');
+            }
+        }
+    };
+    
+    document.getElementById('razorpay-pay-button').onclick = function(e) {
+        e.preventDefault();
+        const btn = this;
+        const isMock = {{ is_mock|yesno:"true,false" }};
+        
+        paymentInProgress = true;  // Set flag to true on payment button click
+        
+        if (isMock) {
+            // 🎭 Mock payment for testing
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Simulating Secure Payment...';
+            
+            setTimeout(() => {
+                const mockPaymentId = "pay_mock_" + Math.random().toString(36).substr(2, 9);
+                window.location.href = `{% url 'payment_success' booking.id %}?razorpay_payment_id=${mockPaymentId}&razorpay_order_id={{ order_id }}&razorpay_signature=sig_mock_verified`;
+            }, 1500);
+        } else {
+            // 🌐 Open Razorpay in new window (hosted payment page)
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Opening Razorpay...';
+            
+            try {
+                const rzp = new Razorpay(options);
+                rzp.open();
+                
+                // Re-enable button after a short delay
+                setTimeout(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-lock me-2"></i>Pay ₹{{ booking.total_amount }} with Razorpay';
+                }, 2000);
+            } catch (error) {
+                console.error('Razorpay error:', error);
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Payment Error - Try Again';
+                alert('Could not open payment gateway. Please try again.');
+            }
+        }
+    };
 </script>
 {% endblock %}

@@ -33,8 +33,6 @@ SECRET_KEY = "django-insecure-%ejejq7abc9^3iy8@#2x-9d#*cr&$lnau%!y@2e)+84d73z(_b
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
-if not DEBUG:
-    DATABASE['default']['CONN_MAX_AGE']=60
 
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
 
@@ -111,6 +109,7 @@ WSGI_APPLICATION = "moviebooking.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
@@ -118,7 +117,8 @@ DATABASES = {
     }
 }
 
-
+if not DEBUG:
+    DATABASES['default']['CONN_MAX_AGE'] = 60
 CACHES = {
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
@@ -170,9 +170,9 @@ SESSION_ENGINE="django.contrib.sessions.backends.cache"
 SESSION_CACHE_ALIAS="default"
 # ⏲️ WHY: Concurrency Synchronization.
 # This timeout defines how long a seat stays "locked" while a user is paying.
-# 10 minutes (600s) is chosen to align with typical Razorpay bank redirect windows.
+# 12 minutes (720s) is chosen to align with Razorpay payment window timeout.
 # WHEN: Used by SeatManager in Redis 'set' calls.
-SEAT_RESERVATION_TIMEOUT=600 
+SEAT_RESERVATION_TIMEOUT=720  # 12 minutes to match Razorpay timeout 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
