@@ -98,7 +98,7 @@ USER ACTION → DJANGO VIEW → CELERY TASK → EMAIL UTILS → SMTP → USER'S 
 │     send_booking_confirmation_email.delay(booking.id)  ← ASYNC  │
 │     return redirect('booking_detail')                           │
 └─────────────────────────────────────────────────────────────────┘
-                            ↓
+                            ↓ 
 ┌─────────────────────────────────────────────────────────────────┐
 │ STEP 3: Celery Task Queue                                       │
 │ - Task added to Redis queue                                     │
