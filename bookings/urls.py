@@ -25,7 +25,10 @@ urlpatterns = [
     path('<int:booking_id>/payment/success/', views.payment_success, name='payment_success'),
     path('<int:booking_id>/payment/failed/', views.payment_failed, name='payment_failed'),
     
-    # 🔔 NEW: Webhook endpoints
+    # � NEW: Payment abandonment detection
+    path('payment/abandoned/<int:booking_id>/', views.payment_abandoned, name='payment_abandoned'),
+    
+    # �🔔 NEW: Webhook endpoints
     path('webhooks/razorpay/', webhooks.razorpay_webhook, name='razorpay_webhook'),
     path('webhooks/payment-callback/', webhooks.payment_callback, name='payment_callback'),
     

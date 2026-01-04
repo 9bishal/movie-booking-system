@@ -216,9 +216,17 @@ class RateLimiter:
 # Max 5 attempts per minute
 login_limiter = RateLimiter(rate='5/m', key_prefix='login')
 
-# Booking protection:
-# Max 10 actions per minute
-booking_limiter = RateLimiter(rate='10/m', key_prefix='booking')
+# Booking protection (general):
+# Max 30 actions per minute (increased for better UX)
+booking_limiter = RateLimiter(rate='30/m', key_prefix='booking')
+
+# Seat selection protection (more lenient):
+# Max 50 requests per minute (users frequently change seat selection)
+seat_selection_limiter = RateLimiter(rate='50/m', key_prefix='seat_select')
+
+# Payment protection (stricter):
+# Max 5 payment attempts per minute (prevent abuse)
+payment_limiter = RateLimiter(rate='5/m', key_prefix='payment')
 
 # API protection:
 # Max 60 requests per minute

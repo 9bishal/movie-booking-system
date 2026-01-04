@@ -3,7 +3,9 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 from django.utils import timezone
+from django.db import transaction
 import json
 import logging
 from .razorpay_utils import razorpay_client
@@ -15,7 +17,7 @@ from movies.theater_models import Showtime
 from .models import Booking, Transaction
 from .utils import SeatManager, PriceCalculator
 from django.conf import settings
-from utils.rate_limit import booking_limiter
+from utils.rate_limit import booking_limiter, seat_selection_limiter, payment_limiter
 from utils.performance import PerformanceMonitor
 
 # Initialize logger
@@ -36,7 +38,7 @@ logger = logging.getLogger(__name__)
 # This is a Django Decorator. It ensures that only logged-in users can access this page.
 # Anonymous users will be redirected to the login page automatically.
 
-@booking_limiter.rate_limit_view
+@seat_selection_limiter.rate_limit_view
 @login_required
 @PerformanceMonitor.measure_performance
 def select_seats(request, showtime_id):
@@ -84,7 +86,7 @@ def select_seats(request, showtime_id):
 # This is used for AJAX requests (background calls) from the Browser's JavaScript.
 @login_required
 @csrf_exempt
-@booking_limiter.rate_limit_view
+@seat_selection_limiter.rate_limit_view
 def reserve_seats(request, showtime_id):
     """API endpoint to store seat selection in session (Optimistic Locking Phase 1)"""
     if request.method != 'POST':
@@ -201,7 +203,22 @@ def create_booking(request, showtime_id):
         data = json.loads(request.body)
         seat_ids = data.get('seat_ids', [])
         
-        # 🟢 WHY: Optimistic Locking (Phase 2).
+        # � CRITICAL CHECK: Verify user doesn't already have PENDING booking
+        existing_pending = Booking.objects.filter(
+            user=request.user,
+            showtime=showtime,
+            status='PENDING'
+        ).first()
+        
+        if existing_pending:
+            logger.warning(f"⚠️ User {request.user.id} already has pending booking {existing_pending.booking_number}")
+            return JsonResponse({
+                'success': False,
+                'error': 'You already have a pending booking for this show. Please complete or cancel it first.',
+                'existing_booking_id': existing_pending.id
+            }, status=400)
+        
+        # �🟢 WHY: Optimistic Locking (Phase 2).
         # We officially 'Lock' the seats in Redis here.
         # HOW: If multiple users try to click 'Pay' at the same millisecond, 
         # Redis (being single-threaded) only lets one 'reserve' successfully.
@@ -272,17 +289,29 @@ def create_booking(request, showtime_id):
         return JsonResponse({'error': str(e)}, status=500)
 
 @login_required
+@payment_limiter.rate_limit_view
 def payment_page(request, booking_id):
     """Show the payment landing page with a countdown timer and Razorpay integration."""
     from .email_utils import send_payment_failed_email
     
     booking = get_object_or_404(Booking, id=booking_id, user=request.user)
     
-    # 🕵️ Cleanup: If user takes too long to pay, expire the booking.
+    # � CRITICAL CHECK #1: Booking status validation
+    # PREVENT payment if booking is already processed
+    if booking.status == 'CONFIRMED':
+        messages.info(request, 'This booking is already confirmed!')
+        return redirect('booking_detail', booking_id=booking.id)
+    
+    if booking.status in ['CANCELLED', 'FAILED']:
+        messages.error(request, f'This booking was {booking.status.lower()}. Please create a new booking.')
+        return redirect('select_seats', showtime_id=booking.showtime.id)
+    
+    # 🔐 CRITICAL CHECK #2: Expiry validation
+    # If user takes too long to pay, expire the booking
     if booking.is_expired():
         booking.status = 'EXPIRED'
         booking.save()
-        # Free the seats so other users can book them.
+        # Free the seats so other users can book them
         SeatManager.release_seats(booking.showtime.id, booking.seats)
         
         # Send payment failed/expired email
@@ -300,19 +329,35 @@ def payment_page(request, booking_id):
         messages.error(request, 'Payment window expired. Please try again.')
         return redirect('select_seats', showtime_id=booking.showtime.id)
     
-    # 💳 HOW: Create Razorpay Order
-    # We send the amount and receipt to Razorpay API to get an 'order_id'.
-    # ❓ WHY: This creates a single source of truth for this payment attempt.
-    # It prevents double-charging and allows us to track this specific transaction on Razorpay's dashboard.
-    order_data = razorpay_client.create_order(
-        amount=booking.total_amount,
-        receipt=f"booking_{booking.booking_number}"
-    )
-    
-    if not order_data['success']:
-        # 🛡️ WHY: Fail gracefully. If the gateway is down, we don't want a 500 error.
-        messages.error(request, f"Payment Gateway Error: {order_data['error']}")
-        return redirect('booking_summary', showtime_id=booking.showtime.id)
+    # � CRITICAL CHECK #3: Reuse existing Razorpay order OR create new one
+    # PREVENTS duplicate orders when URL is copied/opened in multiple tabs
+    if booking.razorpay_order_id:
+        # Order already exists - REUSE IT
+        logger.info(f"♻️ Reusing existing Razorpay order {booking.razorpay_order_id} for {booking.booking_number}")
+        order_data = {
+            'success': True,
+            'order_id': booking.razorpay_order_id,
+            'amount': int(booking.total_amount * 100),  # Convert to paise
+            'currency': 'INR',
+            'is_mock': getattr(settings, 'RAZORPAY_MOCK_MODE', False)
+        }
+    else:
+        # No order exists - CREATE NEW ONE (first time only)
+        logger.info(f"🆕 Creating new Razorpay order for {booking.booking_number}")
+        order_data = razorpay_client.create_order(
+            amount=booking.total_amount,
+            receipt=f"booking_{booking.booking_number}"
+        )
+        
+        if not order_data['success']:
+            # If Razorpay fails, show error
+            messages.error(request, f"Payment Gateway Error: {order_data['error']}")
+            return redirect('booking_summary', showtime_id=booking.showtime.id)
+        
+        # 🔐 SAVE order_id to database (ONE TIME ONLY)
+        booking.razorpay_order_id = order_data['order_id']
+        booking.save()
+        logger.info(f"✅ Saved Razorpay order {order_data['order_id']} to booking {booking.booking_number}")
 
     context = {
         'booking': booking,
@@ -330,6 +375,7 @@ def payment_page(request, booking_id):
     return render(request, 'bookings/payment.html', context)
 
 @login_required
+@payment_limiter.rate_limit_view
 def payment_success(request, booking_id):
     """
     🎉 PAYMENT SUCCESS HANDLER
@@ -348,6 +394,17 @@ def payment_success(request, booking_id):
     from .email_utils import send_booking_confirmation_email
     
     booking = get_object_or_404(Booking, id=booking_id, user=request.user)
+    
+    # 🔐 CRITICAL CHECK #1: Prevent double payment processing
+    # If booking is already CONFIRMED, redirect to ticket page
+    if booking.status == 'CONFIRMED':
+        messages.info(request, 'This booking is already confirmed!')
+        return redirect('booking_detail', booking_id=booking.id)
+    
+    # 🔐 CRITICAL CHECK #2: Only PENDING bookings can be paid
+    if booking.status != 'PENDING':
+        messages.error(request, f'Cannot process payment for {booking.status} booking.')
+        return redirect('my_bookings')
     
     # Get parameters from Razorpay redirect
     razorpay_payment_id = request.GET.get('razorpay_payment_id')
@@ -403,16 +460,38 @@ def payment_success(request, booking_id):
 
         # ✅ ALL CLEAR: Proceed with confirmation
         
-        # ========== STEP 1: UPDATE DATABASE IMMEDIATELY ==========
-        # Change booking status from PENDING to CONFIRMED
-        # This is a PERMANENT change saved to database
-        booking.status = 'CONFIRMED'
-        booking.payment_id = razorpay_payment_id  # Save Razorpay payment ID
-        booking.confirmed_at = timezone.now()  # Record when payment was confirmed
-        booking.payment_method = 'RAZORPAY'  # Record payment method
-        booking.save()  # ← SAVE TO DATABASE NOW (immediate)
+        # 🔐 ATOMIC TRANSACTION: Prevent race condition from multiple tabs
+        # Use select_for_update() to lock the row until transaction completes
+        try:
+            with transaction.atomic():
+                # Re-fetch booking with row-level lock (CRITICAL!)
+                booking = Booking.objects.select_for_update().get(id=booking_id)
+                
+                # Double-check status inside transaction (race condition protection)
+                if booking.status == 'CONFIRMED':
+                    logger.warning(f"⚠️ Booking {booking.booking_number} already confirmed by another tab")
+                    messages.info(request, 'This booking is already confirmed!')
+                    return redirect('booking_detail', booking_id=booking.id)
+                
+                if booking.status != 'PENDING':
+                    logger.warning(f"⚠️ Booking {booking.booking_number} status changed to {booking.status}")
+                    messages.error(request, f'Cannot confirm {booking.status} booking.')
+                    return redirect('my_bookings')
+                
+                # ========== STEP 1: UPDATE DATABASE IMMEDIATELY ==========
+                # Change booking status from PENDING to CONFIRMED
+                # This is a PERMANENT change saved to database
+                booking.status = 'CONFIRMED'
+                booking.payment_id = razorpay_payment_id  # Save Razorpay payment ID
+                booking.confirmed_at = timezone.now()  # Record when payment was confirmed
+                booking.payment_method = 'RAZORPAY'  # Record payment method
+                booking.save()  # ← SAVE TO DATABASE NOW (atomic transaction)
+                
+                logger.info(f"✅ Booking {booking.booking_number} confirmed. Payment ID: {razorpay_payment_id}")
         
-        logger.info(f"✅ Booking {booking.booking_number} confirmed. Payment ID: {razorpay_payment_id}")
+        except Booking.DoesNotExist:
+            messages.error(request, 'Booking not found.')
+            return redirect('my_bookings')
         
         # ========== STEP 2: MARK SEATS AS PERMANENTLY BOOKED ==========
         # Move seats from "reserved temporarily" to "confirmed permanently" in Redis
@@ -455,6 +534,7 @@ def payment_success(request, booking_id):
         return redirect('my_bookings')
 
 @login_required
+@payment_limiter.rate_limit_view
 def payment_failed(request, booking_id):
     """
     ❌ HANDLE PAYMENT FAILURE OR CANCELLATION
@@ -646,6 +726,70 @@ def cancel_booking_api(request, booking_id):
             'success': False,
             'error': str(e)
         }, status=500)
+
+@csrf_exempt
+@require_POST
+def payment_abandoned(request, booking_id):
+    """
+    🚪 Handle payment window closure
+    
+    Called via navigator.sendBeacon when user closes payment tab
+    Immediately:
+    1. Marks booking as FAILED
+    2. Releases seats from Redis
+    3. Sends payment failed email
+    """
+    import json
+    
+    try:
+        # Parse request data
+        try:
+            data = json.loads(request.body)
+            reason = data.get('reason', 'tab_closed')
+            logger.info(f"🚪 Payment tab closed for booking {booking_id}, reason: {reason}")
+        except:
+            reason = 'unknown'
+        
+        # Get booking
+        booking = Booking.objects.get(id=booking_id)
+        
+        # Only handle PENDING bookings
+        if booking.status == 'PENDING':
+            # Mark as FAILED
+            booking.status = 'FAILED'
+            booking.save()
+            
+            # Release seats immediately from Redis
+            SeatManager.release_seats(booking.showtime.id, booking.seats)
+            
+            logger.info(f"✅ Booking {booking.booking_number} failed (tab closed) - seats released immediately")
+            
+            # Send payment failed email
+            try:
+                from .email_utils import send_payment_failed_email
+                send_payment_failed_email.delay(booking.id)
+                logger.info(f"📧 Payment failed email queued for {booking.booking_number}")
+            except Exception as e:
+                logger.warning(f"⚠️ Could not queue email, trying sync: {e}")
+                try:
+                    from .email_utils import send_payment_failed_email
+                    send_payment_failed_email(booking.id)
+                except Exception as email_error:
+                    logger.error(f"❌ Failed to send email: {email_error}")
+            
+            return HttpResponse('Booking expired, seats released', status=200)
+        else:
+            logger.debug(f"Tab close for non-pending booking {booking.booking_number} (status: {booking.status})")
+            return HttpResponse('Already processed', status=200)
+        
+    except Booking.DoesNotExist:
+        logger.warning(f"Tab close for non-existent booking {booking_id}")
+        return HttpResponse('Not Found', status=404)
+    except Exception as e:
+        logger.error(f"Error in payment_abandoned: {e}")
+        import traceback
+        traceback.print_exc()
+        return HttpResponse('Error', status=500)
 
 
 

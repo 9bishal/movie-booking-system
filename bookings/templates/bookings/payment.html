@@ -296,5 +296,29 @@
             }
         }
     };
+
+    // ============================================================
+    // 🚪 TAB CLOSE DETECTION - Release seats immediately
+    // ============================================================
+    window.addEventListener('beforeunload', function(e) {
+        // Only trigger if payment not in progress
+        if (!paymentInProgress) {
+            // Send beacon to server (guaranteed delivery even if page closes)
+            const data = JSON.stringify({
+                booking_id: {{ booking.id }},
+                reason: 'tab_closed',
+                timestamp: new Date().toISOString()
+            });
+            
+            navigator.sendBeacon(
+                '{% url "payment_abandoned" booking.id %}',
+                new Blob([data], { type: 'application/json' })
+            );
+            
+            console.log('🚪 Tab closing - notifying server to release seats');
+        }
+    });
+    
+    console.log('✅ Payment page initialized with tab close detection');
 </script>
 {% endblock %}

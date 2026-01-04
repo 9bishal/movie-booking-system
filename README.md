@@ -29,6 +29,8 @@ We've created comprehensive beginner-friendly guides to help you understand how 
 
 ### Technical Documentation
 - **[Complete Fix Summary](./COMPLETE_FIX_SUMMARY.md)** - All system fixes and improvements
+- **[Rate Limiting Guide](./RATE_LIMITING_GUIDE.md)** - Complete rate limiting documentation ⚡
+- **[Rate Limiting Fix](./RATE_LIMITING_FIX.md)** - 429 error fix details 🛠️
 - **[Celery Expiry Fix](./CELERY_EXPIRY_REDIS_FIX_COMPLETE.md)** - Background expiry implementation
 - **[Refresh & Cancel Fix](./REFRESH_AND_CANCEL_FIX.md)** - Page refresh handling
 - **[Redis Fix Complete](./REDIS_FIX_COMPLETE.md)** - Redis key cleanup fix
@@ -427,6 +429,8 @@ Contributions are welcome! Please follow these steps:
 | Migration errors | Try: `python manage.py makemigrations` then `python manage.py migrate` |
 | Static files not loading | Run: `python manage.py collectstatic` |
 | Celery not working | Check Redis connection and Celery worker status |
+| 429 Too Many Requests | See [Rate Limiting Guide](./RATE_LIMITING_GUIDE.md) - Adjust limits in `utils/rate_limit.py` |
+| Rate limiting not working | Test Redis: `python test_rate_limiting.py` |
 
 ---
 
