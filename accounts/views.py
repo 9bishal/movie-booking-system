@@ -4,8 +4,13 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-
+from utils.rate_limit import login_limiter
 # ========== REGISTER VIEW ==========
+from utils.rate_limit import RateLimiter
+
+registration_limiter = RateLimiter(rate='3/h', key_prefix='register')
+
+@registration_limiter.rate_limit_view
 def register(request):
     """
     Handle user registration
@@ -59,6 +64,7 @@ def register(request):
     return render(request, 'accounts/register.html', context)
 
 # ========== LOGIN VIEW ==========
+@login_limiter.rate_limit_view
 def login_view(request):
     """
     Handle user login

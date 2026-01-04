@@ -15,6 +15,8 @@ from movies.theater_models import Showtime
 from .models import Booking, Transaction
 from .utils import SeatManager, PriceCalculator
 from django.conf import settings
+from utils.rate_limit import booking_limiter
+from utils.performance import PerformanceMonitor
 
 # Initialize logger
 logger = logging.getLogger(__name__)
@@ -33,7 +35,10 @@ logger = logging.getLogger(__name__)
 # ❓ @login_required: 
 # This is a Django Decorator. It ensures that only logged-in users can access this page.
 # Anonymous users will be redirected to the login page automatically.
+
+@booking_limiter.rate_limit_view
 @login_required
+@PerformanceMonitor.measure_performance
 def select_seats(request, showtime_id):
     """
     🎨 WHY: This is the interactive part of the booking.
@@ -79,6 +84,7 @@ def select_seats(request, showtime_id):
 # This is used for AJAX requests (background calls) from the Browser's JavaScript.
 @login_required
 @csrf_exempt
+@booking_limiter.rate_limit_view
 def reserve_seats(request, showtime_id):
     """API endpoint to store seat selection in session (Optimistic Locking Phase 1)"""
     if request.method != 'POST':
@@ -180,6 +186,7 @@ def booking_summary(request, showtime_id):
 # ========== CREATE BOOKING VIEW ==========
 @login_required
 @csrf_exempt
+@booking_limiter.rate_limit_view
 def create_booking(request, showtime_id):
     """
     🏗️ WHY: This is the 'Handshake'. 

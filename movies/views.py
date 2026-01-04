@@ -14,6 +14,11 @@ import json
 from embed_video.backends import detect_backend
 from django.core.cache import cache
 
+# Import utility functions for performance, caching, and rate limiting
+from utils.cache_utils import cache_page, CacheManager
+from utils.performance import PerformanceMonitor
+from utils.rate_limit import RateLimiter, api_limiter
+
 
 # ==============================================================================
 # ❓ WHAT ARE VIEWS?
@@ -23,6 +28,9 @@ from django.core.cache import cache
 # ==============================================================================
 
 # ========== MOVIE LIST VIEW ==========
+# Cache for 12 minutes, monitor performance
+@cache_page(timeout=720)
+@PerformanceMonitor.measure_performance
 def movie_list(request):
     """Display all active movies"""
     # ❓ WHY filter(is_active=True)?
@@ -65,6 +73,9 @@ def movie_list(request):
 
 
 # ========== MOVIE DETAIL VIEW ==========
+# Cache for 10 minutes, monitor performance
+@cache_page(timeout=600)
+@PerformanceMonitor.measure_performance
 def movie_detail(request, slug):
     """Display movie details and available showtimes"""
     # ❓ WHY get_object_or_404?
@@ -146,6 +157,9 @@ def movie_detail(request, slug):
     return render(request, 'movies/movie_detail.html', context)
 
 # ========== HOME PAGE VIEW ==========
+# Cache for 10 minutes, monitor performance
+@cache_page(timeout=600)
+@PerformanceMonitor.measure_performance
 def home(request):
     """Home page with featured movies"""
     # Featured movies (most recent 6)
@@ -195,6 +209,9 @@ def home(request):
 
 
 # ========== MOVIE TRAILER VIEW ==========
+# Cache for 15 minutes (trailers don't change often)
+@cache_page(timeout=900)
+@PerformanceMonitor.measure_performance
 def movie_trailer(request, slug):
     """Movie detail page with embedded trailer"""
     movie = get_object_or_404(Movie, slug=slug, is_active=True)
@@ -243,7 +260,13 @@ def movie_trailer(request, slug):
 
 
 
+# Create rate limiters for different actions
+wishlist_limiter = RateLimiter(rate='30/m', key_prefix='wishlist')  # 30 actions per minute
+review_limiter = RateLimiter(rate='5/m', key_prefix='review')  # 5 reviews per minute
+
+
 @login_required
+@wishlist_limiter.rate_limit_view
 def toggle_wishlist(request, movie_id):
     """Add/remove movie from wishlist"""
     movie = get_object_or_404(Movie, id=movie_id)
@@ -276,6 +299,7 @@ def toggle_wishlist(request, movie_id):
     return JsonResponse({'error': 'Invalid request'}, status=400)
 
 @login_required
+@wishlist_limiter.rate_limit_view
 def toggle_interest(request, movie_id):
     """Add/remove movie from interest list"""
     movie = get_object_or_404(Movie, id=movie_id)
@@ -323,6 +347,8 @@ def wishlist_view(request):
 
 # ========== REVIEW VIEWS ==========
 @login_required
+@review_limiter.rate_limit_view
+@PerformanceMonitor.measure_performance
 def add_review(request, movie_id):
     """Add or update review"""
     movie = get_object_or_404(Movie, id=movie_id)
@@ -358,6 +384,7 @@ def add_review(request, movie_id):
 
 @csrf_exempt
 @login_required
+@wishlist_limiter.rate_limit_view
 def like_review(request, review_id):
     """Like or dislike a review"""
     if request.method == 'POST':
@@ -417,6 +444,8 @@ def like_review(request, review_id):
     return JsonResponse({'success': False, 'error': 'Invalid request'})
 
 # ========== AUTOCOMPLETE API ==========
+# Rate limit autocomplete to prevent abuse
+@api_limiter.rate_limit_view
 def movie_autocomplete(request):
     """Autocomplete for search"""
     query = request.GET.get('q', '')
