@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentation Index - Movie Booking System</title>
+    <style>
+        /* Screen Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            line-height: 1.8;
+            color: #000;
+            background: #f5f5f5;
+            padding: 20px;
+            font-size: 12pt;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        
+        .header {
+            border-bottom: 3px solid #007bff;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #007bff;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+        
+        .meta {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .meta-info {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #0056b3;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .content {
+            margin-top: 30px;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+            color: #2c3e50;
+        }
+        
+        h1 { font-size: 2em; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
+        h2 { font-size: 1.75em; border-bottom: 1px solid #dee2e6; padding-bottom: 8px; }
+        h3 { font-size: 1.5em; }
+        h4 { font-size: 1.25em; }
+        
+        p {
+            margin-bottom: 1em;
+        }
+        
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 10pt;
+            color: #000;
+            font-weight: 500;
+        }
+        
+        pre {
+            background: #f8f8f8;
+            color: #000;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin: 15px 0;
+            line-height: 1.6;
+            font-size: 10pt;
+        }
+        
+        pre code {
+            background: none;
+            color: #000;
+            padding: 0;
+            border: none;
+            font-size: 10pt;
+            font-weight: normal;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        table th, table td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #dee2e6;
+        }
+        
+        table th {
+            background: #007bff;
+            color: white;
+            font-weight: 600;
+        }
+        
+        table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        blockquote {
+            border-left: 4px solid #007bff;
+            padding-left: 20px;
+            margin: 20px 0;
+            color: #666;
+            font-style: italic;
+        }
+        
+        ul, ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+        
+        li {
+            margin: 5px 0;
+        }
+        
+        a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        
+        a:hover {
+            text-decoration: underline;
+        }
+        
+        hr {
+            border: none;
+            border-top: 2px solid #dee2e6;
+            margin: 30px 0;
+        }
+        
+        /* Print Styles - Optimized for Black & White */
+        @media print {
+            @page {
+                margin: 0.75in;
+                size: A4;
+            }
+            
+            body {
+                background: white;
+                padding: 0;
+                color: #000;
+                font-size: 11pt;
+                line-height: 1.6;
+            }
+            
+            .container {
+                box-shadow: none;
+                padding: 0;
+                max-width: 100%;
+            }
+            
+            .actions, .no-print {
+                display: none !important;
+            }
+            
+            .header {
+                border-bottom: 2px solid #000;
+                padding-bottom: 10pt;
+                margin-bottom: 15pt;
+            }
+            
+            .header h1 {
+                color: #000;
+                font-size: 18pt;
+            }
+            
+            .header p {
+                color: #333;
+                font-size: 11pt;
+            }
+            
+            .meta {
+                background: #f9f9f9;
+                border: 1px solid #ddd;
+                padding: 10pt;
+                margin-bottom: 15pt;
+            }
+            
+            h1 {
+                font-size: 16pt;
+                border-bottom: 2px solid #000;
+                padding-bottom: 5pt;
+                margin-top: 20pt;
+                margin-bottom: 10pt;
+                page-break-after: avoid;
+            }
+            
+            h2 {
+                font-size: 14pt;
+                border-bottom: 1px solid #666;
+                padding-bottom: 4pt;
+                margin-top: 15pt;
+                margin-bottom: 8pt;
+                page-break-after: avoid;
+            }
+            
+            h3 {
+                font-size: 13pt;
+                margin-top: 12pt;
+                margin-bottom: 6pt;
+                page-break-after: avoid;
+            }
+            
+            h4 {
+                font-size: 12pt;
+                margin-top: 10pt;
+                margin-bottom: 5pt;
+                page-break-after: avoid;
+            }
+            
+            p {
+                margin-bottom: 8pt;
+                orphans: 3;
+                widows: 3;
+            }
+            
+            /* Code blocks - BLACK & WHITE optimized */
+            code {
+                background: #f0f0f0;
+                border: 1px solid #999;
+                padding: 2pt 4pt;
+                font-family: 'Courier New', 'Consolas', monospace;
+                font-size: 9pt;
+                color: #000;
+                font-weight: 600;
+            }
+            
+            pre {
+                background: #f8f8f8;
+                border: 2px solid #666;
+                padding: 10pt;
+                margin: 10pt 0;
+                page-break-inside: avoid;
+                font-size: 9pt;
+                line-height: 1.4;
+                overflow: visible;
+                white-space: pre-wrap;
+                word-wrap: break-word;
+            }
+            
+            pre code {
+                background: none;
+                border: none;
+                padding: 0;
+                font-size: 9pt;
+                font-weight: normal;
+                color: #000;
+            }
+            
+            /* Tables - BLACK & WHITE optimized */
+            table {
+                page-break-inside: avoid;
+                border-collapse: collapse;
+                width: 100%;
+                margin: 10pt 0;
+                border: 2px solid #000;
+            }
+            
+            table th {
+                background: #e0e0e0;
+                color: #000;
+                border: 1px solid #666;
+                padding: 6pt;
+                font-weight: bold;
+                text-align: left;
+            }
+            
+            table td {
+                border: 1px solid #999;
+                padding: 6pt;
+                color: #000;
+            }
+            
+            table tr:nth-child(even) {
+                background: #f5f5f5;
+            }
+            
+            /* Blockquotes */
+            blockquote {
+                border-left: 3px solid #000;
+                padding-left: 10pt;
+                margin: 10pt 0;
+                font-style: italic;
+                color: #333;
+                page-break-inside: avoid;
+            }
+            
+            /* Links */
+            a {
+                color: #000;
+                text-decoration: underline;
+            }
+            
+            a[href]:after {
+                content: " (" attr(href) ")";
+                font-size: 9pt;
+                color: #666;
+            }
+            
+            /* Lists */
+            ul, ol {
+                margin: 8pt 0;
+                padding-left: 20pt;
+            }
+            
+            li {
+                margin: 4pt 0;
+            }
+            
+            /* Horizontal rules */
+            hr {
+                border: none;
+                border-top: 1px solid #000;
+                margin: 15pt 0;
+            }
+            
+            /* Image handling */
+            img {
+                max-width: 100%;
+                page-break-inside: avoid;
+            }
+            
+            /* Page breaks */
+            .page-break {
+                page-break-before: always;
+            }
+            
+            /* Ensure visibility of all content */
+            * {
+                color: #000 !important;
+                background: white !important;
+            }
+            
+            code, pre {
+                background: #f5f5f5 !important;
+                border-color: #666 !important;
+            }
+            
+            table th {
+                background: #e0e0e0 !important;
+            }
+            
+            table tr:nth-child(even) {
+                background: #f8f8f8 !important;
+            }
+        }
+        
+        /* Code syntax highlighting */
+        .codehilite .hll { background-color: #49483e }
+        .codehilite .c { color: #75715e }
+        .codehilite .k { color: #66d9ef }
+        .codehilite .l { color: #ae81ff }
+        .codehilite .n { color: #f8f8f2 }
+        .codehilite .o { color: #f92672 }
+        .codehilite .p { color: #f8f8f2 }
+        .codehilite .cm { color: #75715e }
+        .codehilite .cp { color: #75715e }
+        .codehilite .c1 { color: #75715e }
+        .codehilite .cs { color: #75715e }
+        .codehilite .kc { color: #66d9ef }
+        .codehilite .kd { color: #66d9ef }
+        .codehilite .kn { color: #f92672 }
+        .codehilite .kp { color: #66d9ef }
+        .codehilite .kr { color: #66d9ef }
+        .codehilite .kt { color: #66d9ef }
+        .codehilite .ld { color: #e6db74 }
+        .codehilite .m { color: #ae81ff }
+        .codehilite .s { color: #e6db74 }
+        .codehilite .na { color: #a6e22e }
+        .codehilite .nb { color: #f8f8f2 }
+        .codehilite .nc { color: #a6e22e }
+        .codehilite .no { color: #66d9ef }
+        .codehilite .nd { color: #a6e22e }
+        .codehilite .ni { color: #f8f8f2 }
+        .codehilite .ne { color: #a6e22e }
+        .codehilite .nf { color: #a6e22e }
+        .codehilite .nl { color: #f8f8f2 }
+        .codehilite .nn { color: #f8f8f2 }
+        .codehilite .nx { color: #a6e22e }
+        .codehilite .py { color: #f8f8f2 }
+        .codehilite .nt { color: #f92672 }
+        .codehilite .nv { color: #f8f8f2 }
+        .codehilite .ow { color: #f92672 }
+        .codehilite .w { color: #f8f8f2 }
+        .codehilite .mf { color: #ae81ff }
+        .codehilite .mh { color: #ae81ff }
+        .codehilite .mi { color: #ae81ff }
+        .codehilite .mo { color: #ae81ff }
+        .codehilite .sb { color: #e6db74 }
+        .codehilite .sc { color: #e6db74 }
+        .codehilite .sd { color: #e6db74 }
+        .codehilite .s2 { color: #e6db74 }
+        .codehilite .se { color: #ae81ff }
+        .codehilite .sh { color: #e6db74 }
+        .codehilite .si { color: #e6db74 }
+        .codehilite .sx { color: #e6db74 }
+        .codehilite .sr { color: #e6db74 }
+        .codehilite .s1 { color: #e6db74 }
+        .codehilite .ss { color: #e6db74 }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Documentation Index</h1>
+            <p>Complete index of all project documentation</p>
+        </div>
+        
+        <div class="meta">
+            <div class="meta-info">
+                <strong>Generated:</strong> January 04, 2026<br>
+                <strong>Source:</strong> DOCUMENTATION_INDEX.md<br>
+                <strong>Project:</strong> Movie Booking System
+            </div>
+            <div class="actions no-print">
+                <button class="btn btn-primary" onclick="window.print()">
+                    <span>🖨️</span> Print / Save as PDF
+                </button>
+                <button class="btn btn-success" onclick="downloadMarkdown()">
+                    <span>📥</span> Download Markdown
+                </button>
+                <a href="index.html" class="btn btn-secondary">
+                    <span>🏠</span> Back to Index
+                </a>
+            </div>
+        </div>
+        
+        <div class="content">
+            <h1 id="movie-booking-system-complete-documentation-index">📚 Movie Booking System - Complete Documentation Index</h1>
+<p>Welcome! This is your guide to understanding how the movie booking system works.</p>
+<hr />
+<h2 id="for-beginners-start-here">🎯 For Beginners - Start Here!</h2>
+<p>If you&rsquo;re new to the system, read these guides in order:</p>
+<h3 id="1-understanding-redis-start-here">1. 🗄️ <strong>Understanding Redis</strong> ⭐ START HERE</h3>
+<p><strong>File:</strong> <a href="./UNDERSTANDING_REDIS.md">UNDERSTANDING_REDIS.md</a></p>
+<p><strong>What you&rsquo;ll learn:</strong><br />
+- What is Redis and why we need it<br />
+- How seat locking works<br />
+- Redis data structures (keys, values, TTL)<br />
+- Real examples with timeline</p>
+<p><strong>Why read first:</strong> Redis is the foundation of our seat reservation system. Understanding it makes everything else easier!</p>
+<p><strong>Time to read:</strong> 20 minutes</p>
+<hr />
+<h3 id="2-understanding-celery">2. ⚙️ <strong>Understanding Celery</strong></h3>
+<p><strong>File:</strong> <a href="./UNDERSTANDING_CELERY.md">UNDERSTANDING_CELERY.md</a></p>
+<p><strong>What you&rsquo;ll learn:</strong><br />
+- What is Celery and why we need background tasks<br />
+- How email sending works asynchronously<br />
+- Celery Beat (scheduled tasks)<br />
+- How expired bookings are cleaned up</p>
+<p><strong>Why read second:</strong> Celery handles all the &ldquo;slow stuff&rdquo; so users don&rsquo;t have to wait. It&rsquo;s crucial for good user experience!</p>
+<p><strong>Time to read:</strong> 25 minutes</p>
+<hr />
+<h3 id="3-understanding-razorpay">3. 💳 <strong>Understanding Razorpay</strong></h3>
+<p><strong>File:</strong> <a href="./UNDERSTANDING_RAZORPAY.md">UNDERSTANDING_RAZORPAY.md</a></p>
+<p><strong>What you&rsquo;ll learn:</strong><br />
+- What is a payment gateway<br />
+- How Razorpay integration works<br />
+- Payment security and signature verification<br />
+- Test vs live mode</p>
+<p><strong>Why read third:</strong> Payments are the heart of any booking system. Razorpay makes it secure and easy!</p>
+<p><strong>Time to read:</strong> 25 minutes</p>
+<hr />
+<h3 id="4-how-everything-works-together-must-read">4. 🎬 <strong>How Everything Works Together</strong> ⭐ MUST READ</h3>
+<p><strong>File:</strong> <a href="./HOW_EVERYTHING_WORKS_TOGETHER.md">HOW_EVERYTHING_WORKS_TOGETHER.md</a></p>
+<p><strong>What you&rsquo;ll learn:</strong><br />
+- Complete booking flow (step-by-step)<br />
+- How Redis, Celery, and Razorpay interact<br />
+- Timeline of a real booking<br />
+- What happens when things go wrong</p>
+<p><strong>Why read last:</strong> This ties everything together with real-world examples and shows the complete picture!</p>
+<p><strong>Time to read:</strong> 30 minutes</p>
+<hr />
+<h2 id="technical-documentation">🛠️ Technical Documentation</h2>
+<h3 id="system-architecture-fixes">System Architecture &amp; Fixes</h3>
+<h4 id="complete-fix-summary"><strong>Complete Fix Summary</strong></h4>
+<p><strong>File:</strong> <a href="./COMPLETE_FIX_SUMMARY.md">COMPLETE_FIX_SUMMARY.md</a></p>
+<p>Complete summary of all seat locking, refresh, and expiry fixes. Includes:<br />
+- Client-side expiry (refresh detection, modal dismiss, timer)<br />
+- Backend expiry (Celery cleanup)<br />
+- Redis key management<br />
+- Test results</p>
+<hr />
+<h4 id="celery-expiry-redis-fix"><strong>Celery Expiry Redis Fix</strong></h4>
+<p><strong>File:</strong> <a href="./CELERY_EXPIRY_REDIS_FIX_COMPLETE.md">CELERY_EXPIRY_REDIS_FIX_COMPLETE.md</a></p>
+<p>Detailed explanation of the fix for Celery task not cleaning up user reservation keys in Redis.</p>
+<hr />
+<h4 id="refresh-and-cancel-fix"><strong>Refresh and Cancel Fix</strong></h4>
+<p><strong>File:</strong> <a href="./REFRESH_AND_CANCEL_FIX.md">REFRESH_AND_CANCEL_FIX.md</a></p>
+<p>How the system handles page refreshes, Razorpay modal dismissals, and timer expiry.</p>
+<hr />
+<h4 id="redis-fix-complete"><strong>Redis Fix Complete</strong></h4>
+<p><strong>File:</strong> <a href="./REDIS_FIX_COMPLETE.md">REDIS_FIX_COMPLETE.md</a></p>
+<p>Fix for user reservation keys not being deleted from Redis when seats are released.</p>
+<hr />
+<h4 id="new-tab-fix-documentation"><strong>New Tab Fix Documentation</strong></h4>
+<p><strong>File:</strong> <a href="./NEW_TAB_FIX_DOCUMENTATION.md">NEW_TAB_FIX_DOCUMENTATION.md</a></p>
+<p>How the system distinguishes between refresh and opening in a new tab.</p>
+<hr />
+<h2 id="testing-documentation">🧪 Testing Documentation</h2>
+<h3 id="test-scripts">Test Scripts</h3>
+<p>All test scripts are in the root directory with prefix <code>test_</code>:</p>
+<ol>
+<li><strong>test_celery_expiry_redis_cleanup.py</strong> - Verifies Celery expiry cleans up all Redis keys</li>
+<li><strong>test_redis_seat_release.py</strong> - Tests Redis key cleanup on force expiry</li>
+<li><strong>test_timer_expiry.py</strong> - Tests client-side timer expiry</li>
+<li><strong>test_cancel_booking.py</strong> - Tests cancel API endpoint</li>
+<li><strong>test_improved_refresh.py</strong> - Tests refresh detection</li>
+<li><strong>test_summary_refresh.py</strong> - Tests summary page refresh</li>
+<li><strong>test_razorpay_cancel.py</strong> - Tests Razorpay modal dismiss</li>
+<li><strong>test_refresh_detection.py</strong> - Tests refresh vs new tab</li>
+</ol>
+<p><strong>How to run:</strong></p>
+<pre><code class="language-bash">python test_celery_expiry_redis_cleanup.py
+</code></pre>
+<hr />
+<h2 id="additional-guides">📖 Additional Guides</h2>
+<h3 id="services-guide"><strong>Services Guide</strong></h3>
+<p><strong>File:</strong> <a href="./services_guide.md">services_guide.md</a></p>
+<p>Explanation of the service layer architecture (BookingService, PaymentVerificationService, etc.)</p>
+<hr />
+<h3 id="caching-guide"><strong>Caching Guide</strong></h3>
+<p><strong>File:</strong> <a href="./bookings/caching_guide.md">bookings/caching_guide.md</a></p>
+<p>Detailed guide on how caching works in the bookings app.</p>
+<hr />
+<h3 id="javascript-api-interaction"><strong>JavaScript API Interaction</strong></h3>
+<p><strong>File:</strong> <a href="./js_api_interaction.md">js_api_interaction.md</a></p>
+<p>How frontend JavaScript interacts with backend APIs.</p>
+<hr />
+<h2 id="learning-path">🎓 Learning Path</h2>
+<h3 id="for-complete-beginners">For Complete Beginners</h3>
+<pre><code>Day 1: Read UNDERSTANDING_REDIS.md
+       → Practice: Use redis-cli to see keys during booking
+
+Day 2: Read UNDERSTANDING_CELERY.md
+       → Practice: Watch Celery logs during booking
+
+Day 3: Read UNDERSTANDING_RAZORPAY.md
+       → Practice: Create test payment with test card
+
+Day 4: Read HOW_EVERYTHING_WORKS_TOGETHER.md
+       → Practice: Follow a complete booking in system logs
+
+Day 5: Read COMPLETE_FIX_SUMMARY.md
+       → Practice: Test refresh scenarios
+</code></pre>
+<h3 id="for-intermediate-developers">For Intermediate Developers</h3>
+<pre><code>1. Read HOW_EVERYTHING_WORKS_TOGETHER.md (overview)
+2. Read COMPLETE_FIX_SUMMARY.md (implementation details)
+3. Read component-specific guides as needed
+4. Run test scripts to verify understanding
+</code></pre>
+<h3 id="for-advanced-developers">For Advanced Developers</h3>
+<pre><code>1. Read COMPLETE_FIX_SUMMARY.md
+2. Review source code in bookings/
+3. Read specific fix documentation as needed
+4. Modify and extend the system
+</code></pre>
+<hr />
+<h2 id="quick-reference">🔍 Quick Reference</h2>
+<h3 id="find-information-by-topic">Find Information By Topic</h3>
+<table>
+<thead>
+<tr>
+<th>Topic</th>
+<th>File</th>
+<th>Section</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Seat locking</td>
+<td>UNDERSTANDING_REDIS.md</td>
+<td>How Redis Works</td>
+</tr>
+<tr>
+<td>Booking expiry</td>
+<td>UNDERSTANDING_CELERY.md</td>
+<td>Celery Beat</td>
+</tr>
+<tr>
+<td>Payment flow</td>
+<td>UNDERSTANDING_RAZORPAY.md</td>
+<td>Payment Flow</td>
+</tr>
+<tr>
+<td>Refresh handling</td>
+<td>COMPLETE_FIX_SUMMARY.md</td>
+<td>Client-Side Expiry</td>
+</tr>
+<tr>
+<td>Redis cleanup</td>
+<td>CELERY_EXPIRY_REDIS_FIX_COMPLETE.md</td>
+<td>Fix Applied</td>
+</tr>
+<tr>
+<td>Timer expiry</td>
+<td>REFRESH_AND_CANCEL_FIX.md</td>
+<td>Timer Expiry</td>
+</tr>
+<tr>
+<td>Signature verification</td>
+<td>UNDERSTANDING_RAZORPAY.md</td>
+<td>Security &amp; Verification</td>
+</tr>
+<tr>
+<td>Background tasks</td>
+<td>UNDERSTANDING_CELERY.md</td>
+<td>Common Tasks</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="quick-start-guide">🚀 Quick Start Guide</h2>
+<h3 id="1-setup-environment">1. Setup Environment</h3>
+<pre><code class="language-bash"># Install dependencies
+pip install -r requirements.txt
+
+# Start Redis
+redis-server
+
+# Start Django
+python manage.py runserver
+
+# Start Celery Worker (new terminal)
+celery -A moviebooking worker --loglevel=info
+
+# Start Celery Beat (new terminal)
+celery -A moviebooking beat --loglevel=info
+</code></pre>
+<h3 id="2-test-the-system">2. Test the System</h3>
+<pre><code class="language-bash"># Run comprehensive test
+python test_celery_expiry_redis_cleanup.py
+
+# Expected output:
+# 🎉 ALL CHECKS PASSED!
+# ✅ Celery expiry task correctly cleans up all Redis keys
+</code></pre>
+<h3 id="3-monitor-during-booking">3. Monitor During Booking</h3>
+<pre><code class="language-bash"># Terminal 1: Watch Redis keys
+redis-cli MONITOR
+
+# Terminal 2: Watch Celery logs
+tail -f celery_worker.log
+
+# Terminal 3: Watch Django logs
+tail -f logs/booking.log
+
+# Now make a booking and watch all three!
+</code></pre>
+<hr />
+<h2 id="need-help">📞 Need Help?</h2>
+<h3 id="common-issues-solutions">Common Issues &amp; Solutions</h3>
+<table>
+<thead>
+<tr>
+<th>Issue</th>
+<th>Solution Document</th>
+<th>Section</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Seats still reserved after expiry</td>
+<td>CELERY_EXPIRY_REDIS_FIX_COMPLETE.md</td>
+<td>Troubleshooting</td>
+</tr>
+<tr>
+<td>Refresh not detected</td>
+<td>NEW_TAB_FIX_DOCUMENTATION.md</td>
+<td>Implementation</td>
+</tr>
+<tr>
+<td>Payment not confirming</td>
+<td>UNDERSTANDING_RAZORPAY.md</td>
+<td>Troubleshooting</td>
+</tr>
+<tr>
+<td>Email not sending</td>
+<td>UNDERSTANDING_CELERY.md</td>
+<td>Troubleshooting</td>
+</tr>
+<tr>
+<td>Redis keys piling up</td>
+<td>UNDERSTANDING_REDIS.md</td>
+<td>Troubleshooting</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="system-status-checklist">📊 System Status Checklist</h2>
+<p>Use this to verify everything is working:</p>
+<ul>
+<li>[ ] Redis is running (<code>redis-cli ping</code> returns PONG)</li>
+<li>[ ] Django server is running (<code>http://localhost:8000</code>)</li>
+<li>[ ] Celery worker is running (check process list)</li>
+<li>[ ] Celery beat is running (check process list)</li>
+<li>[ ] Can create booking (seats get locked in Redis)</li>
+<li>[ ] Can complete payment (booking confirmed in database)</li>
+<li>[ ] Email is sent (check Celery logs)</li>
+<li>[ ] Expired bookings are cleaned up (check Celery beat logs)</li>
+<li>[ ] Redis keys are cleaned up (run test scripts)</li>
+</ul>
+<hr />
+<h2 id="learning-objectives">🎯 Learning Objectives</h2>
+<p>After reading all documentation, you should be able to:</p>
+<p>✅ Explain what Redis is and why we use it<br />
+✅ Describe how seat locking works with TTL<br />
+✅ Explain what Celery does and why it&rsquo;s needed<br />
+✅ Describe how Celery Beat schedules tasks<br />
+✅ Explain how Razorpay payment flow works<br />
+✅ Describe signature verification and why it&rsquo;s critical<br />
+✅ Trace a complete booking from start to finish<br />
+✅ Explain what happens when user refreshes payment page<br />
+✅ Describe how expired bookings are cleaned up<br />
+✅ Debug issues using Redis CLI and Celery logs  </p>
+<hr />
+<h2 id="best-practices">🌟 Best Practices</h2>
+<h3 id="when-working-with-this-system">When Working With This System</h3>
+<ol>
+<li><strong>Always Check Redis First</strong>: Before debugging seat issues, check Redis keys</li>
+<li><strong>Monitor Celery Logs</strong>: Background tasks can fail silently, always check logs</li>
+<li><strong>Verify Signatures</strong>: Never skip payment signature verification</li>
+<li><strong>Test Edge Cases</strong>: Always test refresh, modal dismiss, timer expiry</li>
+<li><strong>Use Test Mode</strong>: Use Razorpay test keys during development</li>
+<li><strong>Clean Up Redis</strong>: If testing, manually clean Redis between tests</li>
+</ol>
+<hr />
+<h2 id="contributing">📝 Contributing</h2>
+<p>If you make changes to the system:</p>
+<ol>
+<li>Update relevant documentation</li>
+<li>Add test scripts for new features</li>
+<li>Document any new Redis keys used</li>
+<li>Update this index if adding new docs</li>
+</ol>
+<hr />
+<h2 id="youre-ready">🎉 You&rsquo;re Ready!</h2>
+<p>Start with <a href="./UNDERSTANDING_REDIS.md">UNDERSTANDING_REDIS.md</a> and work your way through the guides. Take your time, try the examples, and refer back to this index whenever you need to find something specific.</p>
+<p><strong>Happy Learning! 🚀</strong></p>
+<hr />
+<p><em>Last Updated: January 3, 2026</em><br />
+<em>System Version: 2.0.0 (Production Ready)</em></p>
+        </div>
+        
+        <hr class="no-print">
+        <div class="meta no-print" style="margin-top: 30px;">
+            <p style="color: #666; font-size: 0.9em;">
+                💡 <strong>Tip:</strong> Use <kbd>Ctrl+P</kbd> (Windows/Linux) or <kbd>Cmd+P</kbd> (Mac) to print or save as PDF.
+                Select "Save as PDF" as your destination.
+            </p>
+        </div>
+    </div>
+    
+    <script>
+        // Download markdown function
+        function downloadMarkdown() {
+            const markdownContent = `# 📚 Movie Booking System - Complete Documentation Index\n\nWelcome! This is your guide to understanding how the movie booking system works.\n\n---\n\n## 🎯 For Beginners - Start Here!\n\nIf you're new to the system, read these guides in order:\n\n### 1. 🗄️ **Understanding Redis** ⭐ START HERE\n**File:** [UNDERSTANDING_REDIS.md](./UNDERSTANDING_REDIS.md)\n\n**What you'll learn:**\n- What is Redis and why we need it\n- How seat locking works\n- Redis data structures (keys, values, TTL)\n- Real examples with timeline\n\n**Why read first:** Redis is the foundation of our seat reservation system. Understanding it makes everything else easier!\n\n**Time to read:** 20 minutes\n\n---\n\n### 2. ⚙️ **Understanding Celery**\n**File:** [UNDERSTANDING_CELERY.md](./UNDERSTANDING_CELERY.md)\n\n**What you'll learn:**\n- What is Celery and why we need background tasks\n- How email sending works asynchronously\n- Celery Beat (scheduled tasks)\n- How expired bookings are cleaned up\n\n**Why read second:** Celery handles all the "slow stuff" so users don't have to wait. It's crucial for good user experience!\n\n**Time to read:** 25 minutes\n\n---\n\n### 3. 💳 **Understanding Razorpay**\n**File:** [UNDERSTANDING_RAZORPAY.md](./UNDERSTANDING_RAZORPAY.md)\n\n**What you'll learn:**\n- What is a payment gateway\n- How Razorpay integration works\n- Payment security and signature verification\n- Test vs live mode\n\n**Why read third:** Payments are the heart of any booking system. Razorpay makes it secure and easy!\n\n**Time to read:** 25 minutes\n\n---\n\n### 4. 🎬 **How Everything Works Together** ⭐ MUST READ\n**File:** [HOW_EVERYTHING_WORKS_TOGETHER.md](./HOW_EVERYTHING_WORKS_TOGETHER.md)\n\n**What you'll learn:**\n- Complete booking flow (step-by-step)\n- How Redis, Celery, and Razorpay interact\n- Timeline of a real booking\n- What happens when things go wrong\n\n**Why read last:** This ties everything together with real-world examples and shows the complete picture!\n\n**Time to read:** 30 minutes\n\n---\n\n## 🛠️ Technical Documentation\n\n### System Architecture & Fixes\n\n#### **Complete Fix Summary**\n**File:** [COMPLETE_FIX_SUMMARY.md](./COMPLETE_FIX_SUMMARY.md)\n\nComplete summary of all seat locking, refresh, and expiry fixes. Includes:\n- Client-side expiry (refresh detection, modal dismiss, timer)\n- Backend expiry (Celery cleanup)\n- Redis key management\n- Test results\n\n---\n\n#### **Celery Expiry Redis Fix**\n**File:** [CELERY_EXPIRY_REDIS_FIX_COMPLETE.md](./CELERY_EXPIRY_REDIS_FIX_COMPLETE.md)\n\nDetailed explanation of the fix for Celery task not cleaning up user reservation keys in Redis.\n\n---\n\n#### **Refresh and Cancel Fix**\n**File:** [REFRESH_AND_CANCEL_FIX.md](./REFRESH_AND_CANCEL_FIX.md)\n\nHow the system handles page refreshes, Razorpay modal dismissals, and timer expiry.\n\n---\n\n#### **Redis Fix Complete**\n**File:** [REDIS_FIX_COMPLETE.md](./REDIS_FIX_COMPLETE.md)\n\nFix for user reservation keys not being deleted from Redis when seats are released.\n\n---\n\n#### **New Tab Fix Documentation**\n**File:** [NEW_TAB_FIX_DOCUMENTATION.md](./NEW_TAB_FIX_DOCUMENTATION.md)\n\nHow the system distinguishes between refresh and opening in a new tab.\n\n---\n\n## 🧪 Testing Documentation\n\n### Test Scripts\n\nAll test scripts are in the root directory with prefix \`test_\`:\n\n1. **test_celery_expiry_redis_cleanup.py** - Verifies Celery expiry cleans up all Redis keys\n2. **test_redis_seat_release.py** - Tests Redis key cleanup on force expiry\n3. **test_timer_expiry.py** - Tests client-side timer expiry\n4. **test_cancel_booking.py** - Tests cancel API endpoint\n5. **test_improved_refresh.py** - Tests refresh detection\n6. **test_summary_refresh.py** - Tests summary page refresh\n7. **test_razorpay_cancel.py** - Tests Razorpay modal dismiss\n8. **test_refresh_detection.py** - Tests refresh vs new tab\n\n**How to run:**\n\`\`\`bash\npython test_celery_expiry_redis_cleanup.py\n\`\`\`\n\n---\n\n## 📖 Additional Guides\n\n### **Services Guide**\n**File:** [services_guide.md](./services_guide.md)\n\nExplanation of the service layer architecture (BookingService, PaymentVerificationService, etc.)\n\n---\n\n### **Caching Guide**\n**File:** [bookings/caching_guide.md](./bookings/caching_guide.md)\n\nDetailed guide on how caching works in the bookings app.\n\n---\n\n### **JavaScript API Interaction**\n**File:** [js_api_interaction.md](./js_api_interaction.md)\n\nHow frontend JavaScript interacts with backend APIs.\n\n---\n\n## 🎓 Learning Path\n\n### For Complete Beginners\n\n\`\`\`\nDay 1: Read UNDERSTANDING_REDIS.md\n       → Practice: Use redis-cli to see keys during booking\n\nDay 2: Read UNDERSTANDING_CELERY.md\n       → Practice: Watch Celery logs during booking\n\nDay 3: Read UNDERSTANDING_RAZORPAY.md\n       → Practice: Create test payment with test card\n\nDay 4: Read HOW_EVERYTHING_WORKS_TOGETHER.md\n       → Practice: Follow a complete booking in system logs\n\nDay 5: Read COMPLETE_FIX_SUMMARY.md\n       → Practice: Test refresh scenarios\n\`\`\`\n\n### For Intermediate Developers\n\n\`\`\`\n1. Read HOW_EVERYTHING_WORKS_TOGETHER.md (overview)\n2. Read COMPLETE_FIX_SUMMARY.md (implementation details)\n3. Read component-specific guides as needed\n4. Run test scripts to verify understanding\n\`\`\`\n\n### For Advanced Developers\n\n\`\`\`\n1. Read COMPLETE_FIX_SUMMARY.md\n2. Review source code in bookings/\n3. Read specific fix documentation as needed\n4. Modify and extend the system\n\`\`\`\n\n---\n\n## 🔍 Quick Reference\n\n### Find Information By Topic\n\n| Topic | File | Section |\n|-------|------|---------|\n| Seat locking | UNDERSTANDING_REDIS.md | How Redis Works |\n| Booking expiry | UNDERSTANDING_CELERY.md | Celery Beat |\n| Payment flow | UNDERSTANDING_RAZORPAY.md | Payment Flow |\n| Refresh handling | COMPLETE_FIX_SUMMARY.md | Client-Side Expiry |\n| Redis cleanup | CELERY_EXPIRY_REDIS_FIX_COMPLETE.md | Fix Applied |\n| Timer expiry | REFRESH_AND_CANCEL_FIX.md | Timer Expiry |\n| Signature verification | UNDERSTANDING_RAZORPAY.md | Security & Verification |\n| Background tasks | UNDERSTANDING_CELERY.md | Common Tasks |\n\n---\n\n## 🚀 Quick Start Guide\n\n### 1. Setup Environment\n\`\`\`bash\n# Install dependencies\npip install -r requirements.txt\n\n# Start Redis\nredis-server\n\n# Start Django\npython manage.py runserver\n\n# Start Celery Worker (new terminal)\ncelery -A moviebooking worker --loglevel=info\n\n# Start Celery Beat (new terminal)\ncelery -A moviebooking beat --loglevel=info\n\`\`\`\n\n### 2. Test the System\n\`\`\`bash\n# Run comprehensive test\npython test_celery_expiry_redis_cleanup.py\n\n# Expected output:\n# 🎉 ALL CHECKS PASSED!\n# ✅ Celery expiry task correctly cleans up all Redis keys\n\`\`\`\n\n### 3. Monitor During Booking\n\`\`\`bash\n# Terminal 1: Watch Redis keys\nredis-cli MONITOR\n\n# Terminal 2: Watch Celery logs\ntail -f celery_worker.log\n\n# Terminal 3: Watch Django logs\ntail -f logs/booking.log\n\n# Now make a booking and watch all three!\n\`\`\`\n\n---\n\n## 📞 Need Help?\n\n### Common Issues & Solutions\n\n| Issue | Solution Document | Section |\n|-------|------------------|---------|\n| Seats still reserved after expiry | CELERY_EXPIRY_REDIS_FIX_COMPLETE.md | Troubleshooting |\n| Refresh not detected | NEW_TAB_FIX_DOCUMENTATION.md | Implementation |\n| Payment not confirming | UNDERSTANDING_RAZORPAY.md | Troubleshooting |\n| Email not sending | UNDERSTANDING_CELERY.md | Troubleshooting |\n| Redis keys piling up | UNDERSTANDING_REDIS.md | Troubleshooting |\n\n---\n\n## 📊 System Status Checklist\n\nUse this to verify everything is working:\n\n- [ ] Redis is running (\`redis-cli ping\` returns PONG)\n- [ ] Django server is running (\`http://localhost:8000\`)\n- [ ] Celery worker is running (check process list)\n- [ ] Celery beat is running (check process list)\n- [ ] Can create booking (seats get locked in Redis)\n- [ ] Can complete payment (booking confirmed in database)\n- [ ] Email is sent (check Celery logs)\n- [ ] Expired bookings are cleaned up (check Celery beat logs)\n- [ ] Redis keys are cleaned up (run test scripts)\n\n---\n\n## 🎯 Learning Objectives\n\nAfter reading all documentation, you should be able to:\n\n✅ Explain what Redis is and why we use it  \n✅ Describe how seat locking works with TTL  \n✅ Explain what Celery does and why it's needed  \n✅ Describe how Celery Beat schedules tasks  \n✅ Explain how Razorpay payment flow works  \n✅ Describe signature verification and why it's critical  \n✅ Trace a complete booking from start to finish  \n✅ Explain what happens when user refreshes payment page  \n✅ Describe how expired bookings are cleaned up  \n✅ Debug issues using Redis CLI and Celery logs  \n\n---\n\n## 🌟 Best Practices\n\n### When Working With This System\n\n1. **Always Check Redis First**: Before debugging seat issues, check Redis keys\n2. **Monitor Celery Logs**: Background tasks can fail silently, always check logs\n3. **Verify Signatures**: Never skip payment signature verification\n4. **Test Edge Cases**: Always test refresh, modal dismiss, timer expiry\n5. **Use Test Mode**: Use Razorpay test keys during development\n6. **Clean Up Redis**: If testing, manually clean Redis between tests\n\n---\n\n## 📝 Contributing\n\nIf you make changes to the system:\n\n1. Update relevant documentation\n2. Add test scripts for new features\n3. Document any new Redis keys used\n4. Update this index if adding new docs\n\n---\n\n## 🎉 You're Ready!\n\nStart with [UNDERSTANDING_REDIS.md](./UNDERSTANDING_REDIS.md) and work your way through the guides. Take your time, try the examples, and refer back to this index whenever you need to find something specific.\n\n**Happy Learning! 🚀**\n\n---\n\n*Last Updated: January 3, 2026*  \n*System Version: 2.0.0 (Production Ready)*\n`;
+            const blob = new Blob([markdownContent], { type: 'text/markdown' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'DOCUMENTATION_INDEX.md';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        }
+        
+        // Keyboard shortcut for print
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+                e.preventDefault();
+                window.print();
+            }
+        });
+    </script>
+</body>
+</html>

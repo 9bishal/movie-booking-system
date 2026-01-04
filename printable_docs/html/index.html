@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Printable Documentation - Movie Booking System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 50px;
+        }
+        
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.3em;
+            opacity: 0.95;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+        
+        .card-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+        }
+        
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.5em;
+        }
+        
+        .card p {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        
+        .card-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+        
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+        
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+        
+        .stats {
+            background: rgba(255,255,255,0.95);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .stats h3 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+        }
+        
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+        
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 50px;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 Printable Documentation</h1>
+            <p>Movie Booking System - Complete Documentation Suite</p>
+        </div>
+        
+        <div class="stats">
+            <h3>📊 Documentation Statistics</h3>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value">16</div>
+                    <div class="stat-label">Documents</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">100%</div>
+                    <div class="stat-label">Print Ready</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">PDF</div>
+                    <div class="stat-label">Export Support</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">✅</div>
+                    <div class="stat-label">Up to Date</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="grid">
+            
+        <div style="grid-column: 1 / -1; margin-top: 20px;">
+            <h2 style="color: white; font-size: 2em; border-bottom: 3px solid white; padding-bottom: 10px; margin-bottom: 20px;">
+                📚 Main Documentation
+            </h2>
+        </div>
+        
+<div class="card" onclick="window.location.href='readme.html'">
+    <div class="card-icon">📖</div>
+    <h2>Movie Booking System - README</h2>
+    <p>Project overview, features, and setup instructions</p>
+    <div class="card-actions">
+        <a href="readme.html" class="btn btn-primary">
+            <span>📖</span> View Document
+        </a>
+        <a href="../README.md" class="btn btn-secondary" download>
+            <span>📥</span> Download MD
+        </a>
+    </div>
+</div>
+
+<div class="card" onclick="window.location.href='documentation_index.html'">
+    <div class="card-icon">📑</div>
+    <h2>Documentation Index</h2>
+    <p>Complete index of all project documentation</p>
+    <div class="card-actions">
+        <a href="documentation_index.html" class="btn btn-primary">
+            <span>📖</span> View Document
+        </a>
+        <a href="../DOCUMENTATION_INDEX.md" class="btn btn-secondary" download>
+            <span>📥</span> Download MD
+        </a>
+    </div>
+</div>
+
+<div class="card" onclick="window.location.href='quick_visual_guide.html'">
+    <div class="card-icon">🎯</div>
+    <h2>Quick Visual Guide</h2>
+    <p>Visual guide to the project structure and features</p>
+    <div class="card-actions">
+        <a href="quick_visual_guide.html" class="btn btn-primary">
+            <span>📖</span> View Document
+        </a>
+        <a href="../QUICK_VISUAL_GUIDE.md" class="btn btn-secondary" download>
+            <span>📥</span> Download MD
+        </a>
+    </div>
+</div>
+
+        <div style="grid-column: 1 / -1; margin-top: 20px;">
+            <h2 style="color: white; font-size: 2em; border-bottom: 3px solid white; padding-bottom: 10px; margin-bottom: 20px;">
+                🛠️ Utilities Documentation
+            </h2>
+        </div>
+        
+<div class="card" onclick="window.location.href='utilities_implementation_guide.html'">
+    <div class="card-icon">🛠️</div>
+    <h2>Utilities Implementation Guide</h2>
+    <p>Complete guide to rate limiting, caching, and performance monitoring</p>
+    <div class="card-actions">
+        <a href="utilities_implementation_guide.html" class="btn btn-primary">
+            <span>📖</span> View Document
+        </a>
+        <a href="../UTILITIES_IMPLEMENTATION_GUIDE.md" class="btn btn-secondary" download>
+            <span>📥</span> Download MD
+        </a>
+    </div>
+</div>
+
+<div class="card" onclick="window.location.href='utilities_guide.html'">
+    <div class="card-icon">⚡</div>
+    <h2>Utilities Guide</h2>
+    <p>User-friendly utilities documentation with examples</p>
+    <div class="card-actions">
+        <a href="utilities_guide.html" class="btn btn-primary">
+            <span>📖</span> View Document
+        </a>
+        <a href="../UTILITIES_GUIDE.md" class="btn btn-secondary" download>
+            <span>📥</span> Download MD
+        </a>
+    </div>
+</div>
+
+        <div style="grid-column: 1 / -1; margin-top: 20px;">
+            <h2 style="color: white; font-size: 2em; border-bottom: 3px solid white; padding-bottom: 10px; margin-bottom: 20px;">
+                📧 Email Documentation
+            </h2>
+        </div>
+        
+<div class="card" onclick="window.location.href='email_system_guide.html'">
+    <div class="card-icon">📧</div>
+    <h2>Email System Complete Guide</h2>
+    <p>Complete email system documentation and setup</p>
+    <div class="card-actions">
+        <a href="email_system_guide.html" class="btn btn-primary">
+            <span>📖</span> View Document
+        </a>
+        <a href="../EMAIL_SYSTEM_COMPLETE_GUIDE.md" class="btn btn-secondary" download>
+            <span>📥</span> Download MD
+        </a>
+    </div>
+</div>
+
+<div class="card" onclick="window.location.href='email_templates_readme.html'">
+    <div class="card-icon">📝</div>
+    <h2>Email Templates README</h2>
+    <p>Email templates structure and usage guide</p>
+    <div class="card-actions">
+        <a href="email_templates_readme.html" class="btn btn-primary">
+            <span>📖</span> View Document
+        </a>
+        <a href="../email_templates/README.md" class="btn btn-secondary" download>
+            <span>📥</span> Download MD
+        </a>
+    </div>
+</div>
+
+        <div style="grid-column: 1 / -1; margin-top: 20px;">
+            <h2 style="color: white; font-size: 2em; border-bottom: 3px solid white; padding-bottom: 10px; margin-bottom: 20px;">
+                🏗️ Architecture Documentation
+            </h2>
+        </div>
+        
+<div class="card" onclick="window.location.href='services_guide.html'">
+    <div class="card-icon">🔧</div>
+    <h2>Services Guide</h2>
+    <p>Backend services, architecture, and API documentation</p>
+    <div class="card-actions">
+        <a href="services_guide.html" class="btn btn-primary">
+            <span>📖</span> View Document
+        </a>
+        <a href="../services_guide.md" class="btn btn-secondary" download>
+            <span>📥</span> Download MD
+        </a>
+    </div>
+</div>
+
+<div class="card" onclick="window.location.href='understanding_celery.html'">
+    <div class="card-icon">📦</div>
+    <h2>Understanding Celery</h2>
+    <p>Celery task queue and async processing guide</p>
+    <div class="card-actions">
+        <a href="understanding_celery.html" class="btn btn-primary">
+            <span>📖</span> View Document
+        </a>
+        <a href="../UNDERSTANDING_CELERY.md" class="btn btn-secondary" download>
+            <span>📥</span> Download MD
+        </a>
+    </div>
+</div>
+
+<div class="card" onclick="window.location.href='understanding_redis.html'">
+    <div class="card-icon">🔴</div>
+    <h2>Understanding Redis</h2>
+    <p>Redis caching and session management guide</p>
+    <div class="card-actions">
+        <a href="understanding_redis.html" class="btn btn-primary">
+            <span>📖</span> View Document
+        </a>
+        <a href="../UNDERSTANDING_REDIS.md" class="btn btn-secondary" download>
+            <span>📥</span> Download MD
+        </a>
+    </div>
+</div>
+
+<div class="card" onclick="window.location.href='understanding_razorpay.html'">
+    <div class="card-icon">�</div>
+    <h2>Understanding Razorpay</h2>
+    <p>Payment gateway integration and implementation</p>
+    <div class="card-actions">
+        <a href="understanding_razorpay.html" class="btn btn-primary">
+            <span>📖</span> View Document
+        </a>
+        <a href="../UNDERSTANDING_RAZORPAY.md" class="btn btn-secondary" download>
+            <span>📥</span> Download MD
+        </a>
+    </div>
+</div>
+
+<div class="card" onclick="window.location.href='caching_guide.html'">
+    <div class="card-icon">💾</div>
+    <h2>Caching Guide</h2>
+    <p>Detailed caching strategies for bookings module</p>
+    <div class="card-actions">
+        <a href="caching_guide.html" class="btn btn-primary">
+            <span>📖</span> View Document
+        </a>
+        <a href="../bookings/caching_guide.md" class="btn btn-secondary" download>
+            <span>📥</span> Download MD
+        </a>
+    </div>
+</div>
+
+        <div style="grid-column: 1 / -1; margin-top: 20px;">
+            <h2 style="color: white; font-size: 2em; border-bottom: 3px solid white; padding-bottom: 10px; margin-bottom: 20px;">
+                🎨 Frontend Documentation
+            </h2>
+        </div>
+        
+<div class="card" onclick="window.location.href='js_api_interaction.html'">
+    <div class="card-icon">🔌</div>
+    <h2>JavaScript API Interaction</h2>
+    <p>Frontend JavaScript API integration guide</p>
+    <div class="card-actions">
+        <a href="js_api_interaction.html" class="btn btn-primary">
+            <span>📖</span> View Document
+        </a>
+        <a href="../js_api_interaction.md" class="btn btn-secondary" download>
+            <span>📥</span> Download MD
+        </a>
+    </div>
+</div>
+
+        <div style="grid-column: 1 / -1; margin-top: 20px;">
+            <h2 style="color: white; font-size: 2em; border-bottom: 3px solid white; padding-bottom: 10px; margin-bottom: 20px;">
+                💼 Interview Documentation
+            </h2>
+        </div>
+        
+<div class="card" onclick="window.location.href='interview_beginner_questions.html'">
+    <div class="card-icon">📝</div>
+    <h2>Interview - Beginner Questions</h2>
+    <p>Common beginner-level interview questions and answers</p>
+    <div class="card-actions">
+        <a href="interview_beginner_questions.html" class="btn btn-primary">
+            <span>📖</span> View Document
+        </a>
+        <a href="../interview/beginner_questions.md" class="btn btn-secondary" download>
+            <span>📥</span> Download MD
+        </a>
+    </div>
+</div>
+
+<div class="card" onclick="window.location.href='interview_questions.html'">
+    <div class="card-icon">❓</div>
+    <h2>Interview Questions</h2>
+    <p>Comprehensive interview questions for the project</p>
+    <div class="card-actions">
+        <a href="interview_questions.html" class="btn btn-primary">
+            <span>📖</span> View Document
+        </a>
+        <a href="../interview/interview_questions.md" class="btn btn-secondary" download>
+            <span>📥</span> Download MD
+        </a>
+    </div>
+</div>
+
+<div class="card" onclick="window.location.href='interview_technical_deep_dive.html'">
+    <div class="card-icon">🔍</div>
+    <h2>Technical Deep Dive</h2>
+    <p>Advanced technical concepts and deep dive questions</p>
+    <div class="card-actions">
+        <a href="interview_technical_deep_dive.html" class="btn btn-primary">
+            <span>📖</span> View Document
+        </a>
+        <a href="../interview/technical_deep_dive.md" class="btn btn-secondary" download>
+            <span>📥</span> Download MD
+        </a>
+    </div>
+</div>
+
+        </div>
+        
+        <div class="footer">
+            <p><strong>Generated:</strong> January 04, 2026 at 11:13 AM</p>
+            <p>Movie Booking System © 2026</p>
+        </div>
+    </div>
+</body>
+</html>

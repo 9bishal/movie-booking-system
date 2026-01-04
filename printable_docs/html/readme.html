@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Booking System - README - Movie Booking System</title>
+    <style>
+        /* Screen Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            line-height: 1.8;
+            color: #000;
+            background: #f5f5f5;
+            padding: 20px;
+            font-size: 12pt;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        
+        .header {
+            border-bottom: 3px solid #007bff;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #007bff;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+        
+        .meta {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .meta-info {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #0056b3;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .content {
+            margin-top: 30px;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+            color: #2c3e50;
+        }
+        
+        h1 { font-size: 2em; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
+        h2 { font-size: 1.75em; border-bottom: 1px solid #dee2e6; padding-bottom: 8px; }
+        h3 { font-size: 1.5em; }
+        h4 { font-size: 1.25em; }
+        
+        p {
+            margin-bottom: 1em;
+        }
+        
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 10pt;
+            color: #000;
+            font-weight: 500;
+        }
+        
+        pre {
+            background: #f8f8f8;
+            color: #000;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin: 15px 0;
+            line-height: 1.6;
+            font-size: 10pt;
+        }
+        
+        pre code {
+            background: none;
+            color: #000;
+            padding: 0;
+            border: none;
+            font-size: 10pt;
+            font-weight: normal;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        table th, table td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #dee2e6;
+        }
+        
+        table th {
+            background: #007bff;
+            color: white;
+            font-weight: 600;
+        }
+        
+        table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        blockquote {
+            border-left: 4px solid #007bff;
+            padding-left: 20px;
+            margin: 20px 0;
+            color: #666;
+            font-style: italic;
+        }
+        
+        ul, ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+        
+        li {
+            margin: 5px 0;
+        }
+        
+        a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        
+        a:hover {
+            text-decoration: underline;
+        }
+        
+        hr {
+            border: none;
+            border-top: 2px solid #dee2e6;
+            margin: 30px 0;
+        }
+        
+        /* Print Styles - Optimized for Black & White */
+        @media print {
+            @page {
+                margin: 0.75in;
+                size: A4;
+            }
+            
+            body {
+                background: white;
+                padding: 0;
+                color: #000;
+                font-size: 11pt;
+                line-height: 1.6;
+            }
+            
+            .container {
+                box-shadow: none;
+                padding: 0;
+                max-width: 100%;
+            }
+            
+            .actions, .no-print {
+                display: none !important;
+            }
+            
+            .header {
+                border-bottom: 2px solid #000;
+                padding-bottom: 10pt;
+                margin-bottom: 15pt;
+            }
+            
+            .header h1 {
+                color: #000;
+                font-size: 18pt;
+            }
+            
+            .header p {
+                color: #333;
+                font-size: 11pt;
+            }
+            
+            .meta {
+                background: #f9f9f9;
+                border: 1px solid #ddd;
+                padding: 10pt;
+                margin-bottom: 15pt;
+            }
+            
+            h1 {
+                font-size: 16pt;
+                border-bottom: 2px solid #000;
+                padding-bottom: 5pt;
+                margin-top: 20pt;
+                margin-bottom: 10pt;
+                page-break-after: avoid;
+            }
+            
+            h2 {
+                font-size: 14pt;
+                border-bottom: 1px solid #666;
+                padding-bottom: 4pt;
+                margin-top: 15pt;
+                margin-bottom: 8pt;
+                page-break-after: avoid;
+            }
+            
+            h3 {
+                font-size: 13pt;
+                margin-top: 12pt;
+                margin-bottom: 6pt;
+                page-break-after: avoid;
+            }
+            
+            h4 {
+                font-size: 12pt;
+                margin-top: 10pt;
+                margin-bottom: 5pt;
+                page-break-after: avoid;
+            }
+            
+            p {
+                margin-bottom: 8pt;
+                orphans: 3;
+                widows: 3;
+            }
+            
+            /* Code blocks - BLACK & WHITE optimized */
+            code {
+                background: #f0f0f0;
+                border: 1px solid #999;
+                padding: 2pt 4pt;
+                font-family: 'Courier New', 'Consolas', monospace;
+                font-size: 9pt;
+                color: #000;
+                font-weight: 600;
+            }
+            
+            pre {
+                background: #f8f8f8;
+                border: 2px solid #666;
+                padding: 10pt;
+                margin: 10pt 0;
+                page-break-inside: avoid;
+                font-size: 9pt;
+                line-height: 1.4;
+                overflow: visible;
+                white-space: pre-wrap;
+                word-wrap: break-word;
+            }
+            
+            pre code {
+                background: none;
+                border: none;
+                padding: 0;
+                font-size: 9pt;
+                font-weight: normal;
+                color: #000;
+            }
+            
+            /* Tables - BLACK & WHITE optimized */
+            table {
+                page-break-inside: avoid;
+                border-collapse: collapse;
+                width: 100%;
+                margin: 10pt 0;
+                border: 2px solid #000;
+            }
+            
+            table th {
+                background: #e0e0e0;
+                color: #000;
+                border: 1px solid #666;
+                padding: 6pt;
+                font-weight: bold;
+                text-align: left;
+            }
+            
+            table td {
+                border: 1px solid #999;
+                padding: 6pt;
+                color: #000;
+            }
+            
+            table tr:nth-child(even) {
+                background: #f5f5f5;
+            }
+            
+            /* Blockquotes */
+            blockquote {
+                border-left: 3px solid #000;
+                padding-left: 10pt;
+                margin: 10pt 0;
+                font-style: italic;
+                color: #333;
+                page-break-inside: avoid;
+            }
+            
+            /* Links */
+            a {
+                color: #000;
+                text-decoration: underline;
+            }
+            
+            a[href]:after {
+                content: " (" attr(href) ")";
+                font-size: 9pt;
+                color: #666;
+            }
+            
+            /* Lists */
+            ul, ol {
+                margin: 8pt 0;
+                padding-left: 20pt;
+            }
+            
+            li {
+                margin: 4pt 0;
+            }
+            
+            /* Horizontal rules */
+            hr {
+                border: none;
+                border-top: 1px solid #000;
+                margin: 15pt 0;
+            }
+            
+            /* Image handling */
+            img {
+                max-width: 100%;
+                page-break-inside: avoid;
+            }
+            
+            /* Page breaks */
+            .page-break {
+                page-break-before: always;
+            }
+            
+            /* Ensure visibility of all content */
+            * {
+                color: #000 !important;
+                background: white !important;
+            }
+            
+            code, pre {
+                background: #f5f5f5 !important;
+                border-color: #666 !important;
+            }
+            
+            table th {
+                background: #e0e0e0 !important;
+            }
+            
+            table tr:nth-child(even) {
+                background: #f8f8f8 !important;
+            }
+        }
+        
+        /* Code syntax highlighting */
+        .codehilite .hll { background-color: #49483e }
+        .codehilite .c { color: #75715e }
+        .codehilite .k { color: #66d9ef }
+        .codehilite .l { color: #ae81ff }
+        .codehilite .n { color: #f8f8f2 }
+        .codehilite .o { color: #f92672 }
+        .codehilite .p { color: #f8f8f2 }
+        .codehilite .cm { color: #75715e }
+        .codehilite .cp { color: #75715e }
+        .codehilite .c1 { color: #75715e }
+        .codehilite .cs { color: #75715e }
+        .codehilite .kc { color: #66d9ef }
+        .codehilite .kd { color: #66d9ef }
+        .codehilite .kn { color: #f92672 }
+        .codehilite .kp { color: #66d9ef }
+        .codehilite .kr { color: #66d9ef }
+        .codehilite .kt { color: #66d9ef }
+        .codehilite .ld { color: #e6db74 }
+        .codehilite .m { color: #ae81ff }
+        .codehilite .s { color: #e6db74 }
+        .codehilite .na { color: #a6e22e }
+        .codehilite .nb { color: #f8f8f2 }
+        .codehilite .nc { color: #a6e22e }
+        .codehilite .no { color: #66d9ef }
+        .codehilite .nd { color: #a6e22e }
+        .codehilite .ni { color: #f8f8f2 }
+        .codehilite .ne { color: #a6e22e }
+        .codehilite .nf { color: #a6e22e }
+        .codehilite .nl { color: #f8f8f2 }
+        .codehilite .nn { color: #f8f8f2 }
+        .codehilite .nx { color: #a6e22e }
+        .codehilite .py { color: #f8f8f2 }
+        .codehilite .nt { color: #f92672 }
+        .codehilite .nv { color: #f8f8f2 }
+        .codehilite .ow { color: #f92672 }
+        .codehilite .w { color: #f8f8f2 }
+        .codehilite .mf { color: #ae81ff }
+        .codehilite .mh { color: #ae81ff }
+        .codehilite .mi { color: #ae81ff }
+        .codehilite .mo { color: #ae81ff }
+        .codehilite .sb { color: #e6db74 }
+        .codehilite .sc { color: #e6db74 }
+        .codehilite .sd { color: #e6db74 }
+        .codehilite .s2 { color: #e6db74 }
+        .codehilite .se { color: #ae81ff }
+        .codehilite .sh { color: #e6db74 }
+        .codehilite .si { color: #e6db74 }
+        .codehilite .sx { color: #e6db74 }
+        .codehilite .sr { color: #e6db74 }
+        .codehilite .s1 { color: #e6db74 }
+        .codehilite .ss { color: #e6db74 }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Movie Booking System - README</h1>
+            <p>Project overview, features, and setup instructions</p>
+        </div>
+        
+        <div class="meta">
+            <div class="meta-info">
+                <strong>Generated:</strong> January 04, 2026<br>
+                <strong>Source:</strong> README.md<br>
+                <strong>Project:</strong> Movie Booking System
+            </div>
+            <div class="actions no-print">
+                <button class="btn btn-primary" onclick="window.print()">
+                    <span>🖨️</span> Print / Save as PDF
+                </button>
+                <button class="btn btn-success" onclick="downloadMarkdown()">
+                    <span>📥</span> Download Markdown
+                </button>
+                <a href="index.html" class="btn btn-secondary">
+                    <span>🏠</span> Back to Index
+                </a>
+            </div>
+        </div>
+        
+        <div class="content">
+            <h1 id="movie-booking-system">🎬 Movie Booking System</h1>
+<p><a href="https://www.djangoproject.com/"><img alt="Django" src="https://img.shields.io/badge/Django-5.x-green" /></a><br />
+<a href="https://getbootstrap.com/"><img alt="Bootstrap" src="https://img.shields.io/badge/Bootstrap-5-purple" /></a><br />
+<a href="https://www.postgresql.org/"><img alt="PostgreSQL" src="https://img.shields.io/badge/PostgreSQL-Planned-blue" /></a><br />
+<a href="https://docs.celeryq.dev/"><img alt="Celery" src="https://img.shields.io/badge/Celery-Planned-orange" /></a><br />
+<a href="https://redis.io/"><img alt="Redis" src="https://img.shields.io/badge/Redis-Planned-red" /></a><br />
+<a href="https://gunicorn.org/"><img alt="Gunicorn" src="https://img.shields.io/badge/Gunicorn-WSGI-lightgrey" /></a><br />
+<a href="https://nginx.org/"><img alt="Nginx" src="https://img.shields.io/badge/Nginx-Reverse%20Proxy-brightgreen" /></a><br />
+<a href="https://www.docker.com/"><img alt="Docker" src="https://img.shields.io/badge/Docker-Planned-blue" /></a><br />
+<a href="https://vercel.com/"><img alt="Vercel" src="https://img.shields.io/badge/Vercel-Planned-black" /></a></p>
+<p>A <strong>BookMyShow-like Movie Ticket Booking System</strong> built using <strong>Django</strong>, focusing on <strong>high-concurrency seat booking</strong>, <strong>seat locking</strong>, <strong>payments</strong>, and <strong>scalable production deployment</strong>.</p>
+<hr />
+<h2 id="documentation">📚 Documentation</h2>
+<p><strong>🎓 New to the system? Start here!</strong></p>
+<p>We&rsquo;ve created comprehensive beginner-friendly guides to help you understand how everything works:</p>
+<h3 id="essential-guides-read-in-order">Essential Guides (Read in Order)</h3>
+<ol>
+<li><strong><a href="./DOCUMENTATION_INDEX.md">DOCUMENTATION_INDEX.md</a></strong> - Start here! Complete guide index</li>
+<li><strong><a href="./UNDERSTANDING_REDIS.md">Understanding Redis</a></strong> - How seat locking works ⭐</li>
+<li><strong><a href="./UNDERSTANDING_CELERY.md">Understanding Celery</a></strong> - Background tasks explained ⚙️</li>
+<li><strong><a href="./UNDERSTANDING_RAZORPAY.md">Understanding Razorpay</a></strong> - Payment integration 💳</li>
+<li><strong><a href="./HOW_EVERYTHING_WORKS_TOGETHER.md">How Everything Works Together</a></strong> - Complete system flow 🎬</li>
+</ol>
+<h3 id="technical-documentation">Technical Documentation</h3>
+<ul>
+<li><strong><a href="./COMPLETE_FIX_SUMMARY.md">Complete Fix Summary</a></strong> - All system fixes and improvements</li>
+<li><strong><a href="./CELERY_EXPIRY_REDIS_FIX_COMPLETE.md">Celery Expiry Fix</a></strong> - Background expiry implementation</li>
+<li><strong><a href="./REFRESH_AND_CANCEL_FIX.md">Refresh &amp; Cancel Fix</a></strong> - Page refresh handling</li>
+<li><strong><a href="./REDIS_FIX_COMPLETE.md">Redis Fix Complete</a></strong> - Redis key cleanup fix</li>
+</ul>
+<p><strong>💡 Tip</strong>: Each guide includes real-world examples, analogies, and step-by-step explanations perfect for beginners!</p>
+<hr />
+<h2 id="features">🚀 Features</h2>
+<ul>
+<li>🎥 <strong>Movie &amp; Show Listings</strong> - Browse movies, showtimes, and theaters</li>
+<li>🪑 <strong>Real-time Seat Selection</strong> - Interactive seat selection UI</li>
+<li>🔒 <strong>Concurrency Control</strong> - Redis-based seat locking to prevent double booking</li>
+<li>💳 <strong>Payment Integration</strong> - Secure payment processing (Planned)</li>
+<li>📧 <strong>Email Notifications</strong> - Booking confirmations and tickets (Planned)</li>
+<li>🎫 <strong>Ticket Generation</strong> - Digital tickets with QR codes (Planned)</li>
+<li>📱 <strong>Responsive Design</strong> - Mobile-friendly Bootstrap interface</li>
+<li>⚡ <strong>Scalable Architecture</strong> - Production-ready with Celery, Redis, and PostgreSQL</li>
+</ul>
+<hr />
+<h2 id="tech-stack">🛠️ Tech Stack</h2>
+<h3 id="backend">🔙 Backend</h3>
+<ul>
+<li><strong>Framework</strong>: Django 5.x</li>
+<li><strong>Database</strong>: SQLite (Development) / PostgreSQL (Production – Planned)</li>
+<li><strong>Cache &amp; Locking</strong>: Redis (Seat locking &amp; caching)</li>
+<li><strong>Async Tasks</strong>: Celery (Emails, seat release, ticket generation)</li>
+</ul>
+<h3 id="frontend">🎨 Frontend</h3>
+<ul>
+<li><strong>Templates</strong>: Django Templates</li>
+<li><strong>Styling</strong>: Bootstrap 5</li>
+<li><strong>Icons</strong>: Font Awesome</li>
+<li><strong>JavaScript</strong>: Vanilla JS</li>
+</ul>
+<h3 id="integrations-planned">🔌 Integrations (Planned)</h3>
+<ul>
+<li><strong>Payments</strong>: Razorpay / Stripe</li>
+<li><strong>Emails</strong>: SendGrid</li>
+<li><strong>Trailers</strong>: YouTube Data API</li>
+</ul>
+<h3 id="devops-deployment">🚢 DevOps &amp; Deployment</h3>
+<ul>
+<li><strong>Reverse Proxy</strong>: Nginx</li>
+<li><strong>WSGI Server</strong>: Gunicorn</li>
+<li><strong>Caching / Broker</strong>: Redis</li>
+<li><strong>Containerization</strong>: Docker (Planned)</li>
+<li><strong>Hosting</strong>: AWS / Heroku (Planned)</li>
+<li><strong>Frontend Hosting</strong>: Vercel (Optional)</li>
+</ul>
+<hr />
+<h2 id="prerequisites">📋 Prerequisites</h2>
+<ul>
+<li>Python 3.9+</li>
+<li>Redis (for seat locking)</li>
+<li>PostgreSQL (for production)</li>
+</ul>
+<hr />
+<h2 id="getting-started">🚀 Getting Started</h2>
+<h3 id="development-setup">Development Setup</h3>
+<pre><code class="language-bash"># 1. Clone repository
+git clone https://github.com/9bishal/movie-booking-system.git
+cd movie-booking-system
+
+# 2. Create virtual environment
+python -m venv venv
+
+# 3. Activate virtual environment
+# On Windows:
+venv\Scripts\activate
+# On macOS/Linux:
+source venv/bin/activate
+
+# 4. Install dependencies
+pip install django redis celery
+
+# 5. Apply migrations
+python manage.py migrate
+
+# 6. Create superuser (optional)
+python manage.py createsuperuser
+
+# 7. Run development server
+python manage.py runserver
+
+# 8. Open in browser
+# Visit: http://127.0.0.1:8000/
+</code></pre>
+<h3 id="redis-setup-required-for-seat-locking">Redis Setup (Required for seat locking)</h3>
+<pre><code class="language-bash"># Install Redis (Ubuntu/Debian)
+sudo apt-get install redis-server
+
+# Start Redis service
+sudo systemctl start redis
+
+# Check Redis status
+redis-cli ping
+# Should respond with: PONG
+</code></pre>
+<hr />
+<h2 id="system-architecture">🏗️ System Architecture</h2>
+<h3 id="high-level-architecture-diagram">High-Level Architecture Diagram</h3>
+<pre><code>┌──────────────────┐
+│   User Browser   │
+│ (Web / Mobile)   │
+└─────────┬────────┘
+          │ HTTP Request
+          ▼
+┌──────────────────┐
+│      Nginx       │
+│ Reverse Proxy    │
+│ SSL + Static     │
+└─────────┬────────┘
+          │
+          ▼
+┌──────────────────┐
+│    Gunicorn      │
+│ WSGI Server      │
+└─────────┬────────┘
+          │
+          ▼
+┌────────────────────────────────────┐
+│            Django App               │
+│ ────────────────────────────────── │
+│  • User Auth                       │
+│  • Movie &amp; Show Listing            │
+│  • Seat Selection                  │
+│  • Booking Logic                   │
+└─────────┬───────────────┬──────────┘
+          │               │
+          │               │
+          ▼               ▼
+┌───────────────┐  ┌────────────────┐
+│  PostgreSQL   │  │     Redis      │
+│  Main DB      │  │ Seat Locks     │
+│  Users        │  │ Cache + TTL    │
+│  Movies       │  └────────────────┘
+│  Bookings     │
+└───────────────┘
+          │
+          │ Payment Initiated
+          ▼
+┌──────────────────┐
+│ Payment Gateway  │
+│ Razorpay/Stripe  │
+└─────────┬────────┘
+          │ Payment Success
+          ▼
+┌────────────────────────────────────┐
+│        Booking Confirmation        │
+│  • Seats marked CONFIRMED          │
+│  • Ticket generated                │
+└─────────┬───────────────┬──────────┘
+          │               │
+          │               │
+          ▼               ▼
+┌────────────────┐  ┌──────────────────┐
+│   PostgreSQL   │  │     Celery       │
+│ Save Ticket    │  │ Background Jobs  │
+└────────────────┘  │ ──────────────── │
+                     │ • Send Email     │
+                     │ • Release Locks  │
+                     │ • Notifications  │
+                     └───────┬────────┘
+                             │
+                             ▼
+                     ┌──────────────────┐
+                     │   Email Service  │
+                     │   (SendGrid)     │
+                     │ Ticket + Receipt │
+                     └──────────────────┘
+</code></pre>
+<hr />
+<h2 id="seat-booking-concurrency-control">🔐 Seat Booking &amp; Concurrency Control</h2>
+<p>This system uses <strong>Redis-based Optimistic Locking</strong> to prevent double booking during high traffic.</p>
+<h3 id="seat-booking-flow">🔄 Seat Booking Flow</h3>
+<ol>
+<li><strong>User selects seats</strong> (no lock applied initially)</li>
+<li><strong>User proceeds to payment</strong> page</li>
+<li><strong>Seats are temporarily locked</strong> in Redis with a TTL</li>
+<li><strong>Lock expires</strong> after a fixed time (e.g., 5 minutes) if payment not completed</li>
+<li><strong>Payment success</strong> → booking confirmed, seats permanently reserved</li>
+<li><strong>Payment failure/timeout</strong> → seats automatically released</li>
+</ol>
+<h3 id="redis-seat-locking-strategy">🪑 Redis Seat Locking Strategy</h3>
+<p><strong>Key Format:</strong></p>
+<pre><code class="language-makefile">seat_lock:{show_id}:{seat_id} = user_id
+TTL = 300 seconds (5 minutes)
+</code></pre>
+<p><strong>Example:</strong></p>
+<pre><code class="language-makefile">seat_lock:101:B12 = user_45
+</code></pre>
+<p>If TTL expires → Redis auto-deletes → seat becomes available again.</p>
+<hr />
+<h2 id="email-ticket-flow">📧 Email &amp; Ticket Flow</h2>
+<h3 id="after-successful-payment">After Successful Payment:</h3>
+<ul>
+<li>🎟️ <strong>Ticket generated</strong> (PDF / HTML format)</li>
+<li>📩 <strong>Email sent</strong> to user containing:</li>
+<li>Booking confirmation</li>
+<li>Movie &amp; show details</li>
+<li>Seat numbers</li>
+<li>QR code / booking ID</li>
+</ul>
+<h3 id="background-tasks-celery">Background Tasks (Celery):</h3>
+<ul>
+<li>Send confirmation email</li>
+<li>Release expired seat locks</li>
+<li>Retry failed emails</li>
+<li>Generate and store tickets</li>
+</ul>
+<hr />
+<h2 id="project-structure">🗂️ Project Structure</h2>
+<pre><code>movie-booking-system/
+├── manage.py
+├── requirements.txt
+├── README.md
+├── .env.example
+├── .gitignore
+├── moviebooking/          # Main Django project
+│   ├── __init__.py
+│   ├── settings.py
+│   ├── urls.py
+│   ├── wsgi.py
+│   └── asgi.py
+├── booking/              # Booking app
+│   ├── models.py
+│   ├── views.py
+│   ├── urls.py
+│   ├── admin.py
+│   └── migrations/
+├── movies/               # Movies app
+│   ├── models.py
+│   ├── views.py
+│   ├── urls.py
+│   └── templates/
+├── users/                # User authentication app
+│   ├── models.py
+│   ├── views.py
+│   └── forms.py
+├── static/              # Static files
+│   ├── css/
+│   ├── js/
+│   └── images/
+├── media/               # Uploaded files
+├── templates/           # Base templates
+└── tests/               # Test files
+</code></pre>
+<hr />
+<h2 id="production-deployment">🚀 Production Deployment</h2>
+<h3 id="deployment-checklist">Deployment Checklist</h3>
+<ol>
+<li>
+<p><strong>Database Migration:</strong><br />
+<code>bash
+   python manage.py migrate</code></p>
+</li>
+<li>
+<p><strong>Collect Static Files:</strong><br />
+<code>bash
+   python manage.py collectstatic</code></p>
+</li>
+<li>
+<p><strong>Environment Variables:</strong><br />
+<code>bash
+   DEBUG=False
+   SECRET_KEY=your-secret-key
+   DATABASE_URL=postgres://...
+   REDIS_URL=redis://...
+   EMAIL_HOST=...</code></p>
+</li>
+<li>
+<p><strong>Start Services:</strong><br />
+   ```bash<br />
+   # Start Gunicorn<br />
+   gunicorn moviebooking.wsgi:application &ndash;bind 0.0.0.0:8000</p>
+</li>
+</ol>
+<p># Start Celery worker<br />
+   celery -A moviebooking worker &ndash;loglevel=info</p>
+<p># Start Celery beat (for scheduled tasks)<br />
+   celery -A moviebooking beat &ndash;loglevel=info<br />
+   ```</p>
+<ol start="5">
+<li>
+<p><strong>Configure Nginx:</strong><br />
+   ```nginx<br />
+   server {<br />
+       listen 80;<br />
+       server_name yourdomain.com;</p>
+<p>location /static/ {<br />
+       alias /path/to/static/;<br />
+   }</p>
+<p>location /media/ {<br />
+       alias /path/to/media/;<br />
+   }</p>
+<p>location / {<br />
+       proxy_pass http://localhost:8000;<br />
+       proxy_set_header Host $host;<br />
+       proxy_set_header X-Real-IP $remote_addr;<br />
+   }<br />
+   }<br />
+   ```</p>
+</li>
+</ol>
+<hr />
+<h2 id="api-endpoints-planned">📊 API Endpoints (Planned)</h2>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Endpoint</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GET</td>
+<td><code>/api/movies/</code></td>
+<td>List all movies</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/movies/{id}/</code></td>
+<td>Get movie details</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/shows/{id}/seats/</code></td>
+<td>Get seat availability</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/bookings/lock-seats/</code></td>
+<td>Lock selected seats</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/bookings/create/</code></td>
+<td>Create booking</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/payments/initiate/</code></td>
+<td>Initiate payment</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/bookings/{id}/</code></td>
+<td>Get booking details</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="testing">🧪 Testing</h2>
+<pre><code class="language-bash"># Run all tests
+python manage.py test
+
+# Run specific app tests
+python manage.py test booking
+
+# Run with coverage
+coverage run manage.py test
+coverage report
+</code></pre>
+<hr />
+<h2 id="contributing">🤝 Contributing</h2>
+<p>Contributions are welcome! Please follow these steps:</p>
+<ol>
+<li><strong>Fork</strong> the repository</li>
+<li><strong>Create a feature branch</strong><br />
+<code>bash
+   git checkout -b feature/AmazingFeature</code></li>
+<li><strong>Commit your changes</strong><br />
+<code>bash
+   git commit -m 'Add some AmazingFeature'</code></li>
+<li><strong>Push to the branch</strong><br />
+<code>bash
+   git push origin feature/AmazingFeature</code></li>
+<li><strong>Open a Pull Request</strong></li>
+</ol>
+<h3 id="development-guidelines">Development Guidelines</h3>
+<ul>
+<li>Follow PEP 8 style guide</li>
+<li>Write tests for new features</li>
+<li>Update documentation accordingly</li>
+<li>Use meaningful commit messages</li>
+</ul>
+<hr />
+<h2 id="troubleshooting">🐛 Troubleshooting</h2>
+<table>
+<thead>
+<tr>
+<th>Issue</th>
+<th>Solution</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Redis connection failed</td>
+<td>Ensure Redis server is running: <code>redis-cli ping</code></td>
+</tr>
+<tr>
+<td>Migration errors</td>
+<td>Try: <code>python manage.py makemigrations</code> then <code>python manage.py migrate</code></td>
+</tr>
+<tr>
+<td>Static files not loading</td>
+<td>Run: <code>python manage.py collectstatic</code></td>
+</tr>
+<tr>
+<td>Celery not working</td>
+<td>Check Redis connection and Celery worker status</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="license">📝 License</h2>
+<p>This project is for <strong>educational purposes only</strong>. See the <a href="LICENSE">LICENSE</a> file for details.</p>
+<hr />
+<h2 id="acknowledgments">🙏 Acknowledgments</h2>
+<ul>
+<li><a href="https://docs.djangoproject.com/">Django Documentation</a></li>
+<li><a href="https://getbootstrap.com/">Bootstrap</a></li>
+<li><a href="https://redis.io/documentation">Redis Documentation</a></li>
+<li><a href="https://docs.celeryq.dev/">Celery Documentation</a></li>
+</ul>
+<hr />
+<h2 id="contact">📞 Contact</h2>
+<p>Project Link: <a href="https://github.com/9bishal/movie-booking-system">https://github.com/9bishal/movie-booking-system</a></p>
+<hr />
+<h2 id="project-status">📊 Project Status</h2>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Movie &amp; show listing</td>
+<td>✅ Completed</td>
+</tr>
+<tr>
+<td>Seat selection logic</td>
+<td>✅ Completed</td>
+</tr>
+<tr>
+<td>Redis seat locking</td>
+<td>✅ Completed</td>
+</tr>
+<tr>
+<td>Payment gateway integration</td>
+<td>🚧 In Progress</td>
+</tr>
+<tr>
+<td>Email &amp; ticket generation</td>
+<td>🚧 In Progress</td>
+</tr>
+<tr>
+<td>Docker &amp; cloud deployment</td>
+<td>🚧 Planned</td>
+</tr>
+<tr>
+<td>Mobile app (React Native)</td>
+<td>🚧 Future</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p><strong>Happy Coding! 🚀🎬</strong></p>
+        </div>
+        
+        <hr class="no-print">
+        <div class="meta no-print" style="margin-top: 30px;">
+            <p style="color: #666; font-size: 0.9em;">
+                💡 <strong>Tip:</strong> Use <kbd>Ctrl+P</kbd> (Windows/Linux) or <kbd>Cmd+P</kbd> (Mac) to print or save as PDF.
+                Select "Save as PDF" as your destination.
+            </p>
+        </div>
+    </div>
+    
+    <script>
+        // Download markdown function
+        function downloadMarkdown() {
+            const markdownContent = `# 🎬 Movie Booking System\n\n[![Django](https://img.shields.io/badge/Django-5.x-green)](https://www.djangoproject.com/)\n[![Bootstrap](https://img.shields.io/badge/Bootstrap-5-purple)](https://getbootstrap.com/)\n[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Planned-blue)](https://www.postgresql.org/)\n[![Celery](https://img.shields.io/badge/Celery-Planned-orange)](https://docs.celeryq.dev/)\n[![Redis](https://img.shields.io/badge/Redis-Planned-red)](https://redis.io/)\n[![Gunicorn](https://img.shields.io/badge/Gunicorn-WSGI-lightgrey)](https://gunicorn.org/)\n[![Nginx](https://img.shields.io/badge/Nginx-Reverse%20Proxy-brightgreen)](https://nginx.org/)\n[![Docker](https://img.shields.io/badge/Docker-Planned-blue)](https://www.docker.com/)\n[![Vercel](https://img.shields.io/badge/Vercel-Planned-black)](https://vercel.com/)\n\nA **BookMyShow-like Movie Ticket Booking System** built using **Django**, focusing on **high-concurrency seat booking**, **seat locking**, **payments**, and **scalable production deployment**.\n\n---\n\n## 📚 Documentation\n\n**🎓 New to the system? Start here!**\n\nWe've created comprehensive beginner-friendly guides to help you understand how everything works:\n\n### Essential Guides (Read in Order)\n1. **[DOCUMENTATION_INDEX.md](./DOCUMENTATION_INDEX.md)** - Start here! Complete guide index\n2. **[Understanding Redis](./UNDERSTANDING_REDIS.md)** - How seat locking works ⭐\n3. **[Understanding Celery](./UNDERSTANDING_CELERY.md)** - Background tasks explained ⚙️\n4. **[Understanding Razorpay](./UNDERSTANDING_RAZORPAY.md)** - Payment integration 💳\n5. **[How Everything Works Together](./HOW_EVERYTHING_WORKS_TOGETHER.md)** - Complete system flow 🎬\n\n### Technical Documentation\n- **[Complete Fix Summary](./COMPLETE_FIX_SUMMARY.md)** - All system fixes and improvements\n- **[Celery Expiry Fix](./CELERY_EXPIRY_REDIS_FIX_COMPLETE.md)** - Background expiry implementation\n- **[Refresh & Cancel Fix](./REFRESH_AND_CANCEL_FIX.md)** - Page refresh handling\n- **[Redis Fix Complete](./REDIS_FIX_COMPLETE.md)** - Redis key cleanup fix\n\n**💡 Tip**: Each guide includes real-world examples, analogies, and step-by-step explanations perfect for beginners!\n\n---\n\n## 🚀 Features\n\n- 🎥 **Movie & Show Listings** - Browse movies, showtimes, and theaters\n- 🪑 **Real-time Seat Selection** - Interactive seat selection UI\n- 🔒 **Concurrency Control** - Redis-based seat locking to prevent double booking\n- 💳 **Payment Integration** - Secure payment processing (Planned)\n- 📧 **Email Notifications** - Booking confirmations and tickets (Planned)\n- 🎫 **Ticket Generation** - Digital tickets with QR codes (Planned)\n- 📱 **Responsive Design** - Mobile-friendly Bootstrap interface\n- ⚡ **Scalable Architecture** - Production-ready with Celery, Redis, and PostgreSQL\n\n---\n\n## 🛠️ Tech Stack\n\n### 🔙 Backend\n- **Framework**: Django 5.x\n- **Database**: SQLite (Development) / PostgreSQL (Production – Planned)\n- **Cache & Locking**: Redis (Seat locking & caching)\n- **Async Tasks**: Celery (Emails, seat release, ticket generation)\n\n### 🎨 Frontend\n- **Templates**: Django Templates\n- **Styling**: Bootstrap 5\n- **Icons**: Font Awesome\n- **JavaScript**: Vanilla JS\n\n### 🔌 Integrations (Planned)\n- **Payments**: Razorpay / Stripe\n- **Emails**: SendGrid\n- **Trailers**: YouTube Data API\n\n### 🚢 DevOps & Deployment\n- **Reverse Proxy**: Nginx\n- **WSGI Server**: Gunicorn\n- **Caching / Broker**: Redis\n- **Containerization**: Docker (Planned)\n- **Hosting**: AWS / Heroku (Planned)\n- **Frontend Hosting**: Vercel (Optional)\n\n---\n\n## 📋 Prerequisites\n\n- Python 3.9+\n- Redis (for seat locking)\n- PostgreSQL (for production)\n\n---\n\n## 🚀 Getting Started\n\n### Development Setup\n\n\`\`\`bash\n# 1. Clone repository\ngit clone https://github.com/9bishal/movie-booking-system.git\ncd movie-booking-system\n\n# 2. Create virtual environment\npython -m venv venv\n\n# 3. Activate virtual environment\n# On Windows:\nvenv\\Scripts\\activate\n# On macOS/Linux:\nsource venv/bin/activate\n\n# 4. Install dependencies\npip install django redis celery\n\n# 5. Apply migrations\npython manage.py migrate\n\n# 6. Create superuser (optional)\npython manage.py createsuperuser\n\n# 7. Run development server\npython manage.py runserver\n\n# 8. Open in browser\n# Visit: http://127.0.0.1:8000/\n\`\`\`\n\n### Redis Setup (Required for seat locking)\n\n\`\`\`bash\n# Install Redis (Ubuntu/Debian)\nsudo apt-get install redis-server\n\n# Start Redis service\nsudo systemctl start redis\n\n# Check Redis status\nredis-cli ping\n# Should respond with: PONG\n\`\`\`\n\n---\n\n## 🏗️ System Architecture\n\n### High-Level Architecture Diagram\n\n\`\`\`\n┌──────────────────┐\n│   User Browser   │\n│ (Web / Mobile)   │\n└─────────┬────────┘\n          │ HTTP Request\n          ▼\n┌──────────────────┐\n│      Nginx       │\n│ Reverse Proxy    │\n│ SSL + Static     │\n└─────────┬────────┘\n          │\n          ▼\n┌──────────────────┐\n│    Gunicorn      │\n│ WSGI Server      │\n└─────────┬────────┘\n          │\n          ▼\n┌────────────────────────────────────┐\n│            Django App               │\n│ ────────────────────────────────── │\n│  • User Auth                       │\n│  • Movie & Show Listing            │\n│  • Seat Selection                  │\n│  • Booking Logic                   │\n└─────────┬───────────────┬──────────┘\n          │               │\n          │               │\n          ▼               ▼\n┌───────────────┐  ┌────────────────┐\n│  PostgreSQL   │  │     Redis      │\n│  Main DB      │  │ Seat Locks     │\n│  Users        │  │ Cache + TTL    │\n│  Movies       │  └────────────────┘\n│  Bookings     │\n└───────────────┘\n          │\n          │ Payment Initiated\n          ▼\n┌──────────────────┐\n│ Payment Gateway  │\n│ Razorpay/Stripe  │\n└─────────┬────────┘\n          │ Payment Success\n          ▼\n┌────────────────────────────────────┐\n│        Booking Confirmation        │\n│  • Seats marked CONFIRMED          │\n│  • Ticket generated                │\n└─────────┬───────────────┬──────────┘\n          │               │\n          │               │\n          ▼               ▼\n┌────────────────┐  ┌──────────────────┐\n│   PostgreSQL   │  │     Celery       │\n│ Save Ticket    │  │ Background Jobs  │\n└────────────────┘  │ ──────────────── │\n                     │ • Send Email     │\n                     │ • Release Locks  │\n                     │ • Notifications  │\n                     └───────┬────────┘\n                             │\n                             ▼\n                     ┌──────────────────┐\n                     │   Email Service  │\n                     │   (SendGrid)     │\n                     │ Ticket + Receipt │\n                     └──────────────────┘\n\`\`\`\n\n---\n\n## 🔐 Seat Booking & Concurrency Control\n\nThis system uses **Redis-based Optimistic Locking** to prevent double booking during high traffic.\n\n### 🔄 Seat Booking Flow\n\n1. **User selects seats** (no lock applied initially)\n2. **User proceeds to payment** page\n3. **Seats are temporarily locked** in Redis with a TTL\n4. **Lock expires** after a fixed time (e.g., 5 minutes) if payment not completed\n5. **Payment success** → booking confirmed, seats permanently reserved\n6. **Payment failure/timeout** → seats automatically released\n\n### 🪑 Redis Seat Locking Strategy\n\n**Key Format:**\n\`\`\`makefile\nseat_lock:{show_id}:{seat_id} = user_id\nTTL = 300 seconds (5 minutes)\n\`\`\`\n\n**Example:**\n\`\`\`makefile\nseat_lock:101:B12 = user_45\n\`\`\`\nIf TTL expires → Redis auto-deletes → seat becomes available again.\n\n---\n\n## 📧 Email & Ticket Flow\n\n### After Successful Payment:\n- 🎟️ **Ticket generated** (PDF / HTML format)\n- 📩 **Email sent** to user containing:\n  - Booking confirmation\n  - Movie & show details\n  - Seat numbers\n  - QR code / booking ID\n\n### Background Tasks (Celery):\n- Send confirmation email\n- Release expired seat locks\n- Retry failed emails\n- Generate and store tickets\n\n---\n\n## 🗂️ Project Structure\n\n\`\`\`\nmovie-booking-system/\n├── manage.py\n├── requirements.txt\n├── README.md\n├── .env.example\n├── .gitignore\n├── moviebooking/          # Main Django project\n│   ├── __init__.py\n│   ├── settings.py\n│   ├── urls.py\n│   ├── wsgi.py\n│   └── asgi.py\n├── booking/              # Booking app\n│   ├── models.py\n│   ├── views.py\n│   ├── urls.py\n│   ├── admin.py\n│   └── migrations/\n├── movies/               # Movies app\n│   ├── models.py\n│   ├── views.py\n│   ├── urls.py\n│   └── templates/\n├── users/                # User authentication app\n│   ├── models.py\n│   ├── views.py\n│   └── forms.py\n├── static/              # Static files\n│   ├── css/\n│   ├── js/\n│   └── images/\n├── media/               # Uploaded files\n├── templates/           # Base templates\n└── tests/               # Test files\n\`\`\`\n\n---\n\n## 🚀 Production Deployment\n\n### Deployment Checklist\n\n1. **Database Migration:**\n   \`\`\`bash\n   python manage.py migrate\n   \`\`\`\n\n2. **Collect Static Files:**\n   \`\`\`bash\n   python manage.py collectstatic\n   \`\`\`\n\n3. **Environment Variables:**\n   \`\`\`bash\n   DEBUG=False\n   SECRET_KEY=your-secret-key\n   DATABASE_URL=postgres://...\n   REDIS_URL=redis://...\n   EMAIL_HOST=...\n   \`\`\`\n\n4. **Start Services:**\n   \`\`\`bash\n   # Start Gunicorn\n   gunicorn moviebooking.wsgi:application --bind 0.0.0.0:8000\n\n   # Start Celery worker\n   celery -A moviebooking worker --loglevel=info\n\n   # Start Celery beat (for scheduled tasks)\n   celery -A moviebooking beat --loglevel=info\n   \`\`\`\n\n5. **Configure Nginx:**\n   \`\`\`nginx\n   server {\n       listen 80;\n       server_name yourdomain.com;\n       \n       location /static/ {\n           alias /path/to/static/;\n       }\n       \n       location /media/ {\n           alias /path/to/media/;\n       }\n       \n       location / {\n           proxy_pass http://localhost:8000;\n           proxy_set_header Host \$host;\n           proxy_set_header X-Real-IP \$remote_addr;\n       }\n   }\n   \`\`\`\n\n---\n\n## 📊 API Endpoints (Planned)\n\n| Method | Endpoint | Description |\n|--------|----------|-------------|\n| GET | \`/api/movies/\` | List all movies |\n| GET | \`/api/movies/{id}/\` | Get movie details |\n| GET | \`/api/shows/{id}/seats/\` | Get seat availability |\n| POST | \`/api/bookings/lock-seats/\` | Lock selected seats |\n| POST | \`/api/bookings/create/\` | Create booking |\n| POST | \`/api/payments/initiate/\` | Initiate payment |\n| GET | \`/api/bookings/{id}/\` | Get booking details |\n\n---\n\n## 🧪 Testing\n\n\`\`\`bash\n# Run all tests\npython manage.py test\n\n# Run specific app tests\npython manage.py test booking\n\n# Run with coverage\ncoverage run manage.py test\ncoverage report\n\`\`\`\n\n---\n\n## 🤝 Contributing\n\nContributions are welcome! Please follow these steps:\n\n1. **Fork** the repository\n2. **Create a feature branch**\n   \`\`\`bash\n   git checkout -b feature/AmazingFeature\n   \`\`\`\n3. **Commit your changes**\n   \`\`\`bash\n   git commit -m 'Add some AmazingFeature'\n   \`\`\`\n4. **Push to the branch**\n   \`\`\`bash\n   git push origin feature/AmazingFeature\n   \`\`\`\n5. **Open a Pull Request**\n\n### Development Guidelines\n- Follow PEP 8 style guide\n- Write tests for new features\n- Update documentation accordingly\n- Use meaningful commit messages\n\n---\n\n## 🐛 Troubleshooting\n\n| Issue | Solution |\n|-------|----------|\n| Redis connection failed | Ensure Redis server is running: \`redis-cli ping\` |\n| Migration errors | Try: \`python manage.py makemigrations\` then \`python manage.py migrate\` |\n| Static files not loading | Run: \`python manage.py collectstatic\` |\n| Celery not working | Check Redis connection and Celery worker status |\n\n---\n\n## 📝 License\n\nThis project is for **educational purposes only**. See the [LICENSE](LICENSE) file for details.\n\n---\n\n## 🙏 Acknowledgments\n\n- [Django Documentation](https://docs.djangoproject.com/)\n- [Bootstrap](https://getbootstrap.com/)\n- [Redis Documentation](https://redis.io/documentation)\n- [Celery Documentation](https://docs.celeryq.dev/)\n\n---\n\n## 📞 Contact\n\nProject Link: [https://github.com/9bishal/movie-booking-system](https://github.com/9bishal/movie-booking-system)\n\n---\n\n## 📊 Project Status\n\n| Feature | Status |\n|---------|--------|\n| Movie & show listing | ✅ Completed |\n| Seat selection logic | ✅ Completed |\n| Redis seat locking | ✅ Completed |\n| Payment gateway integration | 🚧 In Progress |\n| Email & ticket generation | 🚧 In Progress |\n| Docker & cloud deployment | 🚧 Planned |\n| Mobile app (React Native) | 🚧 Future |\n\n---\n\n**Happy Coding! 🚀🎬**\n`;
+            const blob = new Blob([markdownContent], { type: 'text/markdown' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'README.md';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        }
+        
+        // Keyboard shortcut for print
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+                e.preventDefault();
+                window.print();
+            }
+        });
+    </script>
+</body>
+</html>

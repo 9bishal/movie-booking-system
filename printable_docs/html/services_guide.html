@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Services Guide - Movie Booking System</title>
+    <style>
+        /* Screen Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            line-height: 1.8;
+            color: #000;
+            background: #f5f5f5;
+            padding: 20px;
+            font-size: 12pt;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        
+        .header {
+            border-bottom: 3px solid #007bff;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #007bff;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+        
+        .meta {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .meta-info {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #0056b3;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .content {
+            margin-top: 30px;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+            color: #2c3e50;
+        }
+        
+        h1 { font-size: 2em; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
+        h2 { font-size: 1.75em; border-bottom: 1px solid #dee2e6; padding-bottom: 8px; }
+        h3 { font-size: 1.5em; }
+        h4 { font-size: 1.25em; }
+        
+        p {
+            margin-bottom: 1em;
+        }
+        
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 10pt;
+            color: #000;
+            font-weight: 500;
+        }
+        
+        pre {
+            background: #f8f8f8;
+            color: #000;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin: 15px 0;
+            line-height: 1.6;
+            font-size: 10pt;
+        }
+        
+        pre code {
+            background: none;
+            color: #000;
+            padding: 0;
+            border: none;
+            font-size: 10pt;
+            font-weight: normal;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        table th, table td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #dee2e6;
+        }
+        
+        table th {
+            background: #007bff;
+            color: white;
+            font-weight: 600;
+        }
+        
+        table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        blockquote {
+            border-left: 4px solid #007bff;
+            padding-left: 20px;
+            margin: 20px 0;
+            color: #666;
+            font-style: italic;
+        }
+        
+        ul, ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+        
+        li {
+            margin: 5px 0;
+        }
+        
+        a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        
+        a:hover {
+            text-decoration: underline;
+        }
+        
+        hr {
+            border: none;
+            border-top: 2px solid #dee2e6;
+            margin: 30px 0;
+        }
+        
+        /* Print Styles - Optimized for Black & White */
+        @media print {
+            @page {
+                margin: 0.75in;
+                size: A4;
+            }
+            
+            body {
+                background: white;
+                padding: 0;
+                color: #000;
+                font-size: 11pt;
+                line-height: 1.6;
+            }
+            
+            .container {
+                box-shadow: none;
+                padding: 0;
+                max-width: 100%;
+            }
+            
+            .actions, .no-print {
+                display: none !important;
+            }
+            
+            .header {
+                border-bottom: 2px solid #000;
+                padding-bottom: 10pt;
+                margin-bottom: 15pt;
+            }
+            
+            .header h1 {
+                color: #000;
+                font-size: 18pt;
+            }
+            
+            .header p {
+                color: #333;
+                font-size: 11pt;
+            }
+            
+            .meta {
+                background: #f9f9f9;
+                border: 1px solid #ddd;
+                padding: 10pt;
+                margin-bottom: 15pt;
+            }
+            
+            h1 {
+                font-size: 16pt;
+                border-bottom: 2px solid #000;
+                padding-bottom: 5pt;
+                margin-top: 20pt;
+                margin-bottom: 10pt;
+                page-break-after: avoid;
+            }
+            
+            h2 {
+                font-size: 14pt;
+                border-bottom: 1px solid #666;
+                padding-bottom: 4pt;
+                margin-top: 15pt;
+                margin-bottom: 8pt;
+                page-break-after: avoid;
+            }
+            
+            h3 {
+                font-size: 13pt;
+                margin-top: 12pt;
+                margin-bottom: 6pt;
+                page-break-after: avoid;
+            }
+            
+            h4 {
+                font-size: 12pt;
+                margin-top: 10pt;
+                margin-bottom: 5pt;
+                page-break-after: avoid;
+            }
+            
+            p {
+                margin-bottom: 8pt;
+                orphans: 3;
+                widows: 3;
+            }
+            
+            /* Code blocks - BLACK & WHITE optimized */
+            code {
+                background: #f0f0f0;
+                border: 1px solid #999;
+                padding: 2pt 4pt;
+                font-family: 'Courier New', 'Consolas', monospace;
+                font-size: 9pt;
+                color: #000;
+                font-weight: 600;
+            }
+            
+            pre {
+                background: #f8f8f8;
+                border: 2px solid #666;
+                padding: 10pt;
+                margin: 10pt 0;
+                page-break-inside: avoid;
+                font-size: 9pt;
+                line-height: 1.4;
+                overflow: visible;
+                white-space: pre-wrap;
+                word-wrap: break-word;
+            }
+            
+            pre code {
+                background: none;
+                border: none;
+                padding: 0;
+                font-size: 9pt;
+                font-weight: normal;
+                color: #000;
+            }
+            
+            /* Tables - BLACK & WHITE optimized */
+            table {
+                page-break-inside: avoid;
+                border-collapse: collapse;
+                width: 100%;
+                margin: 10pt 0;
+                border: 2px solid #000;
+            }
+            
+            table th {
+                background: #e0e0e0;
+                color: #000;
+                border: 1px solid #666;
+                padding: 6pt;
+                font-weight: bold;
+                text-align: left;
+            }
+            
+            table td {
+                border: 1px solid #999;
+                padding: 6pt;
+                color: #000;
+            }
+            
+            table tr:nth-child(even) {
+                background: #f5f5f5;
+            }
+            
+            /* Blockquotes */
+            blockquote {
+                border-left: 3px solid #000;
+                padding-left: 10pt;
+                margin: 10pt 0;
+                font-style: italic;
+                color: #333;
+                page-break-inside: avoid;
+            }
+            
+            /* Links */
+            a {
+                color: #000;
+                text-decoration: underline;
+            }
+            
+            a[href]:after {
+                content: " (" attr(href) ")";
+                font-size: 9pt;
+                color: #666;
+            }
+            
+            /* Lists */
+            ul, ol {
+                margin: 8pt 0;
+                padding-left: 20pt;
+            }
+            
+            li {
+                margin: 4pt 0;
+            }
+            
+            /* Horizontal rules */
+            hr {
+                border: none;
+                border-top: 1px solid #000;
+                margin: 15pt 0;
+            }
+            
+            /* Image handling */
+            img {
+                max-width: 100%;
+                page-break-inside: avoid;
+            }
+            
+            /* Page breaks */
+            .page-break {
+                page-break-before: always;
+            }
+            
+            /* Ensure visibility of all content */
+            * {
+                color: #000 !important;
+                background: white !important;
+            }
+            
+            code, pre {
+                background: #f5f5f5 !important;
+                border-color: #666 !important;
+            }
+            
+            table th {
+                background: #e0e0e0 !important;
+            }
+            
+            table tr:nth-child(even) {
+                background: #f8f8f8 !important;
+            }
+        }
+        
+        /* Code syntax highlighting */
+        .codehilite .hll { background-color: #49483e }
+        .codehilite .c { color: #75715e }
+        .codehilite .k { color: #66d9ef }
+        .codehilite .l { color: #ae81ff }
+        .codehilite .n { color: #f8f8f2 }
+        .codehilite .o { color: #f92672 }
+        .codehilite .p { color: #f8f8f2 }
+        .codehilite .cm { color: #75715e }
+        .codehilite .cp { color: #75715e }
+        .codehilite .c1 { color: #75715e }
+        .codehilite .cs { color: #75715e }
+        .codehilite .kc { color: #66d9ef }
+        .codehilite .kd { color: #66d9ef }
+        .codehilite .kn { color: #f92672 }
+        .codehilite .kp { color: #66d9ef }
+        .codehilite .kr { color: #66d9ef }
+        .codehilite .kt { color: #66d9ef }
+        .codehilite .ld { color: #e6db74 }
+        .codehilite .m { color: #ae81ff }
+        .codehilite .s { color: #e6db74 }
+        .codehilite .na { color: #a6e22e }
+        .codehilite .nb { color: #f8f8f2 }
+        .codehilite .nc { color: #a6e22e }
+        .codehilite .no { color: #66d9ef }
+        .codehilite .nd { color: #a6e22e }
+        .codehilite .ni { color: #f8f8f2 }
+        .codehilite .ne { color: #a6e22e }
+        .codehilite .nf { color: #a6e22e }
+        .codehilite .nl { color: #f8f8f2 }
+        .codehilite .nn { color: #f8f8f2 }
+        .codehilite .nx { color: #a6e22e }
+        .codehilite .py { color: #f8f8f2 }
+        .codehilite .nt { color: #f92672 }
+        .codehilite .nv { color: #f8f8f2 }
+        .codehilite .ow { color: #f92672 }
+        .codehilite .w { color: #f8f8f2 }
+        .codehilite .mf { color: #ae81ff }
+        .codehilite .mh { color: #ae81ff }
+        .codehilite .mi { color: #ae81ff }
+        .codehilite .mo { color: #ae81ff }
+        .codehilite .sb { color: #e6db74 }
+        .codehilite .sc { color: #e6db74 }
+        .codehilite .sd { color: #e6db74 }
+        .codehilite .s2 { color: #e6db74 }
+        .codehilite .se { color: #ae81ff }
+        .codehilite .sh { color: #e6db74 }
+        .codehilite .si { color: #e6db74 }
+        .codehilite .sx { color: #e6db74 }
+        .codehilite .sr { color: #e6db74 }
+        .codehilite .s1 { color: #e6db74 }
+        .codehilite .ss { color: #e6db74 }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Services Guide</h1>
+            <p>Backend services, architecture, and API documentation</p>
+        </div>
+        
+        <div class="meta">
+            <div class="meta-info">
+                <strong>Generated:</strong> January 04, 2026<br>
+                <strong>Source:</strong> services_guide.md<br>
+                <strong>Project:</strong> Movie Booking System
+            </div>
+            <div class="actions no-print">
+                <button class="btn btn-primary" onclick="window.print()">
+                    <span>🖨️</span> Print / Save as PDF
+                </button>
+                <button class="btn btn-success" onclick="downloadMarkdown()">
+                    <span>📥</span> Download Markdown
+                </button>
+                <a href="index.html" class="btn btn-secondary">
+                    <span>🏠</span> Back to Index
+                </a>
+            </div>
+        </div>
+        
+        <div class="content">
+            <h1 id="services-payment-setup-guide">🛠️ Services &amp; Payment Setup Guide</h1>
+<p>To run the MovieBooking system fully, you need three background services: <strong>Redis</strong> (for seats), <strong>Celery Worker</strong> (for emails), and <strong>Celery Beat</strong> (for cleanup).</p>
+<h2 id="1-environment-config-env">1. Environment Config (<code>.env</code>)</h2>
+<p>The &ldquo;Authentication failed&rdquo; error happens because your Razorpay keys are missing. Create a file named <code>.env</code> in the root folder (beside <code>manage.py</code>) and add:</p>
+<pre><code class="language-env"># Razorpay Keys (Get these from Razorpay Dashboard &gt; Settings &gt; API Keys)
+RAZORPAY_KEY_ID=rzp_test_xxxxxxxxxxxxx
+RAZORPAY_KEY_SECRET=xxxxxxxxxxxxxxxxxxxxxxxx
+
+# Email Config (For sending confirmation tickets)
+EMAIL_HOST_USER=your-email@gmail.com
+EMAIL_HOST_PASSWORD=your-app-password
+
+# Redis URL (Default is usually fine)
+REDIS_URL=redis://127.0.0.1:6379/1
+</code></pre>
+<hr />
+<h2 id="2-running-services-open-separate-terminals">2. Running Services (Open separate terminals)</h2>
+<h3 id="a-start-redis">A. Start Redis</h3>
+<p>Redis stores our seat locks.</p>
+<pre><code class="language-bash"># Mac (Homebrew)
+brew services start redis
+# Windows/Linux
+redis-server
+</code></pre>
+<h3 id="b-start-celery-worker">B. Start Celery Worker</h3>
+<p>This process handles sending emails in the background.</p>
+<pre><code class="language-bash"># If using venv:
+./venv/bin/celery -A moviebooking worker --loglevel=info
+# Or if venv is active:
+celery -A moviebooking worker --loglevel=info
+</code></pre>
+<h3 id="c-start-celery-beat">C. Start Celery Beat</h3>
+<p>This process runs every minute to find and release expired seat reservations.</p>
+<pre><code class="language-bash"># If using venv:
+./venv/bin/celery -A moviebooking beat --loglevel=info
+# Or if venv is active:
+celery -A moviebooking beat --loglevel=info
+</code></pre>
+<h3 id="d-start-django-server">D. Start Django Server</h3>
+<pre><code class="language-bash"># If using venv:
+./venv/bin/python manage.py runserver
+# Or if venv is active:
+python manage.py runserver
+</code></pre>
+<hr />
+<h2 id="3-diagnostic-commands">3. Diagnostic Commands</h2>
+<p>Run this to check if your configuration is correct:</p>
+<pre><code class="language-bash"># If using venv:
+./venv/bin/python manage.py setup_payments
+# Or if venv is active:
+python manage.py setup_payments
+</code></pre>
+<h2 id="4-troubleshooting">4. Troubleshooting</h2>
+<ul>
+<li><strong>Authentication Error:</strong> I have implemented a <strong>Mock Mode</strong>! If your keys contain <code>xxxx</code> (like in the example), the system will automatically bypass Razorpay&rsquo;s real servers and simulate a successful payment so you can test your booking flow.</li>
+<li><strong>Connection Error:</strong> Ensure Redis is running by typing <code>redis-cli ping</code>. It should answer <code>PONG</code>.</li>
+<li><strong>Emails not sending:</strong> Ensure you are using a &ldquo;Google App Password&rdquo; if using Gmail, not your regular login password.</li>
+</ul>
+        </div>
+        
+        <hr class="no-print">
+        <div class="meta no-print" style="margin-top: 30px;">
+            <p style="color: #666; font-size: 0.9em;">
+                💡 <strong>Tip:</strong> Use <kbd>Ctrl+P</kbd> (Windows/Linux) or <kbd>Cmd+P</kbd> (Mac) to print or save as PDF.
+                Select "Save as PDF" as your destination.
+            </p>
+        </div>
+    </div>
+    
+    <script>
+        // Download markdown function
+        function downloadMarkdown() {
+            const markdownContent = `# 🛠️ Services & Payment Setup Guide\n\nTo run the MovieBooking system fully, you need three background services: **Redis** (for seats), **Celery Worker** (for emails), and **Celery Beat** (for cleanup).\n\n## 1. Environment Config (\`.env\`)\n\nThe "Authentication failed" error happens because your Razorpay keys are missing. Create a file named \`.env\` in the root folder (beside \`manage.py\`) and add:\n\n\`\`\`env\n# Razorpay Keys (Get these from Razorpay Dashboard > Settings > API Keys)\nRAZORPAY_KEY_ID=rzp_test_xxxxxxxxxxxxx\nRAZORPAY_KEY_SECRET=xxxxxxxxxxxxxxxxxxxxxxxx\n\n# Email Config (For sending confirmation tickets)\nEMAIL_HOST_USER=your-email@gmail.com\nEMAIL_HOST_PASSWORD=your-app-password\n\n# Redis URL (Default is usually fine)\nREDIS_URL=redis://127.0.0.1:6379/1\n\`\`\`\n\n---\n\n## 2. Running Services (Open separate terminals)\n\n### A. Start Redis\n\nRedis stores our seat locks.\n\n\`\`\`bash\n# Mac (Homebrew)\nbrew services start redis\n# Windows/Linux\nredis-server\n\`\`\`\n\n### B. Start Celery Worker\n\nThis process handles sending emails in the background.\n\n\`\`\`bash\n# If using venv:\n./venv/bin/celery -A moviebooking worker --loglevel=info\n# Or if venv is active:\ncelery -A moviebooking worker --loglevel=info\n\`\`\`\n\n### C. Start Celery Beat\n\nThis process runs every minute to find and release expired seat reservations.\n\n\`\`\`bash\n# If using venv:\n./venv/bin/celery -A moviebooking beat --loglevel=info\n# Or if venv is active:\ncelery -A moviebooking beat --loglevel=info\n\`\`\`\n\n### D. Start Django Server\n\n\`\`\`bash\n# If using venv:\n./venv/bin/python manage.py runserver\n# Or if venv is active:\npython manage.py runserver\n\`\`\`\n\n---\n\n## 3. Diagnostic Commands\n\nRun this to check if your configuration is correct:\n\n\`\`\`bash\n# If using venv:\n./venv/bin/python manage.py setup_payments\n# Or if venv is active:\npython manage.py setup_payments\n\`\`\`\n\n## 4. Troubleshooting\n\n- **Authentication Error:** I have implemented a **Mock Mode**! If your keys contain \`xxxx\` (like in the example), the system will automatically bypass Razorpay's real servers and simulate a successful payment so you can test your booking flow.\n- **Connection Error:** Ensure Redis is running by typing \`redis-cli ping\`. It should answer \`PONG\`.\n- **Emails not sending:** Ensure you are using a "Google App Password" if using Gmail, not your regular login password.\n`;
+            const blob = new Blob([markdownContent], { type: 'text/markdown' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'services_guide.md';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        }
+        
+        // Keyboard shortcut for print
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+                e.preventDefault();
+                window.print();
+            }
+        });
+    </script>
+</body>
+</html>

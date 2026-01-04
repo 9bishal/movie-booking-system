@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interview - Beginner Questions - Movie Booking System</title>
+    <style>
+        /* Screen Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            line-height: 1.8;
+            color: #000;
+            background: #f5f5f5;
+            padding: 20px;
+            font-size: 12pt;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        
+        .header {
+            border-bottom: 3px solid #007bff;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #007bff;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+        
+        .meta {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .meta-info {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #0056b3;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .content {
+            margin-top: 30px;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+            color: #2c3e50;
+        }
+        
+        h1 { font-size: 2em; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
+        h2 { font-size: 1.75em; border-bottom: 1px solid #dee2e6; padding-bottom: 8px; }
+        h3 { font-size: 1.5em; }
+        h4 { font-size: 1.25em; }
+        
+        p {
+            margin-bottom: 1em;
+        }
+        
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 10pt;
+            color: #000;
+            font-weight: 500;
+        }
+        
+        pre {
+            background: #f8f8f8;
+            color: #000;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin: 15px 0;
+            line-height: 1.6;
+            font-size: 10pt;
+        }
+        
+        pre code {
+            background: none;
+            color: #000;
+            padding: 0;
+            border: none;
+            font-size: 10pt;
+            font-weight: normal;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        table th, table td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #dee2e6;
+        }
+        
+        table th {
+            background: #007bff;
+            color: white;
+            font-weight: 600;
+        }
+        
+        table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        blockquote {
+            border-left: 4px solid #007bff;
+            padding-left: 20px;
+            margin: 20px 0;
+            color: #666;
+            font-style: italic;
+        }
+        
+        ul, ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+        
+        li {
+            margin: 5px 0;
+        }
+        
+        a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        
+        a:hover {
+            text-decoration: underline;
+        }
+        
+        hr {
+            border: none;
+            border-top: 2px solid #dee2e6;
+            margin: 30px 0;
+        }
+        
+        /* Print Styles - Optimized for Black & White */
+        @media print {
+            @page {
+                margin: 0.75in;
+                size: A4;
+            }
+            
+            body {
+                background: white;
+                padding: 0;
+                color: #000;
+                font-size: 11pt;
+                line-height: 1.6;
+            }
+            
+            .container {
+                box-shadow: none;
+                padding: 0;
+                max-width: 100%;
+            }
+            
+            .actions, .no-print {
+                display: none !important;
+            }
+            
+            .header {
+                border-bottom: 2px solid #000;
+                padding-bottom: 10pt;
+                margin-bottom: 15pt;
+            }
+            
+            .header h1 {
+                color: #000;
+                font-size: 18pt;
+            }
+            
+            .header p {
+                color: #333;
+                font-size: 11pt;
+            }
+            
+            .meta {
+                background: #f9f9f9;
+                border: 1px solid #ddd;
+                padding: 10pt;
+                margin-bottom: 15pt;
+            }
+            
+            h1 {
+                font-size: 16pt;
+                border-bottom: 2px solid #000;
+                padding-bottom: 5pt;
+                margin-top: 20pt;
+                margin-bottom: 10pt;
+                page-break-after: avoid;
+            }
+            
+            h2 {
+                font-size: 14pt;
+                border-bottom: 1px solid #666;
+                padding-bottom: 4pt;
+                margin-top: 15pt;
+                margin-bottom: 8pt;
+                page-break-after: avoid;
+            }
+            
+            h3 {
+                font-size: 13pt;
+                margin-top: 12pt;
+                margin-bottom: 6pt;
+                page-break-after: avoid;
+            }
+            
+            h4 {
+                font-size: 12pt;
+                margin-top: 10pt;
+                margin-bottom: 5pt;
+                page-break-after: avoid;
+            }
+            
+            p {
+                margin-bottom: 8pt;
+                orphans: 3;
+                widows: 3;
+            }
+            
+            /* Code blocks - BLACK & WHITE optimized */
+            code {
+                background: #f0f0f0;
+                border: 1px solid #999;
+                padding: 2pt 4pt;
+                font-family: 'Courier New', 'Consolas', monospace;
+                font-size: 9pt;
+                color: #000;
+                font-weight: 600;
+            }
+            
+            pre {
+                background: #f8f8f8;
+                border: 2px solid #666;
+                padding: 10pt;
+                margin: 10pt 0;
+                page-break-inside: avoid;
+                font-size: 9pt;
+                line-height: 1.4;
+                overflow: visible;
+                white-space: pre-wrap;
+                word-wrap: break-word;
+            }
+            
+            pre code {
+                background: none;
+                border: none;
+                padding: 0;
+                font-size: 9pt;
+                font-weight: normal;
+                color: #000;
+            }
+            
+            /* Tables - BLACK & WHITE optimized */
+            table {
+                page-break-inside: avoid;
+                border-collapse: collapse;
+                width: 100%;
+                margin: 10pt 0;
+                border: 2px solid #000;
+            }
+            
+            table th {
+                background: #e0e0e0;
+                color: #000;
+                border: 1px solid #666;
+                padding: 6pt;
+                font-weight: bold;
+                text-align: left;
+            }
+            
+            table td {
+                border: 1px solid #999;
+                padding: 6pt;
+                color: #000;
+            }
+            
+            table tr:nth-child(even) {
+                background: #f5f5f5;
+            }
+            
+            /* Blockquotes */
+            blockquote {
+                border-left: 3px solid #000;
+                padding-left: 10pt;
+                margin: 10pt 0;
+                font-style: italic;
+                color: #333;
+                page-break-inside: avoid;
+            }
+            
+            /* Links */
+            a {
+                color: #000;
+                text-decoration: underline;
+            }
+            
+            a[href]:after {
+                content: " (" attr(href) ")";
+                font-size: 9pt;
+                color: #666;
+            }
+            
+            /* Lists */
+            ul, ol {
+                margin: 8pt 0;
+                padding-left: 20pt;
+            }
+            
+            li {
+                margin: 4pt 0;
+            }
+            
+            /* Horizontal rules */
+            hr {
+                border: none;
+                border-top: 1px solid #000;
+                margin: 15pt 0;
+            }
+            
+            /* Image handling */
+            img {
+                max-width: 100%;
+                page-break-inside: avoid;
+            }
+            
+            /* Page breaks */
+            .page-break {
+                page-break-before: always;
+            }
+            
+            /* Ensure visibility of all content */
+            * {
+                color: #000 !important;
+                background: white !important;
+            }
+            
+            code, pre {
+                background: #f5f5f5 !important;
+                border-color: #666 !important;
+            }
+            
+            table th {
+                background: #e0e0e0 !important;
+            }
+            
+            table tr:nth-child(even) {
+                background: #f8f8f8 !important;
+            }
+        }
+        
+        /* Code syntax highlighting */
+        .codehilite .hll { background-color: #49483e }
+        .codehilite .c { color: #75715e }
+        .codehilite .k { color: #66d9ef }
+        .codehilite .l { color: #ae81ff }
+        .codehilite .n { color: #f8f8f2 }
+        .codehilite .o { color: #f92672 }
+        .codehilite .p { color: #f8f8f2 }
+        .codehilite .cm { color: #75715e }
+        .codehilite .cp { color: #75715e }
+        .codehilite .c1 { color: #75715e }
+        .codehilite .cs { color: #75715e }
+        .codehilite .kc { color: #66d9ef }
+        .codehilite .kd { color: #66d9ef }
+        .codehilite .kn { color: #f92672 }
+        .codehilite .kp { color: #66d9ef }
+        .codehilite .kr { color: #66d9ef }
+        .codehilite .kt { color: #66d9ef }
+        .codehilite .ld { color: #e6db74 }
+        .codehilite .m { color: #ae81ff }
+        .codehilite .s { color: #e6db74 }
+        .codehilite .na { color: #a6e22e }
+        .codehilite .nb { color: #f8f8f2 }
+        .codehilite .nc { color: #a6e22e }
+        .codehilite .no { color: #66d9ef }
+        .codehilite .nd { color: #a6e22e }
+        .codehilite .ni { color: #f8f8f2 }
+        .codehilite .ne { color: #a6e22e }
+        .codehilite .nf { color: #a6e22e }
+        .codehilite .nl { color: #f8f8f2 }
+        .codehilite .nn { color: #f8f8f2 }
+        .codehilite .nx { color: #a6e22e }
+        .codehilite .py { color: #f8f8f2 }
+        .codehilite .nt { color: #f92672 }
+        .codehilite .nv { color: #f8f8f2 }
+        .codehilite .ow { color: #f92672 }
+        .codehilite .w { color: #f8f8f2 }
+        .codehilite .mf { color: #ae81ff }
+        .codehilite .mh { color: #ae81ff }
+        .codehilite .mi { color: #ae81ff }
+        .codehilite .mo { color: #ae81ff }
+        .codehilite .sb { color: #e6db74 }
+        .codehilite .sc { color: #e6db74 }
+        .codehilite .sd { color: #e6db74 }
+        .codehilite .s2 { color: #e6db74 }
+        .codehilite .se { color: #ae81ff }
+        .codehilite .sh { color: #e6db74 }
+        .codehilite .si { color: #e6db74 }
+        .codehilite .sx { color: #e6db74 }
+        .codehilite .sr { color: #e6db74 }
+        .codehilite .s1 { color: #e6db74 }
+        .codehilite .ss { color: #e6db74 }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Interview - Beginner Questions</h1>
+            <p>Common beginner-level interview questions and answers</p>
+        </div>
+        
+        <div class="meta">
+            <div class="meta-info">
+                <strong>Generated:</strong> January 04, 2026<br>
+                <strong>Source:</strong> interview/beginner_questions.md<br>
+                <strong>Project:</strong> Movie Booking System
+            </div>
+            <div class="actions no-print">
+                <button class="btn btn-primary" onclick="window.print()">
+                    <span>🖨️</span> Print / Save as PDF
+                </button>
+                <button class="btn btn-success" onclick="downloadMarkdown()">
+                    <span>📥</span> Download Markdown
+                </button>
+                <a href="index.html" class="btn btn-secondary">
+                    <span>🏠</span> Back to Index
+                </a>
+            </div>
+        </div>
+        
+        <div class="content">
+            <h1 id="beginner-interview-questions-moviebooking-system">Beginner Interview Questions – MovieBooking System</h1>
+<p>This guide is designed for developers just starting with Django, Celery, and Payment Gateways.</p>
+<hr />
+<h2 id="project-architecture-file-structure">🏗️ Project Architecture &amp; File Structure</h2>
+<h3 id="1-why-do-we-create-separate-apps-like-accounts-movies-and-bookings">1. Why do we create separate &ldquo;apps&rdquo; like <code>accounts</code>, <code>movies</code>, and <code>bookings</code>?</h3>
+<p><strong>Answer:</strong> This is called <strong>Modularity</strong>.</p>
+<ul>
+<li><strong>WHY:</strong> It makes the code easier to manage. If you have a bug in &ldquo;login&rdquo;, you know exactly which folder to look in (<code>accounts</code>).</li>
+<li><strong>HOW:</strong> Each app has its own <code>models.py</code> (data), <code>views.py</code> (logic), and <code>urls.py</code> (paths).</li>
+</ul>
+<h3 id="2-why-is-there-a-__init__py-file-in-almost-every-folder">2. Why is there a <code>__init__.py</code> file in almost every folder?</h3>
+<p><strong>Answer:</strong></p>
+<ul>
+<li><strong>WHY:</strong> It tells Python that this folder should be treated as a &ldquo;Package&rdquo;.</li>
+<li><strong>HOW:</strong> Without it, you wouldn&rsquo;t be able to do <code>from bookings import views</code>. In our project, we also use the main <code>moviebooking/__init__.py</code> to make sure Celery starts when the website starts.</li>
+</ul>
+<h3 id="3-why-do-we-use-a-env-file">3. Why do we use a <code>.env</code> file?</h3>
+<p><strong>Answer:</strong></p>
+<ul>
+<li><strong>WHY:</strong> To store &ldquo;Secrets&rdquo; like your Razorpay API Key or Database password.</li>
+<li><strong>HOW:</strong> You never want to upload these secrets to GitHub (public). We store them in <code>.env</code> and tell Git to ignore that file using <code>.gitignore</code>.</li>
+</ul>
+<hr />
+<h2 id="celery-background-tasks">⚡ Celery &amp; Background Tasks</h2>
+<h3 id="4-what-is-celery-in-simple-terms">4. What is Celery in simple terms?</h3>
+<p><strong>Answer:</strong> Imagine you are at a restaurant (the website).</p>
+<ul>
+<li>The <strong>Waiter</strong> (Django) takes your order.</li>
+<li>If the waiter also had to cook the food, wash the dishes, and clean the floor (tasks like sending emails), he would be very slow.</li>
+<li>Instead, the waiter gives these tasks to the <strong>Chef</strong> (Celery Worker) in the kitchen.</li>
+<li>The waiter is now free to help the next customer immediately.</li>
+</ul>
+<h3 id="5-what-is-a-message-broker-like-redis">5. What is a &ldquo;Message Broker&rdquo; (like Redis)?</h3>
+<p><strong>Answer:</strong> It&rsquo;s the <strong>Clipboard</strong> or <strong>Buffer</strong> where the Waiter writes down the order for the Chef. Celery can&rsquo;t talk to Django directly; they use Redis to pass messages back and forth.</p>
+<h3 id="6-what-is-celery-beat">6. What is &ldquo;Celery Beat&rdquo;?</h3>
+<p><strong>Answer:</strong> It&rsquo;s an <strong>Alarm Clock</strong>. It tells Celery to run tasks at a specific time (e.g., &ldquo;Clean the floor every night at 12 AM&rdquo; or &ldquo;Check for expired bookings every 60 seconds&rdquo;).</p>
+<hr />
+<h2 id="razorpay-payments">💳 Razorpay &amp; Payments</h2>
+<h3 id="7-why-cant-we-just-have-a-success-button-on-the-frontend">7. Why can&rsquo;t we just have a &ldquo;Success&rdquo; button on the frontend?</h3>
+<p><strong>Answer:</strong> <strong>SECURITY.</strong></p>
+<ul>
+<li><strong>WHY:</strong> A user could just look at the code, find the &ldquo;Success&rdquo; URL, and type it into their browser to get a free ticket.</li>
+<li><strong>HOW:</strong> We use <strong>Signature Verification</strong>. Razorpay gives us a secret code (signature) that only our server can verify. This proves the user actually paid.</li>
+</ul>
+<h3 id="8-why-do-we-multiply-the-price-by-100">8. Why do we multiply the price by 100?</h3>
+<p><strong>Answer:</strong> Computer programs sometimes make mistakes with decimals (like <code>0.1 + 0.2</code> not being exactly <code>0.3</code>).</p>
+<ul>
+<li><strong>HOW:</strong> Razorpay avoids this by asking for the amount in the smallest unit (Paise). So, ₹10.00 becomes <code>1000</code> paise.</li>
+</ul>
+<hr />
+<h2 id="database-security">🛡️ Database &amp; Security</h2>
+<h3 id="9-what-is-login_required">9. What is <code>@login_required</code>?</h3>
+<p><strong>Answer:</strong> It&rsquo;s a <strong>Bouncer</strong> for your views. It checks if the user is logged in. If not, it kicks them back to the login page.</p>
+<h3 id="10-what-does-on_deletemodelscascade-mean">10. What does <code>on_delete=models.CASCADE</code> mean?</h3>
+<p><strong>Answer:</strong> It&rsquo;s a &ldquo;Chain Reaction&rdquo;.</p>
+<ul>
+<li><strong>EXAMPLE:</strong> If you delete a <strong>Movie</strong>, it doesn&rsquo;t make sense to keep its <strong>Showtimes</strong>. <code>CASCADE</code> tells Django: &ldquo;If the parent (Movie) is deleted, delete all its children (Showtimes) too.&rdquo;</li>
+</ul>
+<h3 id="11-what-is-the-difference-between-a-foreignkey-and-a-manytomanyfield">11. What is the difference between a <code>ForeignKey</code> and a <code>ManyToManyField</code>?</h3>
+<p><strong>Answer:</strong></p>
+<ul>
+<li><strong>ForeignKey:</strong> One-to-Many. (One Movie belongs to one Language, but a Language has many Movies).</li>
+<li><strong>ManyToManyField:</strong> Many-to-Many. (One Movie has many Genres, and one Genre has many Movies).</li>
+</ul>
+<hr />
+<h2 id="coding-best-practices">📝 Coding Best Practices</h2>
+<h3 id="12-why-do-we-add-docstrings-the-text-in-at-the-top-of-functions">12. Why do we add &ldquo;Docstrings&rdquo; (the text in <code>""" """)</code> at the top of functions?</h3>
+<p><strong>Answer:</strong> It&rsquo;s a <strong>Note to your future self</strong>. It explains what the function does and <em>why</em> it exists, making it easier for other developers to understand your code.</p>
+<h3 id="13-why-do-we-use-tryexcept-blocks">13. Why do we use <code>try...except</code> blocks?</h3>
+<p><strong>Answer:</strong> <strong>Crash Prevention.</strong> If something goes wrong (like the internet being down), the <code>try</code> block catches the error and the <code>except</code> block handles it gracefully instead of showing a scary error screen to the user.</p>
+        </div>
+        
+        <hr class="no-print">
+        <div class="meta no-print" style="margin-top: 30px;">
+            <p style="color: #666; font-size: 0.9em;">
+                💡 <strong>Tip:</strong> Use <kbd>Ctrl+P</kbd> (Windows/Linux) or <kbd>Cmd+P</kbd> (Mac) to print or save as PDF.
+                Select "Save as PDF" as your destination.
+            </p>
+        </div>
+    </div>
+    
+    <script>
+        // Download markdown function
+        function downloadMarkdown() {
+            const markdownContent = `# Beginner Interview Questions – MovieBooking System\n\nThis guide is designed for developers just starting with Django, Celery, and Payment Gateways.\n\n---\n\n## 🏗️ Project Architecture & File Structure\n\n### 1. Why do we create separate "apps" like \`accounts\`, \`movies\`, and \`bookings\`?\n\n**Answer:** This is called **Modularity**.\n\n- **WHY:** It makes the code easier to manage. If you have a bug in "login", you know exactly which folder to look in (\`accounts\`).\n- **HOW:** Each app has its own \`models.py\` (data), \`views.py\` (logic), and \`urls.py\` (paths).\n\n### 2. Why is there a \`__init__.py\` file in almost every folder?\n\n**Answer:**\n\n- **WHY:** It tells Python that this folder should be treated as a "Package".\n- **HOW:** Without it, you wouldn't be able to do \`from bookings import views\`. In our project, we also use the main \`moviebooking/__init__.py\` to make sure Celery starts when the website starts.\n\n### 3. Why do we use a \`.env\` file?\n\n**Answer:**\n\n- **WHY:** To store "Secrets" like your Razorpay API Key or Database password.\n- **HOW:** You never want to upload these secrets to GitHub (public). We store them in \`.env\` and tell Git to ignore that file using \`.gitignore\`.\n\n---\n\n## ⚡ Celery & Background Tasks\n\n### 4. What is Celery in simple terms?\n\n**Answer:** Imagine you are at a restaurant (the website).\n\n- The **Waiter** (Django) takes your order.\n- If the waiter also had to cook the food, wash the dishes, and clean the floor (tasks like sending emails), he would be very slow.\n- Instead, the waiter gives these tasks to the **Chef** (Celery Worker) in the kitchen.\n- The waiter is now free to help the next customer immediately.\n\n### 5. What is a "Message Broker" (like Redis)?\n\n**Answer:** It's the **Clipboard** or **Buffer** where the Waiter writes down the order for the Chef. Celery can't talk to Django directly; they use Redis to pass messages back and forth.\n\n### 6. What is "Celery Beat"?\n\n**Answer:** It's an **Alarm Clock**. It tells Celery to run tasks at a specific time (e.g., "Clean the floor every night at 12 AM" or "Check for expired bookings every 60 seconds").\n\n---\n\n## 💳 Razorpay & Payments\n\n### 7. Why can't we just have a "Success" button on the frontend?\n\n**Answer:** **SECURITY.**\n\n- **WHY:** A user could just look at the code, find the "Success" URL, and type it into their browser to get a free ticket.\n- **HOW:** We use **Signature Verification**. Razorpay gives us a secret code (signature) that only our server can verify. This proves the user actually paid.\n\n### 8. Why do we multiply the price by 100?\n\n**Answer:** Computer programs sometimes make mistakes with decimals (like \`0.1 + 0.2\` not being exactly \`0.3\`).\n\n- **HOW:** Razorpay avoids this by asking for the amount in the smallest unit (Paise). So, ₹10.00 becomes \`1000\` paise.\n\n---\n\n## 🛡️ Database & Security\n\n### 9. What is \`@login_required\`?\n\n**Answer:** It's a **Bouncer** for your views. It checks if the user is logged in. If not, it kicks them back to the login page.\n\n### 10. What does \`on_delete=models.CASCADE\` mean?\n\n**Answer:** It's a "Chain Reaction".\n\n- **EXAMPLE:** If you delete a **Movie**, it doesn't make sense to keep its **Showtimes**. \`CASCADE\` tells Django: "If the parent (Movie) is deleted, delete all its children (Showtimes) too."\n\n### 11. What is the difference between a \`ForeignKey\` and a \`ManyToManyField\`?\n\n**Answer:**\n\n- **ForeignKey:** One-to-Many. (One Movie belongs to one Language, but a Language has many Movies).\n- **ManyToManyField:** Many-to-Many. (One Movie has many Genres, and one Genre has many Movies).\n\n---\n\n## 📝 Coding Best Practices\n\n### 12. Why do we add "Docstrings" (the text in \`""" """)\` at the top of functions?\n\n**Answer:** It's a **Note to your future self**. It explains what the function does and _why_ it exists, making it easier for other developers to understand your code.\n\n### 13. Why do we use \`try...except\` blocks?\n\n**Answer:** **Crash Prevention.** If something goes wrong (like the internet being down), the \`try\` block catches the error and the \`except\` block handles it gracefully instead of showing a scary error screen to the user.\n`;
+            const blob = new Blob([markdownContent], { type: 'text/markdown' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'interview/beginner_questions.md';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        }
+        
+        // Keyboard shortcut for print
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+                e.preventDefault();
+                window.print();
+            }
+        });
+    </script>
+</body>
+</html>

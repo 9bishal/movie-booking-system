@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Understanding Redis - Movie Booking System</title>
+    <style>
+        /* Screen Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            line-height: 1.8;
+            color: #000;
+            background: #f5f5f5;
+            padding: 20px;
+            font-size: 12pt;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        
+        .header {
+            border-bottom: 3px solid #007bff;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #007bff;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+        
+        .meta {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .meta-info {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #0056b3;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .content {
+            margin-top: 30px;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+            color: #2c3e50;
+        }
+        
+        h1 { font-size: 2em; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
+        h2 { font-size: 1.75em; border-bottom: 1px solid #dee2e6; padding-bottom: 8px; }
+        h3 { font-size: 1.5em; }
+        h4 { font-size: 1.25em; }
+        
+        p {
+            margin-bottom: 1em;
+        }
+        
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 10pt;
+            color: #000;
+            font-weight: 500;
+        }
+        
+        pre {
+            background: #f8f8f8;
+            color: #000;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin: 15px 0;
+            line-height: 1.6;
+            font-size: 10pt;
+        }
+        
+        pre code {
+            background: none;
+            color: #000;
+            padding: 0;
+            border: none;
+            font-size: 10pt;
+            font-weight: normal;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        table th, table td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #dee2e6;
+        }
+        
+        table th {
+            background: #007bff;
+            color: white;
+            font-weight: 600;
+        }
+        
+        table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        blockquote {
+            border-left: 4px solid #007bff;
+            padding-left: 20px;
+            margin: 20px 0;
+            color: #666;
+            font-style: italic;
+        }
+        
+        ul, ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+        
+        li {
+            margin: 5px 0;
+        }
+        
+        a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        
+        a:hover {
+            text-decoration: underline;
+        }
+        
+        hr {
+            border: none;
+            border-top: 2px solid #dee2e6;
+            margin: 30px 0;
+        }
+        
+        /* Print Styles - Optimized for Black & White */
+        @media print {
+            @page {
+                margin: 0.75in;
+                size: A4;
+            }
+            
+            body {
+                background: white;
+                padding: 0;
+                color: #000;
+                font-size: 11pt;
+                line-height: 1.6;
+            }
+            
+            .container {
+                box-shadow: none;
+                padding: 0;
+                max-width: 100%;
+            }
+            
+            .actions, .no-print {
+                display: none !important;
+            }
+            
+            .header {
+                border-bottom: 2px solid #000;
+                padding-bottom: 10pt;
+                margin-bottom: 15pt;
+            }
+            
+            .header h1 {
+                color: #000;
+                font-size: 18pt;
+            }
+            
+            .header p {
+                color: #333;
+                font-size: 11pt;
+            }
+            
+            .meta {
+                background: #f9f9f9;
+                border: 1px solid #ddd;
+                padding: 10pt;
+                margin-bottom: 15pt;
+            }
+            
+            h1 {
+                font-size: 16pt;
+                border-bottom: 2px solid #000;
+                padding-bottom: 5pt;
+                margin-top: 20pt;
+                margin-bottom: 10pt;
+                page-break-after: avoid;
+            }
+            
+            h2 {
+                font-size: 14pt;
+                border-bottom: 1px solid #666;
+                padding-bottom: 4pt;
+                margin-top: 15pt;
+                margin-bottom: 8pt;
+                page-break-after: avoid;
+            }
+            
+            h3 {
+                font-size: 13pt;
+                margin-top: 12pt;
+                margin-bottom: 6pt;
+                page-break-after: avoid;
+            }
+            
+            h4 {
+                font-size: 12pt;
+                margin-top: 10pt;
+                margin-bottom: 5pt;
+                page-break-after: avoid;
+            }
+            
+            p {
+                margin-bottom: 8pt;
+                orphans: 3;
+                widows: 3;
+            }
+            
+            /* Code blocks - BLACK & WHITE optimized */
+            code {
+                background: #f0f0f0;
+                border: 1px solid #999;
+                padding: 2pt 4pt;
+                font-family: 'Courier New', 'Consolas', monospace;
+                font-size: 9pt;
+                color: #000;
+                font-weight: 600;
+            }
+            
+            pre {
+                background: #f8f8f8;
+                border: 2px solid #666;
+                padding: 10pt;
+                margin: 10pt 0;
+                page-break-inside: avoid;
+                font-size: 9pt;
+                line-height: 1.4;
+                overflow: visible;
+                white-space: pre-wrap;
+                word-wrap: break-word;
+            }
+            
+            pre code {
+                background: none;
+                border: none;
+                padding: 0;
+                font-size: 9pt;
+                font-weight: normal;
+                color: #000;
+            }
+            
+            /* Tables - BLACK & WHITE optimized */
+            table {
+                page-break-inside: avoid;
+                border-collapse: collapse;
+                width: 100%;
+                margin: 10pt 0;
+                border: 2px solid #000;
+            }
+            
+            table th {
+                background: #e0e0e0;
+                color: #000;
+                border: 1px solid #666;
+                padding: 6pt;
+                font-weight: bold;
+                text-align: left;
+            }
+            
+            table td {
+                border: 1px solid #999;
+                padding: 6pt;
+                color: #000;
+            }
+            
+            table tr:nth-child(even) {
+                background: #f5f5f5;
+            }
+            
+            /* Blockquotes */
+            blockquote {
+                border-left: 3px solid #000;
+                padding-left: 10pt;
+                margin: 10pt 0;
+                font-style: italic;
+                color: #333;
+                page-break-inside: avoid;
+            }
+            
+            /* Links */
+            a {
+                color: #000;
+                text-decoration: underline;
+            }
+            
+            a[href]:after {
+                content: " (" attr(href) ")";
+                font-size: 9pt;
+                color: #666;
+            }
+            
+            /* Lists */
+            ul, ol {
+                margin: 8pt 0;
+                padding-left: 20pt;
+            }
+            
+            li {
+                margin: 4pt 0;
+            }
+            
+            /* Horizontal rules */
+            hr {
+                border: none;
+                border-top: 1px solid #000;
+                margin: 15pt 0;
+            }
+            
+            /* Image handling */
+            img {
+                max-width: 100%;
+                page-break-inside: avoid;
+            }
+            
+            /* Page breaks */
+            .page-break {
+                page-break-before: always;
+            }
+            
+            /* Ensure visibility of all content */
+            * {
+                color: #000 !important;
+                background: white !important;
+            }
+            
+            code, pre {
+                background: #f5f5f5 !important;
+                border-color: #666 !important;
+            }
+            
+            table th {
+                background: #e0e0e0 !important;
+            }
+            
+            table tr:nth-child(even) {
+                background: #f8f8f8 !important;
+            }
+        }
+        
+        /* Code syntax highlighting */
+        .codehilite .hll { background-color: #49483e }
+        .codehilite .c { color: #75715e }
+        .codehilite .k { color: #66d9ef }
+        .codehilite .l { color: #ae81ff }
+        .codehilite .n { color: #f8f8f2 }
+        .codehilite .o { color: #f92672 }
+        .codehilite .p { color: #f8f8f2 }
+        .codehilite .cm { color: #75715e }
+        .codehilite .cp { color: #75715e }
+        .codehilite .c1 { color: #75715e }
+        .codehilite .cs { color: #75715e }
+        .codehilite .kc { color: #66d9ef }
+        .codehilite .kd { color: #66d9ef }
+        .codehilite .kn { color: #f92672 }
+        .codehilite .kp { color: #66d9ef }
+        .codehilite .kr { color: #66d9ef }
+        .codehilite .kt { color: #66d9ef }
+        .codehilite .ld { color: #e6db74 }
+        .codehilite .m { color: #ae81ff }
+        .codehilite .s { color: #e6db74 }
+        .codehilite .na { color: #a6e22e }
+        .codehilite .nb { color: #f8f8f2 }
+        .codehilite .nc { color: #a6e22e }
+        .codehilite .no { color: #66d9ef }
+        .codehilite .nd { color: #a6e22e }
+        .codehilite .ni { color: #f8f8f2 }
+        .codehilite .ne { color: #a6e22e }
+        .codehilite .nf { color: #a6e22e }
+        .codehilite .nl { color: #f8f8f2 }
+        .codehilite .nn { color: #f8f8f2 }
+        .codehilite .nx { color: #a6e22e }
+        .codehilite .py { color: #f8f8f2 }
+        .codehilite .nt { color: #f92672 }
+        .codehilite .nv { color: #f8f8f2 }
+        .codehilite .ow { color: #f92672 }
+        .codehilite .w { color: #f8f8f2 }
+        .codehilite .mf { color: #ae81ff }
+        .codehilite .mh { color: #ae81ff }
+        .codehilite .mi { color: #ae81ff }
+        .codehilite .mo { color: #ae81ff }
+        .codehilite .sb { color: #e6db74 }
+        .codehilite .sc { color: #e6db74 }
+        .codehilite .sd { color: #e6db74 }
+        .codehilite .s2 { color: #e6db74 }
+        .codehilite .se { color: #ae81ff }
+        .codehilite .sh { color: #e6db74 }
+        .codehilite .si { color: #e6db74 }
+        .codehilite .sx { color: #e6db74 }
+        .codehilite .sr { color: #e6db74 }
+        .codehilite .s1 { color: #e6db74 }
+        .codehilite .ss { color: #e6db74 }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Understanding Redis</h1>
+            <p>Redis caching and session management guide</p>
+        </div>
+        
+        <div class="meta">
+            <div class="meta-info">
+                <strong>Generated:</strong> January 04, 2026<br>
+                <strong>Source:</strong> UNDERSTANDING_REDIS.md<br>
+                <strong>Project:</strong> Movie Booking System
+            </div>
+            <div class="actions no-print">
+                <button class="btn btn-primary" onclick="window.print()">
+                    <span>🖨️</span> Print / Save as PDF
+                </button>
+                <button class="btn btn-success" onclick="downloadMarkdown()">
+                    <span>📥</span> Download Markdown
+                </button>
+                <a href="index.html" class="btn btn-secondary">
+                    <span>🏠</span> Back to Index
+                </a>
+            </div>
+        </div>
+        
+        <div class="content">
+            <h1 id="understanding-redis-in-movie-booking-system">🏗️ Understanding Redis in Movie Booking System</h1>
+<h2 id="a-beginners-guide">A Beginner&rsquo;s Guide</h2>
+<hr />
+<h2 id="table-of-contents">📚 Table of Contents</h2>
+<ol>
+<li><a href="#what-is-redis">What is Redis?</a></li>
+<li><a href="#why-we-use-redis">Why We Use Redis</a></li>
+<li><a href="#how-redis-works-in-our-system">How Redis Works in Our System</a></li>
+<li><a href="#redis-data-structures-we-use">Redis Data Structures We Use</a></li>
+<li><a href="#real-world-example">Real-World Example</a></li>
+<li><a href="#common-commands">Common Commands</a></li>
+<li><a href="#troubleshooting">Troubleshooting</a></li>
+</ol>
+<hr />
+<h2 id="what-is-redis">🤔 What is Redis?</h2>
+<p><strong>Redis</strong> stands for <strong>RE</strong>mote <strong>DI</strong>ctionary <strong>S</strong>erver. Think of it as a <strong>super-fast digital notepad</strong> that lives in your computer&rsquo;s memory (RAM).</p>
+<h3 id="simple-analogy">Simple Analogy 🎯</h3>
+<p>Imagine you&rsquo;re at a movie theater ticket counter:<br />
+- <strong>Database (SQLite/PostgreSQL)</strong> = Filing cabinet with permanent records (slow but permanent)<br />
+- <strong>Redis</strong> = Sticky notes on the counter (fast but temporary)</p>
+<p>When you reserve a seat:<br />
+- You quickly put a sticky note (Redis) saying &ldquo;John reserved A1&rdquo;<br />
+- If payment succeeds, you file it permanently (Database)<br />
+- If payment fails, you throw away the sticky note (Redis auto-expires)</p>
+<h3 id="key-characteristics">Key Characteristics</h3>
+<ul>
+<li><strong>Fast</strong>: Stores data in RAM (memory), not disk → 1000x faster than database</li>
+<li><strong>Temporary</strong>: Data can expire automatically (perfect for &ldquo;hold this seat for 12 minutes&rdquo;)</li>
+<li><strong>Simple</strong>: Just key-value pairs like a dictionary in Python</li>
+<li><strong>In-Memory</strong>: All data in RAM → super fast but lost if server restarts (unless configured otherwise)</li>
+</ul>
+<hr />
+<h2 id="why-we-use-redis">🎯 Why We Use Redis</h2>
+<h3 id="problem-without-redis">Problem Without Redis ❌</h3>
+<pre><code class="language-python"># Using only database for seat reservation
+def reserve_seat():
+    # Check database if seat is free
+    seat = Seat.objects.get(id='A1')
+    if seat.is_booked:
+        return &quot;Sorry, taken!&quot;
+
+    # Mark as reserved in database
+    seat.is_reserved = True
+    seat.save()  # Slow disk write!
+
+    # Problem: What if user never completes payment?
+    # Seat stays &quot;reserved&quot; forever! 😱
+</code></pre>
+<h3 id="solution-with-redis">Solution With Redis ✅</h3>
+<pre><code class="language-python"># Using Redis for temporary reservation
+def reserve_seat():
+    # Check Redis cache (super fast!)
+    if redis.get('seat_A1'):
+        return &quot;Sorry, taken!&quot;
+
+    # Reserve in Redis with 10-minute expiry
+    redis.setex('seat_A1', 600, user_id)
+    # After 10 minutes, Redis automatically deletes it!
+
+    # If payment succeeds, then save to database
+    # If payment fails, Redis auto-cleans up
+</code></pre>
+<h3 id="why-this-is-better">Why This is Better</h3>
+<ol>
+<li><strong>Speed</strong>: Redis operations take ~1ms vs database ~50ms</li>
+<li><strong>Auto-Cleanup</strong>: Expired reservations disappear automatically</li>
+<li><strong>Less Database Load</strong>: Thousands of reservations don&rsquo;t clutter the database</li>
+<li><strong>Better UX</strong>: Users see real-time seat availability</li>
+</ol>
+<hr />
+<h2 id="how-redis-works-in-our-system">🎬 How Redis Works in Our System</h2>
+<h3 id="architecture-overview">Architecture Overview</h3>
+<pre><code>┌─────────────────────────────────────────────────────────────┐
+│                        USER                                  │
+│                 (Selecting Seats)                            │
+└────────────────────────┬────────────────────────────────────┘
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    DJANGO SERVER                             │
+│  1. User selects seats A1, A2                                │
+│  2. Server checks Redis: Are these seats free?               │
+│  3. If free, reserve in Redis for 10 minutes                │
+│  4. Create PENDING booking in database                       │
+└────────────────────────┬────────────────────────────────────┘
+                         │ 
+            ┌────────────┴────────────┐
+            ▼                         ▼
+    ┌───────────────┐         ┌───────────────┐
+    │     REDIS     │         │   DATABASE    │
+    │   (CACHE)     │         │  (PERMANENT)  │
+    ├───────────────┤         ├───────────────┤
+    │ Temporary:    │         │ Permanent:    │
+    │ • Seat locks  │         │ • Movies      │
+    │ • Reservations│         │ • Theaters    │
+    │ • User carts  │         │ • Bookings    │
+    │               │         │ • Users       │
+    │ Auto-expires  │         │ Never expires │
+    │ after 10 min  │         │ (unless deleted)│
+    └───────────────┘         └───────────────┘
+</code></pre>
+<h3 id="flow-from-seat-selection-to-payment">Flow: From Seat Selection to Payment</h3>
+<pre><code>Step 1: User Clicks &quot;Select Seats A1, A2&quot;
+┌────────────────────────────────────────┐
+│ Django: Call reserve_seats()           │
+│ Redis: Check if A1, A2 are free       │
+│ Redis: SETNX seat_lock:24:A1 = user_7 │
+│ Redis: SETNX seat_lock:24:A2 = user_7 │
+│ Redis: EXPIRE 600 seconds (10 min)    │
+└────────────────────────────────────────┘
+           Status: ✅ Seats Reserved
+
+Step 2: User Proceeds to Payment
+┌────────────────────────────────────────┐
+│ Django: Create Booking (status=PENDING)│
+│ Database: Save booking record          │
+│ Redis: Still holding seat locks        │
+└────────────────────────────────────────┘
+           Status: 🕐 Waiting for Payment
+
+Step 3a: User Completes Payment ✅
+┌────────────────────────────────────────┐
+│ Django: Payment successful!            │
+│ Database: Update booking (CONFIRMED)   │
+│ Redis: DELETE seat locks (released)    │
+│ Redis: Add to reserved_seats list      │
+└────────────────────────────────────────┘
+           Status: ✅ Booking Confirmed!
+
+Step 3b: User Abandons Payment ❌ 
+┌────────────────────────────────────────┐
+│ Time Passes: 12 minutes elapse...     │
+│ Redis: Auto-deletes seat locks (TTL)   │
+│ Celery Task: Finds expired booking     │
+│ Django: Update booking (status=EXPIRED)│
+│ Redis: Seats now free for others       │
+└────────────────────────────────────────┘
+           Status: 🔓 Seats Released
+</code></pre>
+<hr />
+<h2 id="redis-data-structures-we-use">🗄️ Redis Data Structures We Use</h2>
+<h3 id="1-seat-locks-individual-lock-per-seat">1. <strong>Seat Locks</strong> (Individual Lock per Seat)</h3>
+<pre><code class="language-python"># Key Pattern: seat_lock:{showtime_id}:{seat_id}
+# Example: seat_lock:24:A1
+
+# What it stores:
+{
+    &quot;key&quot;: &quot;seat_lock:24:A1&quot;,
+    &quot;value&quot;: &quot;7&quot;,  # user_id who locked it
+    &quot;ttl&quot;: 600     # expires in 10 minutes
+}
+
+# Purpose: Prevent multiple users from booking same seat
+# Expires: 10 minutes (auto-cleanup)
+</code></pre>
+<p><strong>In Code:</strong></p>
+<pre><code class="language-python"># Reserve seat A1 for showtime 24 by user 7
+lock_key = f&quot;seat_lock:{showtime_id}:{seat_id}&quot;
+redis.setex(lock_key, 600, user_id)
+
+# Check if seat is locked
+is_locked = redis.get(lock_key)
+if is_locked:
+    print(f&quot;Seat locked by user {is_locked}&quot;)
+</code></pre>
+<h3 id="2-reserved-seats-list-all-reserved-seats-for-a-showtime">2. <strong>Reserved Seats List</strong> (All Reserved Seats for a Showtime)</h3>
+<pre><code class="language-python"># Key Pattern: reserved_seats_{showtime_id}
+# Example: reserved_seats_24
+
+# What it stores:
+{
+    &quot;key&quot;: &quot;reserved_seats_24&quot;,
+    &quot;value&quot;: [&quot;A1&quot;, &quot;A2&quot;, &quot;B3&quot;, &quot;C5&quot;],  # List of seat IDs
+    &quot;ttl&quot;: 600  # 10 minutes
+}
+
+# Purpose: Quick lookup of all reserved seats
+# Expires: 10 minutes
+</code></pre>
+<p><strong>In Code:</strong></p>
+<pre><code class="language-python"># Add seats to reserved list
+cache_key = f&quot;reserved_seats_{showtime_id}&quot;
+reserved = cache.get(cache_key) or []
+reserved.extend(['A1', 'A2'])
+cache.set(cache_key, reserved, timeout=600)
+
+# Check if seat is reserved
+if 'A1' in reserved:
+    print(&quot;Seat A1 is reserved!&quot;)
+</code></pre>
+<h3 id="3-user-reservation-what-user-is-currently-booking">3. <strong>User Reservation</strong> (What User is Currently Booking)</h3>
+<pre><code class="language-python"># Key Pattern: seat_reservation_{showtime_id}_{user_id}
+# Example: seat_reservation_24_7
+
+# What it stores:
+{
+    &quot;key&quot;: &quot;seat_reservation_24_7&quot;,
+    &quot;value&quot;: {
+        &quot;seat_ids&quot;: [&quot;A1&quot;, &quot;A2&quot;],
+        &quot;reserved_at&quot;: 1767451157.506  # timestamp
+    },
+    &quot;ttl&quot;: 600  # 10 minutes
+}
+
+# Purpose: Track what specific user is booking
+# Critical: Must be deleted when booking expires/cancels!
+</code></pre>
+<p><strong>In Code:</strong></p>
+<pre><code class="language-python"># Save user's reservation
+reservation_key = f&quot;seat_reservation_{showtime_id}_{user_id}&quot;
+reservation_data = {
+    'seat_ids': ['A1', 'A2'],
+    'reserved_at': time.time()
+}
+cache.set(reservation_key, reservation_data, timeout=600)
+
+# Get user's reservation
+user_reservation = cache.get(reservation_key)
+if user_reservation:
+    seats = user_reservation['seat_ids']
+    print(f&quot;User reserved: {seats}&quot;)
+</code></pre>
+<h3 id="4-available-seats-all-free-seats-for-a-showtime">4. <strong>Available Seats</strong> (All Free Seats for a Showtime)</h3>
+<pre><code class="language-python"># Key Pattern: available_seats_{showtime_id}
+# Example: available_seats_24
+
+# What it stores:
+{
+    &quot;key&quot;: &quot;available_seats_24&quot;,
+    &quot;value&quot;: [&quot;A1&quot;, &quot;A2&quot;, &quot;A3&quot;, ..., &quot;Z10&quot;],  # All free seats
+    &quot;ttl&quot;: 3600  # 1 hour (longer than reservations)
+}
+
+# Purpose: Fast lookup of free seats
+# Expires: 1 hour
+</code></pre>
+<hr />
+<h2 id="real-world-example">🎭 Real-World Example</h2>
+<p>Let&rsquo;s follow a complete booking flow:</p>
+<h3 id="scenario-john-wants-to-book-seats-a1-and-a2-for-avengers-at-7-pm">Scenario: John wants to book seats A1 and A2 for &ldquo;Avengers&rdquo; at 7 PM</h3>
+<h4 id="time-600-pm-john-selects-seats"><strong>Time: 6:00 PM</strong> - John Selects Seats</h4>
+<pre><code class="language-python"># 1. Django receives request
+def select_seats(request, showtime_id, seat_ids=['A1', 'A2']):
+    user_id = request.user.id  # John's ID = 7
+
+    # 2. Check Redis if seats are available
+    reserved_seats = cache.get(f&quot;reserved_seats_{showtime_id}&quot;) or []
+
+    # 3. Are A1, A2 already reserved?
+    if 'A1' in reserved_seats or 'A2' in reserved_seats:
+        return &quot;Sorry, seats taken!&quot;
+
+    # 4. Reserve in Redis (all 3 keys!)
+
+    # Key 1: Individual locks
+    cache.setex(f&quot;seat_lock:{showtime_id}:A1&quot;, 600, user_id)
+    cache.setex(f&quot;seat_lock:{showtime_id}:A2&quot;, 600, user_id)
+
+    # Key 2: Add to reserved list
+    reserved_seats.extend(['A1', 'A2'])
+    cache.set(f&quot;reserved_seats_{showtime_id}&quot;, reserved_seats, 600)
+
+    # Key 3: Save user's reservation
+    cache.set(f&quot;seat_reservation_{showtime_id}_{user_id}&quot;, {
+        'seat_ids': ['A1', 'A2'],
+        'reserved_at': time.time()
+    }, 600)
+
+    return &quot;Seats reserved! Complete payment in 12 minutes&quot;
+</code></pre>
+<p><strong>Redis State:</strong></p>
+<pre><code>✅ seat_lock:24:A1 = &quot;7&quot; (expires 6:10 PM)
+✅ seat_lock:24:A2 = &quot;7&quot; (expires 6:10 PM)
+✅ reserved_seats_24 = [&quot;A1&quot;, &quot;A2&quot;]
+✅ seat_reservation_24_7 = {&quot;seat_ids&quot;: [&quot;A1&quot;, &quot;A2&quot;], ...}
+</code></pre>
+<h4 id="time-602-pm-john-opens-payment-page"><strong>Time: 6:02 PM</strong> - John Opens Payment Page</h4>
+<pre><code class="language-python"># John sees Razorpay modal, but doesn't complete payment yet
+# Redis still holding seats (8 minutes remaining)
+</code></pre>
+<p><strong>Redis State:</strong> (No change, TTL counting down)</p>
+<pre><code>✅ seat_lock:24:A1 = &quot;7&quot; (expires in 8 min)
+✅ seat_lock:24:A2 = &quot;7&quot; (expires in 8 min)
+✅ reserved_seats_24 = [&quot;A1&quot;, &quot;A2&quot;] (expires in 8 min)
+✅ seat_reservation_24_7 = {...} (expires in 8 min)
+</code></pre>
+<h4 id="time-605-pm-jane-tries-to-book-a1"><strong>Time: 6:05 PM</strong> - Jane Tries to Book A1</h4>
+<pre><code class="language-python"># Jane (user_id=8) tries to book same seat A1
+def select_seats(request, showtime_id, seat_ids=['A1']):
+    reserved_seats = cache.get(f&quot;reserved_seats_{showtime_id}&quot;)
+    # reserved_seats = [&quot;A1&quot;, &quot;A2&quot;]
+
+    if 'A1' in reserved_seats:
+        return &quot;Sorry, A1 is reserved by someone else!&quot;
+        # Jane gets error, can't book A1 ❌
+</code></pre>
+<h4 id="time-608-pm-john-completes-payment"><strong>Time: 6:08 PM</strong> - John Completes Payment ✅</h4>
+<pre><code class="language-python"># John pays successfully via Razorpay
+def confirm_payment(booking_id, payment_id):
+    booking = Booking.objects.get(id=booking_id)
+    booking.status = 'CONFIRMED'
+    booking.payment_id = payment_id
+    booking.save()  # Permanent database record
+
+    # Release Redis locks (no longer needed)
+    cache.delete(f&quot;seat_lock:{showtime_id}:A1&quot;)
+    cache.delete(f&quot;seat_lock:{showtime_id}:A2&quot;)
+    cache.delete(f&quot;seat_reservation_{showtime_id}_{user_id}&quot;)
+
+    # Keep in reserved list (permanently booked)
+    # or move to confirmed_bookings in database
+</code></pre>
+<p><strong>Redis State:</strong></p>
+<pre><code>❌ seat_lock:24:A1 = DELETED
+❌ seat_lock:24:A2 = DELETED
+❌ seat_reservation_24_7 = DELETED
+✅ Database: Booking CONFIRMED ✅
+</code></pre>
+<h4 id="alternative-611-pm-john-abandons-payment"><strong>Alternative: 6:11 PM</strong> - John Abandons Payment ❌</h4>
+<pre><code class="language-python"># John closed the browser, never completed payment
+# Redis TTL expires automatically after 10 minutes
+
+# At 6:10 PM, Redis auto-deletes:
+# ❌ seat_lock:24:A1 (TTL=0, deleted)
+# ❌ seat_lock:24:A2 (TTL=0, deleted)
+# ❌ reserved_seats_24 (TTL=0, deleted)
+# ❌ seat_reservation_24_7 (TTL=0, deleted)
+
+# At 6:11 PM, Celery task runs:
+@task
+def release_expired_bookings():
+    expired = Booking.objects.filter(
+        status='PENDING',
+        expires_at__lt=timezone.now()
+    )
+    for booking in expired:
+        booking.status = 'EXPIRED'
+        booking.save()
+        # Seats now free for others! ✅
+</code></pre>
+<p><strong>Final State:</strong></p>
+<pre><code>Redis: All keys deleted (auto-expired)
+Database: Booking marked as EXPIRED
+Result: A1 and A2 now available for Jane to book! 🎉
+</code></pre>
+<hr />
+<h2 id="common-redis-commands">🛠️ Common Redis Commands</h2>
+<h3 id="from-python-django">From Python (Django)</h3>
+<pre><code class="language-python">from django.core.cache import cache
+
+# Set a value (expires in 10 minutes)
+cache.set('my_key', 'my_value', timeout=600)
+
+# Set with expiry (same as above)
+cache.setex('my_key', 600, 'my_value')
+
+# Get a value
+value = cache.get('my_key')  # Returns 'my_value' or None
+
+# Delete a value
+cache.delete('my_key')
+
+# Check if exists
+exists = cache.get('my_key') is not None
+
+# Get with default
+value = cache.get('my_key', default='not_found')
+</code></pre>
+<h3 id="from-redis-cli-terminal">From Redis CLI (Terminal)</h3>
+<pre><code class="language-bash"># Connect to Redis
+redis-cli
+
+# Set a value
+SET mykey &quot;Hello&quot;
+
+# Get a value
+GET mykey
+
+# Set with expiry (600 seconds = 10 minutes)
+SETEX seat_lock:24:A1 600 &quot;7&quot;
+
+# Check time to live (TTL)
+TTL seat_lock:24:A1
+# Returns: 550 (seconds remaining)
+
+# List all keys matching pattern
+KEYS seat_lock:*
+# Returns: seat_lock:24:A1, seat_lock:24:A2, ...
+
+# Delete a key
+DEL seat_lock:24:A1
+
+# Delete all keys (DANGEROUS!)
+FLUSHALL
+
+# Check if Redis is running
+PING
+# Returns: PONG
+</code></pre>
+<hr />
+<h2 id="troubleshooting">🔧 Troubleshooting</h2>
+<h3 id="problem-1-seat-already-reserved-but-i-just-released-it">Problem 1: &ldquo;Seat already reserved&rdquo; but I just released it!</h3>
+<pre><code class="language-bash"># Check if Redis key still exists
+redis-cli
+&gt; GET seat_reservation_24_7
+&gt; TTL seat_reservation_24_7
+
+# If it exists, manually delete
+&gt; DEL seat_reservation_24_7
+&gt; DEL seat_lock:24:A1
+&gt; DEL seat_lock:24:A2
+</code></pre>
+<h3 id="problem-2-redis-not-responding">Problem 2: Redis not responding</h3>
+<pre><code class="language-bash"># Check if Redis is running
+redis-cli ping
+# Should return: PONG
+
+# If not running, start it
+redis-server
+# Or on macOS with Homebrew:
+brew services start redis
+</code></pre>
+<h3 id="problem-3-cant-connect-to-redis-from-django">Problem 3: Can&rsquo;t connect to Redis from Django</h3>
+<pre><code class="language-python"># Check settings.py
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'LOCATION': 'redis://127.0.0.1:6379/0',  # Correct URL?
+    }
+}
+
+# Test connection
+from django.core.cache import cache
+cache.set('test', 'hello')
+print(cache.get('test'))  # Should print: hello
+</code></pre>
+<h3 id="problem-4-too-many-keys-in-redis-memory-full">Problem 4: Too many keys in Redis (memory full)</h3>
+<pre><code class="language-bash"># Count all keys
+redis-cli DBSIZE
+
+# See memory usage
+redis-cli INFO memory
+
+# Delete old/expired keys
+redis-cli
+&gt; KEYS seat_lock:*  # List all seat locks
+&gt; DEL seat_lock:old_showtime:A1  # Delete individually
+# Or wait for TTL to auto-delete
+</code></pre>
+<hr />
+<h2 id="redis-vs-database-comparison">📊 Redis vs Database Comparison</h2>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Redis</th>
+<th>Database (SQLite/PostgreSQL)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Speed</strong></td>
+<td>🚀 ~1ms</td>
+<td>🐌 ~50ms</td>
+</tr>
+<tr>
+<td><strong>Storage</strong></td>
+<td>RAM (memory)</td>
+<td>Disk (hard drive)</td>
+</tr>
+<tr>
+<td><strong>Persistence</strong></td>
+<td>Temporary (expires)</td>
+<td>Permanent</td>
+</tr>
+<tr>
+<td><strong>Best For</strong></td>
+<td>Caching, sessions, locks</td>
+<td>User data, bookings, movies</td>
+</tr>
+<tr>
+<td><strong>Data Loss</strong></td>
+<td>Lost on restart</td>
+<td>Never lost</td>
+</tr>
+<tr>
+<td><strong>Cost</strong></td>
+<td>Cheap (RAM)</td>
+<td>Cheaper (disk)</td>
+</tr>
+<tr>
+<td><strong>Size Limit</strong></td>
+<td>GB (RAM size)</td>
+<td>TB (disk size)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="key-takeaways">🎓 Key Takeaways</h2>
+<ol>
+<li><strong>Redis = Fast Temporary Storage</strong>: Perfect for seat reservations that expire</li>
+<li><strong>Auto-Expiry = Auto-Cleanup</strong>: No manual cleanup needed, Redis does it</li>
+<li><strong>Three Keys per Reservation</strong>: seat_lock, reserved_seats, seat_reservation</li>
+<li><strong>TTL = Time To Live</strong>: Countdown timer for automatic deletion</li>
+<li><strong>Database = Permanent</strong>: Only confirmed bookings go here</li>
+<li><strong>Speed Matters</strong>: Redis makes real-time seat availability possible</li>
+</ol>
+<hr />
+<h2 id="next-steps">🚀 Next Steps</h2>
+<ol>
+<li>Read: <a href="./UNDERSTANDING_CELERY.md">Understanding Celery</a> - Learn about background tasks</li>
+<li>Read: <a href="./UNDERSTANDING_RAZORPAY.md">Understanding Razorpay</a> - Learn about payments</li>
+<li>Practice: Use <code>redis-cli</code> to inspect keys during a booking</li>
+<li>Experiment: Try changing TTL values and see the effect</li>
+</ol>
+<hr />
+<p><strong>Remember</strong>: Redis is like a smart sticky note system - fast, temporary, and self-cleaning! 📝⚡</p>
+<p><em>Last Updated: January 3, 2026</em></p>
+        </div>
+        
+        <hr class="no-print">
+        <div class="meta no-print" style="margin-top: 30px;">
+            <p style="color: #666; font-size: 0.9em;">
+                💡 <strong>Tip:</strong> Use <kbd>Ctrl+P</kbd> (Windows/Linux) or <kbd>Cmd+P</kbd> (Mac) to print or save as PDF.
+                Select "Save as PDF" as your destination.
+            </p>
+        </div>
+    </div>
+    
+    <script>
+        // Download markdown function
+        function downloadMarkdown() {
+            const markdownContent = `# 🏗️ Understanding Redis in Movie Booking System\n## A Beginner's Guide\n\n---\n\n## 📚 Table of Contents\n1. [What is Redis?](#what-is-redis)\n2. [Why We Use Redis](#why-we-use-redis)\n3. [How Redis Works in Our System](#how-redis-works-in-our-system)\n4. [Redis Data Structures We Use](#redis-data-structures-we-use)\n5. [Real-World Example](#real-world-example)\n6. [Common Commands](#common-commands)\n7. [Troubleshooting](#troubleshooting)\n\n---\n\n## 🤔 What is Redis?\n\n**Redis** stands for **RE**mote **DI**ctionary **S**erver. Think of it as a **super-fast digital notepad** that lives in your computer's memory (RAM).\n\n### Simple Analogy 🎯\nImagine you're at a movie theater ticket counter:\n- **Database (SQLite/PostgreSQL)** = Filing cabinet with permanent records (slow but permanent)\n- **Redis** = Sticky notes on the counter (fast but temporary)\n\nWhen you reserve a seat:\n- You quickly put a sticky note (Redis) saying "John reserved A1"\n- If payment succeeds, you file it permanently (Database)\n- If payment fails, you throw away the sticky note (Redis auto-expires)\n\n### Key Characteristics\n- **Fast**: Stores data in RAM (memory), not disk → 1000x faster than database\n- **Temporary**: Data can expire automatically (perfect for "hold this seat for 12 minutes")\n- **Simple**: Just key-value pairs like a dictionary in Python\n- **In-Memory**: All data in RAM → super fast but lost if server restarts (unless configured otherwise)\n\n---\n\n## 🎯 Why We Use Redis\n\n### Problem Without Redis ❌\n\`\`\`python\n# Using only database for seat reservation\ndef reserve_seat():\n    # Check database if seat is free\n    seat = Seat.objects.get(id='A1')\n    if seat.is_booked:\n        return "Sorry, taken!"\n    \n    # Mark as reserved in database\n    seat.is_reserved = True\n    seat.save()  # Slow disk write!\n    \n    # Problem: What if user never completes payment?\n    # Seat stays "reserved" forever! 😱\n\`\`\`\n\n### Solution With Redis ✅\n\`\`\`python\n# Using Redis for temporary reservation\ndef reserve_seat():\n    # Check Redis cache (super fast!)\n    if redis.get('seat_A1'):\n        return "Sorry, taken!"\n    \n    # Reserve in Redis with 10-minute expiry\n    redis.setex('seat_A1', 600, user_id)\n    # After 10 minutes, Redis automatically deletes it!\n    \n    # If payment succeeds, then save to database\n    # If payment fails, Redis auto-cleans up\n\`\`\`\n\n### Why This is Better\n1. **Speed**: Redis operations take ~1ms vs database ~50ms\n2. **Auto-Cleanup**: Expired reservations disappear automatically\n3. **Less Database Load**: Thousands of reservations don't clutter the database\n4. **Better UX**: Users see real-time seat availability\n\n---\n\n## 🎬 How Redis Works in Our System\n\n### Architecture Overview\n\`\`\`\n┌─────────────────────────────────────────────────────────────┐\n│                        USER                                  │\n│                 (Selecting Seats)                            │\n└────────────────────────┬────────────────────────────────────┘\n                         │\n                         ▼\n┌─────────────────────────────────────────────────────────────┐\n│                    DJANGO SERVER                             │\n│  1. User selects seats A1, A2                                │\n│  2. Server checks Redis: Are these seats free?               │\n│  3. If free, reserve in Redis for 10 minutes                │\n│  4. Create PENDING booking in database                       │\n└────────────────────────┬────────────────────────────────────┘\n                         │ \n            ┌────────────┴────────────┐\n            ▼                         ▼\n    ┌───────────────┐         ┌───────────────┐\n    │     REDIS     │         │   DATABASE    │\n    │   (CACHE)     │         │  (PERMANENT)  │\n    ├───────────────┤         ├───────────────┤\n    │ Temporary:    │         │ Permanent:    │\n    │ • Seat locks  │         │ • Movies      │\n    │ • Reservations│         │ • Theaters    │\n    │ • User carts  │         │ • Bookings    │\n    │               │         │ • Users       │\n    │ Auto-expires  │         │ Never expires │\n    │ after 10 min  │         │ (unless deleted)│\n    └───────────────┘         └───────────────┘\n\`\`\`\n\n### Flow: From Seat Selection to Payment\n\n\`\`\`\nStep 1: User Clicks "Select Seats A1, A2"\n┌────────────────────────────────────────┐\n│ Django: Call reserve_seats()           │\n│ Redis: Check if A1, A2 are free       │\n│ Redis: SETNX seat_lock:24:A1 = user_7 │\n│ Redis: SETNX seat_lock:24:A2 = user_7 │\n│ Redis: EXPIRE 600 seconds (10 min)    │\n└────────────────────────────────────────┘\n           Status: ✅ Seats Reserved\n\nStep 2: User Proceeds to Payment\n┌────────────────────────────────────────┐\n│ Django: Create Booking (status=PENDING)│\n│ Database: Save booking record          │\n│ Redis: Still holding seat locks        │\n└────────────────────────────────────────┘\n           Status: 🕐 Waiting for Payment\n\nStep 3a: User Completes Payment ✅\n┌────────────────────────────────────────┐\n│ Django: Payment successful!            │\n│ Database: Update booking (CONFIRMED)   │\n│ Redis: DELETE seat locks (released)    │\n│ Redis: Add to reserved_seats list      │\n└────────────────────────────────────────┘\n           Status: ✅ Booking Confirmed!\n\nStep 3b: User Abandons Payment ❌ \n┌────────────────────────────────────────┐\n│ Time Passes: 12 minutes elapse...     │\n│ Redis: Auto-deletes seat locks (TTL)   │\n│ Celery Task: Finds expired booking     │\n│ Django: Update booking (status=EXPIRED)│\n│ Redis: Seats now free for others       │\n└────────────────────────────────────────┘\n           Status: 🔓 Seats Released\n\`\`\`\n\n---\n\n## 🗄️ Redis Data Structures We Use\n\n### 1. **Seat Locks** (Individual Lock per Seat)\n\`\`\`python\n# Key Pattern: seat_lock:{showtime_id}:{seat_id}\n# Example: seat_lock:24:A1\n\n# What it stores:\n{\n    "key": "seat_lock:24:A1",\n    "value": "7",  # user_id who locked it\n    "ttl": 600     # expires in 10 minutes\n}\n\n# Purpose: Prevent multiple users from booking same seat\n# Expires: 10 minutes (auto-cleanup)\n\`\`\`\n\n**In Code:**\n\`\`\`python\n# Reserve seat A1 for showtime 24 by user 7\nlock_key = f"seat_lock:{showtime_id}:{seat_id}"\nredis.setex(lock_key, 600, user_id)\n\n# Check if seat is locked\nis_locked = redis.get(lock_key)\nif is_locked:\n    print(f"Seat locked by user {is_locked}")\n\`\`\`\n\n### 2. **Reserved Seats List** (All Reserved Seats for a Showtime)\n\`\`\`python\n# Key Pattern: reserved_seats_{showtime_id}\n# Example: reserved_seats_24\n\n# What it stores:\n{\n    "key": "reserved_seats_24",\n    "value": ["A1", "A2", "B3", "C5"],  # List of seat IDs\n    "ttl": 600  # 10 minutes\n}\n\n# Purpose: Quick lookup of all reserved seats\n# Expires: 10 minutes\n\`\`\`\n\n**In Code:**\n\`\`\`python\n# Add seats to reserved list\ncache_key = f"reserved_seats_{showtime_id}"\nreserved = cache.get(cache_key) or []\nreserved.extend(['A1', 'A2'])\ncache.set(cache_key, reserved, timeout=600)\n\n# Check if seat is reserved\nif 'A1' in reserved:\n    print("Seat A1 is reserved!")\n\`\`\`\n\n### 3. **User Reservation** (What User is Currently Booking)\n\`\`\`python\n# Key Pattern: seat_reservation_{showtime_id}_{user_id}\n# Example: seat_reservation_24_7\n\n# What it stores:\n{\n    "key": "seat_reservation_24_7",\n    "value": {\n        "seat_ids": ["A1", "A2"],\n        "reserved_at": 1767451157.506  # timestamp\n    },\n    "ttl": 600  # 10 minutes\n}\n\n# Purpose: Track what specific user is booking\n# Critical: Must be deleted when booking expires/cancels!\n\`\`\`\n\n**In Code:**\n\`\`\`python\n# Save user's reservation\nreservation_key = f"seat_reservation_{showtime_id}_{user_id}"\nreservation_data = {\n    'seat_ids': ['A1', 'A2'],\n    'reserved_at': time.time()\n}\ncache.set(reservation_key, reservation_data, timeout=600)\n\n# Get user's reservation\nuser_reservation = cache.get(reservation_key)\nif user_reservation:\n    seats = user_reservation['seat_ids']\n    print(f"User reserved: {seats}")\n\`\`\`\n\n### 4. **Available Seats** (All Free Seats for a Showtime)\n\`\`\`python\n# Key Pattern: available_seats_{showtime_id}\n# Example: available_seats_24\n\n# What it stores:\n{\n    "key": "available_seats_24",\n    "value": ["A1", "A2", "A3", ..., "Z10"],  # All free seats\n    "ttl": 3600  # 1 hour (longer than reservations)\n}\n\n# Purpose: Fast lookup of free seats\n# Expires: 1 hour\n\`\`\`\n\n---\n\n## 🎭 Real-World Example\n\nLet's follow a complete booking flow:\n\n### Scenario: John wants to book seats A1 and A2 for "Avengers" at 7 PM\n\n#### **Time: 6:00 PM** - John Selects Seats\n\`\`\`python\n# 1. Django receives request\ndef select_seats(request, showtime_id, seat_ids=['A1', 'A2']):\n    user_id = request.user.id  # John's ID = 7\n    \n    # 2. Check Redis if seats are available\n    reserved_seats = cache.get(f"reserved_seats_{showtime_id}") or []\n    \n    # 3. Are A1, A2 already reserved?\n    if 'A1' in reserved_seats or 'A2' in reserved_seats:\n        return "Sorry, seats taken!"\n    \n    # 4. Reserve in Redis (all 3 keys!)\n    \n    # Key 1: Individual locks\n    cache.setex(f"seat_lock:{showtime_id}:A1", 600, user_id)\n    cache.setex(f"seat_lock:{showtime_id}:A2", 600, user_id)\n    \n    # Key 2: Add to reserved list\n    reserved_seats.extend(['A1', 'A2'])\n    cache.set(f"reserved_seats_{showtime_id}", reserved_seats, 600)\n    \n    # Key 3: Save user's reservation\n    cache.set(f"seat_reservation_{showtime_id}_{user_id}", {\n        'seat_ids': ['A1', 'A2'],\n        'reserved_at': time.time()\n    }, 600)\n    \n    return "Seats reserved! Complete payment in 12 minutes"\n\`\`\`\n\n**Redis State:**\n\`\`\`\n✅ seat_lock:24:A1 = "7" (expires 6:10 PM)\n✅ seat_lock:24:A2 = "7" (expires 6:10 PM)\n✅ reserved_seats_24 = ["A1", "A2"]\n✅ seat_reservation_24_7 = {"seat_ids": ["A1", "A2"], ...}\n\`\`\`\n\n#### **Time: 6:02 PM** - John Opens Payment Page\n\`\`\`python\n# John sees Razorpay modal, but doesn't complete payment yet\n# Redis still holding seats (8 minutes remaining)\n\`\`\`\n\n**Redis State:** (No change, TTL counting down)\n\`\`\`\n✅ seat_lock:24:A1 = "7" (expires in 8 min)\n✅ seat_lock:24:A2 = "7" (expires in 8 min)\n✅ reserved_seats_24 = ["A1", "A2"] (expires in 8 min)\n✅ seat_reservation_24_7 = {...} (expires in 8 min)\n\`\`\`\n\n#### **Time: 6:05 PM** - Jane Tries to Book A1\n\`\`\`python\n# Jane (user_id=8) tries to book same seat A1\ndef select_seats(request, showtime_id, seat_ids=['A1']):\n    reserved_seats = cache.get(f"reserved_seats_{showtime_id}")\n    # reserved_seats = ["A1", "A2"]\n    \n    if 'A1' in reserved_seats:\n        return "Sorry, A1 is reserved by someone else!"\n        # Jane gets error, can't book A1 ❌\n\`\`\`\n\n#### **Time: 6:08 PM** - John Completes Payment ✅\n\`\`\`python\n# John pays successfully via Razorpay\ndef confirm_payment(booking_id, payment_id):\n    booking = Booking.objects.get(id=booking_id)\n    booking.status = 'CONFIRMED'\n    booking.payment_id = payment_id\n    booking.save()  # Permanent database record\n    \n    # Release Redis locks (no longer needed)\n    cache.delete(f"seat_lock:{showtime_id}:A1")\n    cache.delete(f"seat_lock:{showtime_id}:A2")\n    cache.delete(f"seat_reservation_{showtime_id}_{user_id}")\n    \n    # Keep in reserved list (permanently booked)\n    # or move to confirmed_bookings in database\n\`\`\`\n\n**Redis State:**\n\`\`\`\n❌ seat_lock:24:A1 = DELETED\n❌ seat_lock:24:A2 = DELETED\n❌ seat_reservation_24_7 = DELETED\n✅ Database: Booking CONFIRMED ✅\n\`\`\`\n\n#### **Alternative: 6:11 PM** - John Abandons Payment ❌\n\`\`\`python\n# John closed the browser, never completed payment\n# Redis TTL expires automatically after 10 minutes\n\n# At 6:10 PM, Redis auto-deletes:\n# ❌ seat_lock:24:A1 (TTL=0, deleted)\n# ❌ seat_lock:24:A2 (TTL=0, deleted)\n# ❌ reserved_seats_24 (TTL=0, deleted)\n# ❌ seat_reservation_24_7 (TTL=0, deleted)\n\n# At 6:11 PM, Celery task runs:\n@task\ndef release_expired_bookings():\n    expired = Booking.objects.filter(\n        status='PENDING',\n        expires_at__lt=timezone.now()\n    )\n    for booking in expired:\n        booking.status = 'EXPIRED'\n        booking.save()\n        # Seats now free for others! ✅\n\`\`\`\n\n**Final State:**\n\`\`\`\nRedis: All keys deleted (auto-expired)\nDatabase: Booking marked as EXPIRED\nResult: A1 and A2 now available for Jane to book! 🎉\n\`\`\`\n\n---\n\n## 🛠️ Common Redis Commands\n\n### From Python (Django)\n\`\`\`python\nfrom django.core.cache import cache\n\n# Set a value (expires in 10 minutes)\ncache.set('my_key', 'my_value', timeout=600)\n\n# Set with expiry (same as above)\ncache.setex('my_key', 600, 'my_value')\n\n# Get a value\nvalue = cache.get('my_key')  # Returns 'my_value' or None\n\n# Delete a value\ncache.delete('my_key')\n\n# Check if exists\nexists = cache.get('my_key') is not None\n\n# Get with default\nvalue = cache.get('my_key', default='not_found')\n\`\`\`\n\n### From Redis CLI (Terminal)\n\`\`\`bash\n# Connect to Redis\nredis-cli\n\n# Set a value\nSET mykey "Hello"\n\n# Get a value\nGET mykey\n\n# Set with expiry (600 seconds = 10 minutes)\nSETEX seat_lock:24:A1 600 "7"\n\n# Check time to live (TTL)\nTTL seat_lock:24:A1\n# Returns: 550 (seconds remaining)\n\n# List all keys matching pattern\nKEYS seat_lock:*\n# Returns: seat_lock:24:A1, seat_lock:24:A2, ...\n\n# Delete a key\nDEL seat_lock:24:A1\n\n# Delete all keys (DANGEROUS!)\nFLUSHALL\n\n# Check if Redis is running\nPING\n# Returns: PONG\n\`\`\`\n\n---\n\n## 🔧 Troubleshooting\n\n### Problem 1: "Seat already reserved" but I just released it!\n\`\`\`bash\n# Check if Redis key still exists\nredis-cli\n> GET seat_reservation_24_7\n> TTL seat_reservation_24_7\n\n# If it exists, manually delete\n> DEL seat_reservation_24_7\n> DEL seat_lock:24:A1\n> DEL seat_lock:24:A2\n\`\`\`\n\n### Problem 2: Redis not responding\n\`\`\`bash\n# Check if Redis is running\nredis-cli ping\n# Should return: PONG\n\n# If not running, start it\nredis-server\n# Or on macOS with Homebrew:\nbrew services start redis\n\`\`\`\n\n### Problem 3: Can't connect to Redis from Django\n\`\`\`python\n# Check settings.py\nCACHES = {\n    'default': {\n        'BACKEND': 'django.core.cache.backends.redis.RedisCache',\n        'LOCATION': 'redis://127.0.0.1:6379/0',  # Correct URL?\n    }\n}\n\n# Test connection\nfrom django.core.cache import cache\ncache.set('test', 'hello')\nprint(cache.get('test'))  # Should print: hello\n\`\`\`\n\n### Problem 4: Too many keys in Redis (memory full)\n\`\`\`bash\n# Count all keys\nredis-cli DBSIZE\n\n# See memory usage\nredis-cli INFO memory\n\n# Delete old/expired keys\nredis-cli\n> KEYS seat_lock:*  # List all seat locks\n> DEL seat_lock:old_showtime:A1  # Delete individually\n# Or wait for TTL to auto-delete\n\`\`\`\n\n---\n\n## 📊 Redis vs Database Comparison\n\n| Feature | Redis | Database (SQLite/PostgreSQL) |\n|---------|-------|------------------------------|\n| **Speed** | 🚀 ~1ms | 🐌 ~50ms |\n| **Storage** | RAM (memory) | Disk (hard drive) |\n| **Persistence** | Temporary (expires) | Permanent |\n| **Best For** | Caching, sessions, locks | User data, bookings, movies |\n| **Data Loss** | Lost on restart | Never lost |\n| **Cost** | Cheap (RAM) | Cheaper (disk) |\n| **Size Limit** | GB (RAM size) | TB (disk size) |\n\n---\n\n## 🎓 Key Takeaways\n\n1. **Redis = Fast Temporary Storage**: Perfect for seat reservations that expire\n2. **Auto-Expiry = Auto-Cleanup**: No manual cleanup needed, Redis does it\n3. **Three Keys per Reservation**: seat_lock, reserved_seats, seat_reservation\n4. **TTL = Time To Live**: Countdown timer for automatic deletion\n5. **Database = Permanent**: Only confirmed bookings go here\n6. **Speed Matters**: Redis makes real-time seat availability possible\n\n---\n\n## 🚀 Next Steps\n\n1. Read: [Understanding Celery](./UNDERSTANDING_CELERY.md) - Learn about background tasks\n2. Read: [Understanding Razorpay](./UNDERSTANDING_RAZORPAY.md) - Learn about payments\n3. Practice: Use \`redis-cli\` to inspect keys during a booking\n4. Experiment: Try changing TTL values and see the effect\n\n---\n\n**Remember**: Redis is like a smart sticky note system - fast, temporary, and self-cleaning! 📝⚡\n\n*Last Updated: January 3, 2026*\n`;
+            const blob = new Blob([markdownContent], { type: 'text/markdown' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'UNDERSTANDING_REDIS.md';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        }
+        
+        // Keyboard shortcut for print
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+                e.preventDefault();
+                window.print();
+            }
+        });
+    </script>
+</body>
+</html>

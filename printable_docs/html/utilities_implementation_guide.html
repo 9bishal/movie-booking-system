@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Utilities Implementation Guide - Movie Booking System</title>
+    <style>
+        /* Screen Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            line-height: 1.8;
+            color: #000;
+            background: #f5f5f5;
+            padding: 20px;
+            font-size: 12pt;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        
+        .header {
+            border-bottom: 3px solid #007bff;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #007bff;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+        
+        .meta {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .meta-info {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #0056b3;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .content {
+            margin-top: 30px;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+            color: #2c3e50;
+        }
+        
+        h1 { font-size: 2em; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
+        h2 { font-size: 1.75em; border-bottom: 1px solid #dee2e6; padding-bottom: 8px; }
+        h3 { font-size: 1.5em; }
+        h4 { font-size: 1.25em; }
+        
+        p {
+            margin-bottom: 1em;
+        }
+        
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 10pt;
+            color: #000;
+            font-weight: 500;
+        }
+        
+        pre {
+            background: #f8f8f8;
+            color: #000;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin: 15px 0;
+            line-height: 1.6;
+            font-size: 10pt;
+        }
+        
+        pre code {
+            background: none;
+            color: #000;
+            padding: 0;
+            border: none;
+            font-size: 10pt;
+            font-weight: normal;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        table th, table td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #dee2e6;
+        }
+        
+        table th {
+            background: #007bff;
+            color: white;
+            font-weight: 600;
+        }
+        
+        table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        blockquote {
+            border-left: 4px solid #007bff;
+            padding-left: 20px;
+            margin: 20px 0;
+            color: #666;
+            font-style: italic;
+        }
+        
+        ul, ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+        
+        li {
+            margin: 5px 0;
+        }
+        
+        a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        
+        a:hover {
+            text-decoration: underline;
+        }
+        
+        hr {
+            border: none;
+            border-top: 2px solid #dee2e6;
+            margin: 30px 0;
+        }
+        
+        /* Print Styles - Optimized for Black & White */
+        @media print {
+            @page {
+                margin: 0.75in;
+                size: A4;
+            }
+            
+            body {
+                background: white;
+                padding: 0;
+                color: #000;
+                font-size: 11pt;
+                line-height: 1.6;
+            }
+            
+            .container {
+                box-shadow: none;
+                padding: 0;
+                max-width: 100%;
+            }
+            
+            .actions, .no-print {
+                display: none !important;
+            }
+            
+            .header {
+                border-bottom: 2px solid #000;
+                padding-bottom: 10pt;
+                margin-bottom: 15pt;
+            }
+            
+            .header h1 {
+                color: #000;
+                font-size: 18pt;
+            }
+            
+            .header p {
+                color: #333;
+                font-size: 11pt;
+            }
+            
+            .meta {
+                background: #f9f9f9;
+                border: 1px solid #ddd;
+                padding: 10pt;
+                margin-bottom: 15pt;
+            }
+            
+            h1 {
+                font-size: 16pt;
+                border-bottom: 2px solid #000;
+                padding-bottom: 5pt;
+                margin-top: 20pt;
+                margin-bottom: 10pt;
+                page-break-after: avoid;
+            }
+            
+            h2 {
+                font-size: 14pt;
+                border-bottom: 1px solid #666;
+                padding-bottom: 4pt;
+                margin-top: 15pt;
+                margin-bottom: 8pt;
+                page-break-after: avoid;
+            }
+            
+            h3 {
+                font-size: 13pt;
+                margin-top: 12pt;
+                margin-bottom: 6pt;
+                page-break-after: avoid;
+            }
+            
+            h4 {
+                font-size: 12pt;
+                margin-top: 10pt;
+                margin-bottom: 5pt;
+                page-break-after: avoid;
+            }
+            
+            p {
+                margin-bottom: 8pt;
+                orphans: 3;
+                widows: 3;
+            }
+            
+            /* Code blocks - BLACK & WHITE optimized */
+            code {
+                background: #f0f0f0;
+                border: 1px solid #999;
+                padding: 2pt 4pt;
+                font-family: 'Courier New', 'Consolas', monospace;
+                font-size: 9pt;
+                color: #000;
+                font-weight: 600;
+            }
+            
+            pre {
+                background: #f8f8f8;
+                border: 2px solid #666;
+                padding: 10pt;
+                margin: 10pt 0;
+                page-break-inside: avoid;
+                font-size: 9pt;
+                line-height: 1.4;
+                overflow: visible;
+                white-space: pre-wrap;
+                word-wrap: break-word;
+            }
+            
+            pre code {
+                background: none;
+                border: none;
+                padding: 0;
+                font-size: 9pt;
+                font-weight: normal;
+                color: #000;
+            }
+            
+            /* Tables - BLACK & WHITE optimized */
+            table {
+                page-break-inside: avoid;
+                border-collapse: collapse;
+                width: 100%;
+                margin: 10pt 0;
+                border: 2px solid #000;
+            }
+            
+            table th {
+                background: #e0e0e0;
+                color: #000;
+                border: 1px solid #666;
+                padding: 6pt;
+                font-weight: bold;
+                text-align: left;
+            }
+            
+            table td {
+                border: 1px solid #999;
+                padding: 6pt;
+                color: #000;
+            }
+            
+            table tr:nth-child(even) {
+                background: #f5f5f5;
+            }
+            
+            /* Blockquotes */
+            blockquote {
+                border-left: 3px solid #000;
+                padding-left: 10pt;
+                margin: 10pt 0;
+                font-style: italic;
+                color: #333;
+                page-break-inside: avoid;
+            }
+            
+            /* Links */
+            a {
+                color: #000;
+                text-decoration: underline;
+            }
+            
+            a[href]:after {
+                content: " (" attr(href) ")";
+                font-size: 9pt;
+                color: #666;
+            }
+            
+            /* Lists */
+            ul, ol {
+                margin: 8pt 0;
+                padding-left: 20pt;
+            }
+            
+            li {
+                margin: 4pt 0;
+            }
+            
+            /* Horizontal rules */
+            hr {
+                border: none;
+                border-top: 1px solid #000;
+                margin: 15pt 0;
+            }
+            
+            /* Image handling */
+            img {
+                max-width: 100%;
+                page-break-inside: avoid;
+            }
+            
+            /* Page breaks */
+            .page-break {
+                page-break-before: always;
+            }
+            
+            /* Ensure visibility of all content */
+            * {
+                color: #000 !important;
+                background: white !important;
+            }
+            
+            code, pre {
+                background: #f5f5f5 !important;
+                border-color: #666 !important;
+            }
+            
+            table th {
+                background: #e0e0e0 !important;
+            }
+            
+            table tr:nth-child(even) {
+                background: #f8f8f8 !important;
+            }
+        }
+        
+        /* Code syntax highlighting */
+        .codehilite .hll { background-color: #49483e }
+        .codehilite .c { color: #75715e }
+        .codehilite .k { color: #66d9ef }
+        .codehilite .l { color: #ae81ff }
+        .codehilite .n { color: #f8f8f2 }
+        .codehilite .o { color: #f92672 }
+        .codehilite .p { color: #f8f8f2 }
+        .codehilite .cm { color: #75715e }
+        .codehilite .cp { color: #75715e }
+        .codehilite .c1 { color: #75715e }
+        .codehilite .cs { color: #75715e }
+        .codehilite .kc { color: #66d9ef }
+        .codehilite .kd { color: #66d9ef }
+        .codehilite .kn { color: #f92672 }
+        .codehilite .kp { color: #66d9ef }
+        .codehilite .kr { color: #66d9ef }
+        .codehilite .kt { color: #66d9ef }
+        .codehilite .ld { color: #e6db74 }
+        .codehilite .m { color: #ae81ff }
+        .codehilite .s { color: #e6db74 }
+        .codehilite .na { color: #a6e22e }
+        .codehilite .nb { color: #f8f8f2 }
+        .codehilite .nc { color: #a6e22e }
+        .codehilite .no { color: #66d9ef }
+        .codehilite .nd { color: #a6e22e }
+        .codehilite .ni { color: #f8f8f2 }
+        .codehilite .ne { color: #a6e22e }
+        .codehilite .nf { color: #a6e22e }
+        .codehilite .nl { color: #f8f8f2 }
+        .codehilite .nn { color: #f8f8f2 }
+        .codehilite .nx { color: #a6e22e }
+        .codehilite .py { color: #f8f8f2 }
+        .codehilite .nt { color: #f92672 }
+        .codehilite .nv { color: #f8f8f2 }
+        .codehilite .ow { color: #f92672 }
+        .codehilite .w { color: #f8f8f2 }
+        .codehilite .mf { color: #ae81ff }
+        .codehilite .mh { color: #ae81ff }
+        .codehilite .mi { color: #ae81ff }
+        .codehilite .mo { color: #ae81ff }
+        .codehilite .sb { color: #e6db74 }
+        .codehilite .sc { color: #e6db74 }
+        .codehilite .sd { color: #e6db74 }
+        .codehilite .s2 { color: #e6db74 }
+        .codehilite .se { color: #ae81ff }
+        .codehilite .sh { color: #e6db74 }
+        .codehilite .si { color: #e6db74 }
+        .codehilite .sx { color: #e6db74 }
+        .codehilite .sr { color: #e6db74 }
+        .codehilite .s1 { color: #e6db74 }
+        .codehilite .ss { color: #e6db74 }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Utilities Implementation Guide</h1>
+            <p>Complete guide to rate limiting, caching, and performance monitoring</p>
+        </div>
+        
+        <div class="meta">
+            <div class="meta-info">
+                <strong>Generated:</strong> January 04, 2026<br>
+                <strong>Source:</strong> UTILITIES_IMPLEMENTATION_GUIDE.md<br>
+                <strong>Project:</strong> Movie Booking System
+            </div>
+            <div class="actions no-print">
+                <button class="btn btn-primary" onclick="window.print()">
+                    <span>🖨️</span> Print / Save as PDF
+                </button>
+                <button class="btn btn-success" onclick="downloadMarkdown()">
+                    <span>📥</span> Download Markdown
+                </button>
+                <a href="index.html" class="btn btn-secondary">
+                    <span>🏠</span> Back to Index
+                </a>
+            </div>
+        </div>
+        
+        <div class="content">
+            <h1 id="utilities-implementation-guide">🛠️ Utilities Implementation Guide</h1>
+<h2 id="overview">Overview</h2>
+<p>This document provides a comprehensive guide to all production-ready utilities implemented in the Movie Booking System. These utilities enhance performance, security, and user experience through rate limiting, caching, and performance monitoring.</p>
+<hr />
+<h2 id="project-structure">📁 Project Structure</h2>
+<pre><code>utils/
+├── rate_limit.py          # Rate limiting decorators and utilities
+├── cache_utils.py         # Caching utilities for pages and models
+└── performance.py         # Performance monitoring and profiling
+</code></pre>
+<hr />
+<h2 id="rate-limiting-utilsrate_limitpy">🚦 Rate Limiting (<code>utils/rate_limit.py</code>)</h2>
+<h3 id="purpose">Purpose</h3>
+<p>Protects the application from abuse by limiting the number of requests users can make within a time window.</p>
+<h3 id="key-features">Key Features</h3>
+<ul>
+<li>✅ Per-user and per-IP rate limiting</li>
+<li>✅ Customizable limits for different endpoints</li>
+<li>✅ Custom 429 error page with countdown timer</li>
+<li>✅ Support for authenticated and anonymous users</li>
+</ul>
+<h3 id="implementation">Implementation</h3>
+<h4 id="available-decorators">Available Decorators</h4>
+<pre><code class="language-python">from utils.rate_limit import rate_limit
+
+# Basic usage
+@rate_limit(limit=5, period=60)  # 5 requests per 60 seconds
+def my_view(request):
+    pass
+
+# Custom key function (e.g., limit by username)
+@rate_limit(limit=3, period=300, key_func=lambda req: f&quot;custom_{req.user.username}&quot;)
+def sensitive_view(request):
+    pass
+</code></pre>
+<h4 id="pre-configured-rate-limits">Pre-configured Rate Limits</h4>
+<table>
+<thead>
+<tr>
+<th>Decorator</th>
+<th>Limit</th>
+<th>Period</th>
+<th>Use Case</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>login_rate_limit</code></td>
+<td>5/5min</td>
+<td>300s</td>
+<td>Login attempts</td>
+</tr>
+<tr>
+<td><code>registration_rate_limit</code></td>
+<td>3/hour</td>
+<td>3600s</td>
+<td>New registrations</td>
+</tr>
+<tr>
+<td><code>booking_rate_limit</code></td>
+<td>10/5min</td>
+<td>300s</td>
+<td>Booking operations</td>
+</tr>
+<tr>
+<td><code>wishlist_rate_limit</code></td>
+<td>20/5min</td>
+<td>300s</td>
+<td>Wishlist operations</td>
+</tr>
+<tr>
+<td><code>review_rate_limit</code></td>
+<td>5/5min</td>
+<td>300s</td>
+<td>Review submissions</td>
+</tr>
+<tr>
+<td><code>api_rate_limit</code></td>
+<td>100/min</td>
+<td>60s</td>
+<td>API endpoints</td>
+</tr>
+</tbody>
+</table>
+<h4 id="applied-to">Applied To</h4>
+<p><strong>Movies App</strong> (<code>movies/views.py</code>):<br />
+- <code>toggle_wishlist</code>: 20 requests per 5 minutes<br />
+- <code>toggle_interest</code>: 20 requests per 5 minutes<br />
+- <code>submit_review</code>: 5 requests per 5 minutes<br />
+- <code>autocomplete_view</code>: 100 requests per minute</p>
+<p><strong>Bookings App</strong> (<code>bookings/views.py</code>):<br />
+- <code>select_seats_view</code>: 10 requests per 5 minutes<br />
+- <code>reserve_seats_view</code>: 10 requests per 5 minutes<br />
+- <code>create_booking_view</code>: 10 requests per 5 minutes</p>
+<p><strong>Accounts App</strong> (<code>accounts/views.py</code>):<br />
+- <code>login_view</code>: 5 requests per 5 minutes<br />
+- <code>register_view</code>: 3 requests per hour</p>
+<h3 id="custom-429-error-page">Custom 429 Error Page</h3>
+<p><strong>Location</strong>: <code>templates/errors/429.html</code></p>
+<p><strong>Features</strong>:<br />
+- 🎨 Beautiful, responsive design<br />
+- ⏱️ Live countdown timer showing when users can retry<br />
+- 📊 Shows limit details (requests allowed, time period)<br />
+- 💡 Helpful tips to avoid rate limiting<br />
+- 🔙 Quick navigation (Go Back, Return Home)<br />
+- 📱 Mobile-friendly</p>
+<p><strong>Template Variables</strong>:<br />
+- <code>{{ limit }}</code>: Number of requests allowed<br />
+- <code>{{ period }}</code>: Time period in seconds</p>
+<hr />
+<h2 id="caching-utilscache_utilspy">💾 Caching (<code>utils/cache_utils.py</code>)</h2>
+<h3 id="purpose_1">Purpose</h3>
+<p>Improves application performance by caching frequently accessed data and reducing database queries.</p>
+<h3 id="key-features_1">Key Features</h3>
+<ul>
+<li>✅ Page-level caching (full page responses)</li>
+<li>✅ Model-level caching (database queries)</li>
+<li>✅ Automatic cache invalidation</li>
+<li>✅ Cache key management</li>
+<li>✅ Easy cache clearing</li>
+</ul>
+<h3 id="implementation_1">Implementation</h3>
+<h4 id="1-page-caching">1. Page Caching</h4>
+<pre><code class="language-python">from utils.cache_utils import cache_page_with_user
+
+# Cache for 5 minutes (300 seconds)
+@cache_page_with_user(timeout=300)
+def movie_list_view(request):
+    pass
+</code></pre>
+<p><strong>Applied To</strong>:<br />
+- <code>movie_list_view</code>: 5 minutes<br />
+- <code>movie_detail_view</code>: 10 minutes<br />
+- <code>home_view</code>: 2 minutes<br />
+- <code>trailer_view</code>: 15 minutes</p>
+<h4 id="2-model-caching">2. Model Caching</h4>
+<pre><code class="language-python">from utils.cache_utils import get_cached_queryset, invalidate_model_cache
+
+# Cache a queryset
+movies = get_cached_queryset(
+    'all_movies',           # Cache key
+    Movie.objects.all(),    # Queryset
+    timeout=300            # 5 minutes
+)
+
+# Invalidate cache when model changes
+invalidate_model_cache('all_movies')
+</code></pre>
+<p><strong>Example - Movie List with Caching</strong>:</p>
+<pre><code class="language-python">def movie_list_view(request):
+    # Try to get from cache first
+    cache_key = 'movies_list_all'
+    movies = cache.get(cache_key)
+
+    if movies is None:
+        # Cache miss - fetch from database
+        movies = Movie.objects.filter(is_active=True).order_by('-release_date')
+        cache.set(cache_key, movies, timeout=300)  # Cache for 5 minutes
+
+    return render(request, 'movies/movie_list.html', {'movies': movies})
+</code></pre>
+<h4 id="3-cache-invalidation">3. Cache Invalidation</h4>
+<pre><code class="language-python">from utils.cache_utils import invalidate_model_cache, clear_all_cache
+
+# Invalidate specific model cache
+invalidate_model_cache('movies_list')
+
+# Clear all cache (use carefully!)
+clear_all_cache()
+</code></pre>
+<h3 id="cache-configuration">Cache Configuration</h3>
+<p><strong>In <code>settings.py</code></strong>:</p>
+<pre><code class="language-python">CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'LOCATION': 'redis://127.0.0.1:6379/1',
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        }
+    }
+}
+</code></pre>
+<h3 id="best-practices">Best Practices</h3>
+<ol>
+<li>
+<p><strong>Cache Timeout Guidelines</strong>:<br />
+   - Static content: 15-30 minutes<br />
+   - Dynamic content: 2-5 minutes<br />
+   - Real-time data: Don&rsquo;t cache or 30-60 seconds</p>
+</li>
+<li>
+<p><strong>When to Invalidate</strong>:<br />
+   - After data modifications (CREATE, UPDATE, DELETE)<br />
+   - When business logic changes<br />
+   - On admin actions</p>
+</li>
+<li>
+<p><strong>Cache Keys Naming</strong>:<br />
+   - Use descriptive names: <code>movies_list_active</code>, <code>user_123_wishlist</code><br />
+   - Include relevant filters: <code>movies_genre_action</code><br />
+   - Version your keys: <code>movies_v2_list</code></p>
+</li>
+</ol>
+<hr />
+<h2 id="performance-monitoring-utilsperformancepy">📊 Performance Monitoring (<code>utils/performance.py</code>)</h2>
+<h3 id="purpose_2">Purpose</h3>
+<p>Monitors application performance, tracks slow queries, and provides insights for optimization.</p>
+<h3 id="key-features_2">Key Features</h3>
+<ul>
+<li>✅ Response time tracking</li>
+<li>✅ Database query counting</li>
+<li>✅ Slow query detection</li>
+<li>✅ System metrics (CPU, memory)</li>
+<li>✅ Request logging</li>
+</ul>
+<h3 id="implementation_2">Implementation</h3>
+<h4 id="1-monitor-decorator">1. Monitor Decorator</h4>
+<pre><code class="language-python">from utils.performance import monitor_performance
+
+@monitor_performance
+def movie_list_view(request):
+    pass
+</code></pre>
+<p><strong>What It Tracks</strong>:<br />
+- Response time (milliseconds)<br />
+- Number of database queries<br />
+- Slow queries (&gt;100ms by default)<br />
+- Memory usage<br />
+- Cache hit/miss ratio</p>
+<p><strong>Console Output Example</strong>:</p>
+<pre><code>🔍 Performance: movie_list_view
+   ⏱️  Response Time: 145.23ms
+   🗄️  Queries: 8
+   🐌 Slow Queries: 2
+   💾 Memory: 45.2MB
+</code></pre>
+<h4 id="2-query-counter">2. Query Counter</h4>
+<pre><code class="language-python">from utils.performance import count_queries
+
+with count_queries() as counter:
+    movies = Movie.objects.all()
+    for movie in movies:
+        print(movie.title)
+
+print(f&quot;Queries executed: {counter.count}&quot;)
+</code></pre>
+<h4 id="3-system-stats">3. System Stats</h4>
+<pre><code class="language-python">from utils.performance import get_system_stats
+
+stats = get_system_stats()
+# Returns: {'cpu_percent': 45.2, 'memory_percent': 67.8, 'disk_usage': 80.1}
+</code></pre>
+<h3 id="applied-to_1">Applied To</h3>
+<p>All major views in:<br />
+- <strong>Movies App</strong>: <code>movie_list_view</code>, <code>movie_detail_view</code>, <code>home_view</code><br />
+- <strong>Bookings App</strong>: <code>select_seats_view</code>, <code>reserve_seats_view</code>, <code>create_booking_view</code></p>
+<h3 id="performance-optimization-tips">Performance Optimization Tips</h3>
+<ol>
+<li><strong>Reduce Query Count</strong>:<br />
+   ```python<br />
+   # Bad - N+1 queries<br />
+   movies = Movie.objects.all()<br />
+   for movie in movies:<br />
+       print(movie.theater.name)  # One query per movie!</li>
+</ol>
+<p># Good - Use select_related<br />
+   movies = Movie.objects.select_related(&lsquo;theater&rsquo;).all()<br />
+   for movie in movies:<br />
+       print(movie.theater.name)  # No additional queries<br />
+   ```</p>
+<ol start="2">
+<li><strong>Use Pagination</strong>:<br />
+   ```python<br />
+   from django.core.paginator import Paginator</li>
+</ol>
+<p>movies = Movie.objects.all()<br />
+   paginator = Paginator(movies, 20)  # 20 per page<br />
+   page = paginator.get_page(request.GET.get(&lsquo;page&rsquo;))<br />
+   ```</p>
+<ol start="3">
+<li><strong>Database Indexing</strong>:<br />
+<code>python
+   class Movie(models.Model):
+       title = models.CharField(max_length=200, db_index=True)
+       release_date = models.DateField(db_index=True)</code></li>
+</ol>
+<hr />
+<h2 id="integration-examples">🎯 Integration Examples</h2>
+<h3 id="complete-view-with-all-utilities">Complete View with All Utilities</h3>
+<pre><code class="language-python">from django.shortcuts import render
+from utils.rate_limit import api_rate_limit
+from utils.cache_utils import cache_page_with_user
+from utils.performance import monitor_performance
+from .models import Movie
+
+@api_rate_limit                          # Rate limiting
+@cache_page_with_user(timeout=300)       # Caching
+@monitor_performance                      # Performance monitoring
+def movie_list_view(request):
+    &quot;&quot;&quot;
+    Movie list view with full protection:
+    - Rate limited to 100 requests per minute
+    - Cached for 5 minutes
+    - Performance monitored
+    &quot;&quot;&quot;
+    movies = Movie.objects.filter(is_active=True).select_related('theater')
+    return render(request, 'movies/movie_list.html', {'movies': movies})
+</code></pre>
+<h3 id="api-endpoint-with-rate-limiting">API Endpoint with Rate Limiting</h3>
+<pre><code class="language-python">from django.http import JsonResponse
+from utils.rate_limit import api_rate_limit
+
+@api_rate_limit
+def movie_autocomplete_api(request):
+    query = request.GET.get('q', '')
+    movies = Movie.objects.filter(title__icontains=query)[:10]
+
+    return JsonResponse({
+        'results': [{'id': m.id, 'title': m.title} for m in movies]
+    })
+</code></pre>
+<h3 id="cache-invalidation-on-update">Cache Invalidation on Update</h3>
+<pre><code class="language-python">from django.contrib import admin
+from utils.cache_utils import invalidate_model_cache
+from .models import Movie
+
+@admin.register(Movie)
+class MovieAdmin(admin.ModelAdmin):
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        # Invalidate cache after saving
+        invalidate_model_cache('movies_list')
+        invalidate_model_cache(f'movie_{obj.id}')
+</code></pre>
+<hr />
+<h2 id="configuration">🔧 Configuration</h2>
+<h3 id="settings-required">Settings Required</h3>
+<pre><code class="language-python"># settings.py
+
+# Cache Configuration
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'LOCATION': 'redis://127.0.0.1:6379/1',
+    }
+}
+
+# Rate Limiting
+RATE_LIMIT_ENABLE = True  # Set to False to disable globally
+
+# Performance Monitoring
+DEBUG_PERFORMANCE = True  # Enable detailed performance logs
+SLOW_QUERY_THRESHOLD = 100  # milliseconds
+</code></pre>
+<h3 id="url-configuration">URL Configuration</h3>
+<pre><code class="language-python"># urls.py
+
+handler429 = 'django.views.defaults.page_not_found'  # Use default or custom
+
+# Or in your main urls.py:
+from django.conf.urls import handler429
+
+def rate_limit_exceeded(request, exception=None):
+    from django.shortcuts import render
+    return render(request, 'errors/429.html', status=429)
+
+handler429 = rate_limit_exceeded
+</code></pre>
+<hr />
+<h2 id="monitoring-debugging">📈 Monitoring &amp; Debugging</h2>
+<h3 id="1-check-cache-status">1. Check Cache Status</h3>
+<pre><code class="language-python">from django.core.cache import cache
+
+# Check if key exists
+if cache.get('my_key'):
+    print(&quot;Cache hit!&quot;)
+else:
+    print(&quot;Cache miss!&quot;)
+
+# Get all cache keys (Redis)
+from django_redis import get_redis_connection
+redis_conn = get_redis_connection(&quot;default&quot;)
+all_keys = redis_conn.keys(&quot;*&quot;)
+print(f&quot;Total cached items: {len(all_keys)}&quot;)
+</code></pre>
+<h3 id="2-monitor-rate-limiting">2. Monitor Rate Limiting</h3>
+<pre><code class="language-bash"># Check Redis for rate limit keys
+redis-cli
+&gt; KEYS rate_limit:*
+&gt; TTL rate_limit:user_123_login
+</code></pre>
+<h3 id="3-performance-logs">3. Performance Logs</h3>
+<p>The <code>monitor_performance</code> decorator logs to console and can be configured to log to files:</p>
+<pre><code class="language-python">import logging
+
+logger = logging.getLogger('performance')
+logger.info(f&quot;View {view_name} took {duration}ms&quot;)
+</code></pre>
+<hr />
+<h2 id="testing">🧪 Testing</h2>
+<h3 id="test-rate-limiting">Test Rate Limiting</h3>
+<pre><code class="language-python">from django.test import TestCase, Client
+
+class RateLimitTest(TestCase):
+    def test_login_rate_limit(self):
+        client = Client()
+
+        # Make 6 requests (limit is 5)
+        for i in range(6):
+            response = client.post('/accounts/login/', {
+                'username': 'test',
+                'password': 'wrong'
+            })
+
+        # Last request should be rate limited
+        self.assertEqual(response.status_code, 429)
+</code></pre>
+<h3 id="test-caching">Test Caching</h3>
+<pre><code class="language-python">from django.test import TestCase
+from django.core.cache import cache
+from utils.cache_utils import get_cached_queryset
+from movies.models import Movie
+
+class CacheTest(TestCase):
+    def test_queryset_caching(self):
+        # Clear cache
+        cache.clear()
+
+        # First call - cache miss
+        movies1 = get_cached_queryset('test_movies', Movie.objects.all())
+
+        # Second call - cache hit
+        movies2 = get_cached_queryset('test_movies', Movie.objects.all())
+
+        # Should be same object from cache
+        self.assertEqual(list(movies1), list(movies2))
+</code></pre>
+<h3 id="test-performance-monitoring">Test Performance Monitoring</h3>
+<pre><code class="language-python">from django.test import TestCase
+from utils.performance import monitor_performance
+
+class PerformanceTest(TestCase):
+    def test_monitor_decorator(self):
+        @monitor_performance
+        def test_function():
+            return &quot;Hello&quot;
+
+        result = test_function()
+        self.assertEqual(result, &quot;Hello&quot;)
+        # Check logs for performance data
+</code></pre>
+<hr />
+<h2 id="production-deployment">🚀 Production Deployment</h2>
+<h3 id="1-redis-setup">1. Redis Setup</h3>
+<pre><code class="language-bash"># Install Redis
+brew install redis  # macOS
+sudo apt-get install redis-server  # Ubuntu
+
+# Start Redis
+redis-server
+
+# Check status
+redis-cli ping  # Should return &quot;PONG&quot;
+</code></pre>
+<h3 id="2-environment-variables">2. Environment Variables</h3>
+<pre><code class="language-bash"># .env
+REDIS_URL=redis://localhost:6379/1
+CACHE_TIMEOUT=300
+RATE_LIMIT_ENABLE=True
+DEBUG_PERFORMANCE=False  # Disable in production
+</code></pre>
+<h3 id="3-gunicorn-configuration">3. Gunicorn Configuration</h3>
+<pre><code class="language-python"># gunicorn.conf.py
+workers = 4
+worker_class = 'gevent'
+timeout = 30
+keepalive = 2
+</code></pre>
+<h3 id="4-nginx-configuration">4. Nginx Configuration</h3>
+<pre><code class="language-nginx"># Rate limiting at nginx level (additional layer)
+limit_req_zone $binary_remote_addr zone=mylimit:10m rate=10r/s;
+
+server {
+    location / {
+        limit_req zone=mylimit burst=20 nodelay;
+        proxy_pass http://localhost:8000;
+    }
+}
+</code></pre>
+<hr />
+<h2 id="best-practices-summary">🎓 Best Practices Summary</h2>
+<h3 id="rate-limiting">Rate Limiting</h3>
+<ul>
+<li>✅ Set reasonable limits based on expected user behavior</li>
+<li>✅ Different limits for different endpoints (login stricter than browsing)</li>
+<li>✅ Monitor and adjust based on real usage patterns</li>
+<li>✅ Provide clear error messages to users</li>
+</ul>
+<h3 id="caching">Caching</h3>
+<ul>
+<li>✅ Cache expensive database queries</li>
+<li>✅ Use appropriate timeout values</li>
+<li>✅ Invalidate cache when data changes</li>
+<li>✅ Monitor cache hit rates</li>
+<li>✅ Don&rsquo;t cache personalized content without user-specific keys</li>
+</ul>
+<h3 id="performance-monitoring">Performance Monitoring</h3>
+<ul>
+<li>✅ Monitor all critical paths</li>
+<li>✅ Set alerts for slow queries (&gt;100ms)</li>
+<li>✅ Regular performance audits</li>
+<li>✅ Use Django Debug Toolbar in development</li>
+<li>✅ Log performance metrics in production</li>
+</ul>
+<hr />
+<h2 id="additional-resources">📚 Additional Resources</h2>
+<h3 id="django-documentation">Django Documentation</h3>
+<ul>
+<li><a href="https://docs.djangoproject.com/en/stable/topics/cache/">Django Caching</a></li>
+<li><a href="https://docs.djangoproject.com/en/stable/topics/performance/">Django Performance</a></li>
+<li><a href="https://docs.djangoproject.com/en/stable/topics/db/optimization/">Database Optimization</a></li>
+</ul>
+<h3 id="tools">Tools</h3>
+<ul>
+<li><strong>Django Debug Toolbar</strong>: Visual performance profiler</li>
+<li><strong>django-silk</strong>: Request profiling and analysis</li>
+<li><strong>New Relic / Sentry</strong>: Production monitoring</li>
+<li><strong>Redis Commander</strong>: Visual Redis management</li>
+</ul>
+<h3 id="testing_1">Testing</h3>
+<ul>
+<li><strong>Locust</strong>: Load testing tool</li>
+<li><strong>Apache Bench (ab)</strong>: Simple load testing</li>
+<li><strong>pytest-django</strong>: Enhanced testing for Django</li>
+</ul>
+<hr />
+<h2 id="troubleshooting">🆘 Troubleshooting</h2>
+<h3 id="common-issues">Common Issues</h3>
+<h4 id="1-too-many-requests-error">1. &ldquo;Too Many Requests&rdquo; Error</h4>
+<p><strong>Problem</strong>: Users getting 429 too frequently<br />
+<strong>Solution</strong>: Increase rate limits or period in <code>rate_limit.py</code></p>
+<h4 id="2-stale-cache-data">2. Stale Cache Data</h4>
+<p><strong>Problem</strong>: Users seeing old data<br />
+<strong>Solution</strong>: Reduce cache timeout or implement proper invalidation</p>
+<h4 id="3-high-memory-usage">3. High Memory Usage</h4>
+<p><strong>Problem</strong>: Cache consuming too much memory<br />
+<strong>Solution</strong>: <br />
+- Reduce cache timeout values<br />
+- Use cache eviction policies (LRU)<br />
+- Monitor Redis memory usage</p>
+<h4 id="4-slow-performance-despite-caching">4. Slow Performance Despite Caching</h4>
+<p><strong>Problem</strong>: Views still slow<br />
+<strong>Solution</strong>:<br />
+- Check N+1 queries with <code>select_related()</code> / <code>prefetch_related()</code><br />
+- Review database indexes<br />
+- Use pagination for large datasets</p>
+<h4 id="5-redis-connection-errors">5. Redis Connection Errors</h4>
+<p><strong>Problem</strong>: <code>ConnectionError: Error connecting to Redis</code><br />
+<strong>Solution</strong>:<br />
+- Ensure Redis is running: <code>redis-cli ping</code><br />
+- Check Redis URL in settings<br />
+- Verify firewall/network settings</p>
+<hr />
+<h2 id="maintenance-checklist">📝 Maintenance Checklist</h2>
+<h3 id="weekly">Weekly</h3>
+<ul>
+<li>[ ] Review rate limit hit rates</li>
+<li>[ ] Check cache hit/miss ratios</li>
+<li>[ ] Monitor slow query logs</li>
+<li>[ ] Review performance metrics</li>
+</ul>
+<h3 id="monthly">Monthly</h3>
+<ul>
+<li>[ ] Analyze rate limit effectiveness</li>
+<li>[ ] Optimize cache timeout values</li>
+<li>[ ] Update cache invalidation logic</li>
+<li>[ ] Performance benchmark tests</li>
+</ul>
+<h3 id="quarterly">Quarterly</h3>
+<ul>
+<li>[ ] Review and adjust rate limits</li>
+<li>[ ] Cache strategy review</li>
+<li>[ ] Performance optimization sprint</li>
+<li>[ ] Update documentation</li>
+</ul>
+<hr />
+<h2 id="support">📞 Support</h2>
+<p>For questions or issues:<br />
+- <strong>Documentation</strong>: This guide + code comments<br />
+- <strong>GitHub Issues</strong>: [Project Repository]<br />
+- <strong>Email</strong>: support@moviebooking.com<br />
+- <strong>Slack</strong>: #backend-support</p>
+<hr />
+<p><strong>Last Updated</strong>: January 4, 2026<br />
+<strong>Version</strong>: 1.0.0<br />
+<strong>Author</strong>: Development Team</p>
+<hr />
+<h2 id="quick-reference">✅ Quick Reference</h2>
+<h3 id="import-statements">Import Statements</h3>
+<pre><code class="language-python"># Rate Limiting
+from utils.rate_limit import rate_limit, login_rate_limit, api_rate_limit
+
+# Caching
+from utils.cache_utils import cache_page_with_user, get_cached_queryset, invalidate_model_cache
+
+# Performance
+from utils.performance import monitor_performance, count_queries, get_system_stats
+</code></pre>
+<h3 id="common-patterns">Common Patterns</h3>
+<pre><code class="language-python"># Full stack protection
+@api_rate_limit
+@cache_page_with_user(timeout=300)
+@monitor_performance
+def protected_view(request):
+    pass
+
+# Model caching
+movies = get_cached_queryset('movies_active', Movie.objects.filter(is_active=True), timeout=600)
+
+# Cache invalidation
+invalidate_model_cache('movies_list')
+
+# Rate limiting check
+from django.core.cache import cache
+if cache.get(f'rate_limit:{user_id}'):
+    # User is rate limited
+    pass
+</code></pre>
+<hr />
+<p><strong>🎉 Happy Coding!</strong></p>
+        </div>
+        
+        <hr class="no-print">
+        <div class="meta no-print" style="margin-top: 30px;">
+            <p style="color: #666; font-size: 0.9em;">
+                💡 <strong>Tip:</strong> Use <kbd>Ctrl+P</kbd> (Windows/Linux) or <kbd>Cmd+P</kbd> (Mac) to print or save as PDF.
+                Select "Save as PDF" as your destination.
+            </p>
+        </div>
+    </div>
+    
+    <script>
+        // Download markdown function
+        function downloadMarkdown() {
+            const markdownContent = `# 🛠️ Utilities Implementation Guide\n\n## Overview\n\nThis document provides a comprehensive guide to all production-ready utilities implemented in the Movie Booking System. These utilities enhance performance, security, and user experience through rate limiting, caching, and performance monitoring.\n\n---\n\n## 📁 Project Structure\n\n\`\`\`\nutils/\n├── rate_limit.py          # Rate limiting decorators and utilities\n├── cache_utils.py         # Caching utilities for pages and models\n└── performance.py         # Performance monitoring and profiling\n\`\`\`\n\n---\n\n## 🚦 Rate Limiting (\`utils/rate_limit.py\`)\n\n### Purpose\nProtects the application from abuse by limiting the number of requests users can make within a time window.\n\n### Key Features\n- ✅ Per-user and per-IP rate limiting\n- ✅ Customizable limits for different endpoints\n- ✅ Custom 429 error page with countdown timer\n- ✅ Support for authenticated and anonymous users\n\n### Implementation\n\n#### Available Decorators\n\n\`\`\`python\nfrom utils.rate_limit import rate_limit\n\n# Basic usage\n@rate_limit(limit=5, period=60)  # 5 requests per 60 seconds\ndef my_view(request):\n    pass\n\n# Custom key function (e.g., limit by username)\n@rate_limit(limit=3, period=300, key_func=lambda req: f"custom_{req.user.username}")\ndef sensitive_view(request):\n    pass\n\`\`\`\n\n#### Pre-configured Rate Limits\n\n| Decorator | Limit | Period | Use Case |\n|-----------|-------|--------|----------|\n| \`login_rate_limit\` | 5/5min | 300s | Login attempts |\n| \`registration_rate_limit\` | 3/hour | 3600s | New registrations |\n| \`booking_rate_limit\` | 10/5min | 300s | Booking operations |\n| \`wishlist_rate_limit\` | 20/5min | 300s | Wishlist operations |\n| \`review_rate_limit\` | 5/5min | 300s | Review submissions |\n| \`api_rate_limit\` | 100/min | 60s | API endpoints |\n\n#### Applied To\n\n**Movies App** (\`movies/views.py\`):\n- \`toggle_wishlist\`: 20 requests per 5 minutes\n- \`toggle_interest\`: 20 requests per 5 minutes\n- \`submit_review\`: 5 requests per 5 minutes\n- \`autocomplete_view\`: 100 requests per minute\n\n**Bookings App** (\`bookings/views.py\`):\n- \`select_seats_view\`: 10 requests per 5 minutes\n- \`reserve_seats_view\`: 10 requests per 5 minutes\n- \`create_booking_view\`: 10 requests per 5 minutes\n\n**Accounts App** (\`accounts/views.py\`):\n- \`login_view\`: 5 requests per 5 minutes\n- \`register_view\`: 3 requests per hour\n\n### Custom 429 Error Page\n\n**Location**: \`templates/errors/429.html\`\n\n**Features**:\n- 🎨 Beautiful, responsive design\n- ⏱️ Live countdown timer showing when users can retry\n- 📊 Shows limit details (requests allowed, time period)\n- 💡 Helpful tips to avoid rate limiting\n- 🔙 Quick navigation (Go Back, Return Home)\n- 📱 Mobile-friendly\n\n**Template Variables**:\n- \`{{ limit }}\`: Number of requests allowed\n- \`{{ period }}\`: Time period in seconds\n\n---\n\n## 💾 Caching (\`utils/cache_utils.py\`)\n\n### Purpose\nImproves application performance by caching frequently accessed data and reducing database queries.\n\n### Key Features\n- ✅ Page-level caching (full page responses)\n- ✅ Model-level caching (database queries)\n- ✅ Automatic cache invalidation\n- ✅ Cache key management\n- ✅ Easy cache clearing\n\n### Implementation\n\n#### 1. Page Caching\n\n\`\`\`python\nfrom utils.cache_utils import cache_page_with_user\n\n# Cache for 5 minutes (300 seconds)\n@cache_page_with_user(timeout=300)\ndef movie_list_view(request):\n    pass\n\`\`\`\n\n**Applied To**:\n- \`movie_list_view\`: 5 minutes\n- \`movie_detail_view\`: 10 minutes\n- \`home_view\`: 2 minutes\n- \`trailer_view\`: 15 minutes\n\n#### 2. Model Caching\n\n\`\`\`python\nfrom utils.cache_utils import get_cached_queryset, invalidate_model_cache\n\n# Cache a queryset\nmovies = get_cached_queryset(\n    'all_movies',           # Cache key\n    Movie.objects.all(),    # Queryset\n    timeout=300            # 5 minutes\n)\n\n# Invalidate cache when model changes\ninvalidate_model_cache('all_movies')\n\`\`\`\n\n**Example - Movie List with Caching**:\n\`\`\`python\ndef movie_list_view(request):\n    # Try to get from cache first\n    cache_key = 'movies_list_all'\n    movies = cache.get(cache_key)\n    \n    if movies is None:\n        # Cache miss - fetch from database\n        movies = Movie.objects.filter(is_active=True).order_by('-release_date')\n        cache.set(cache_key, movies, timeout=300)  # Cache for 5 minutes\n    \n    return render(request, 'movies/movie_list.html', {'movies': movies})\n\`\`\`\n\n#### 3. Cache Invalidation\n\n\`\`\`python\nfrom utils.cache_utils import invalidate_model_cache, clear_all_cache\n\n# Invalidate specific model cache\ninvalidate_model_cache('movies_list')\n\n# Clear all cache (use carefully!)\nclear_all_cache()\n\`\`\`\n\n### Cache Configuration\n\n**In \`settings.py\`**:\n\`\`\`python\nCACHES = {\n    'default': {\n        'BACKEND': 'django.core.cache.backends.redis.RedisCache',\n        'LOCATION': 'redis://127.0.0.1:6379/1',\n        'OPTIONS': {\n            'CLIENT_CLASS': 'django_redis.client.DefaultClient',\n        }\n    }\n}\n\`\`\`\n\n### Best Practices\n\n1. **Cache Timeout Guidelines**:\n   - Static content: 15-30 minutes\n   - Dynamic content: 2-5 minutes\n   - Real-time data: Don't cache or 30-60 seconds\n\n2. **When to Invalidate**:\n   - After data modifications (CREATE, UPDATE, DELETE)\n   - When business logic changes\n   - On admin actions\n\n3. **Cache Keys Naming**:\n   - Use descriptive names: \`movies_list_active\`, \`user_123_wishlist\`\n   - Include relevant filters: \`movies_genre_action\`\n   - Version your keys: \`movies_v2_list\`\n\n---\n\n## 📊 Performance Monitoring (\`utils/performance.py\`)\n\n### Purpose\nMonitors application performance, tracks slow queries, and provides insights for optimization.\n\n### Key Features\n- ✅ Response time tracking\n- ✅ Database query counting\n- ✅ Slow query detection\n- ✅ System metrics (CPU, memory)\n- ✅ Request logging\n\n### Implementation\n\n#### 1. Monitor Decorator\n\n\`\`\`python\nfrom utils.performance import monitor_performance\n\n@monitor_performance\ndef movie_list_view(request):\n    pass\n\`\`\`\n\n**What It Tracks**:\n- Response time (milliseconds)\n- Number of database queries\n- Slow queries (>100ms by default)\n- Memory usage\n- Cache hit/miss ratio\n\n**Console Output Example**:\n\`\`\`\n🔍 Performance: movie_list_view\n   ⏱️  Response Time: 145.23ms\n   🗄️  Queries: 8\n   🐌 Slow Queries: 2\n   💾 Memory: 45.2MB\n\`\`\`\n\n#### 2. Query Counter\n\n\`\`\`python\nfrom utils.performance import count_queries\n\nwith count_queries() as counter:\n    movies = Movie.objects.all()\n    for movie in movies:\n        print(movie.title)\n    \nprint(f"Queries executed: {counter.count}")\n\`\`\`\n\n#### 3. System Stats\n\n\`\`\`python\nfrom utils.performance import get_system_stats\n\nstats = get_system_stats()\n# Returns: {'cpu_percent': 45.2, 'memory_percent': 67.8, 'disk_usage': 80.1}\n\`\`\`\n\n### Applied To\n\nAll major views in:\n- **Movies App**: \`movie_list_view\`, \`movie_detail_view\`, \`home_view\`\n- **Bookings App**: \`select_seats_view\`, \`reserve_seats_view\`, \`create_booking_view\`\n\n### Performance Optimization Tips\n\n1. **Reduce Query Count**:\n   \`\`\`python\n   # Bad - N+1 queries\n   movies = Movie.objects.all()\n   for movie in movies:\n       print(movie.theater.name)  # One query per movie!\n   \n   # Good - Use select_related\n   movies = Movie.objects.select_related('theater').all()\n   for movie in movies:\n       print(movie.theater.name)  # No additional queries\n   \`\`\`\n\n2. **Use Pagination**:\n   \`\`\`python\n   from django.core.paginator import Paginator\n   \n   movies = Movie.objects.all()\n   paginator = Paginator(movies, 20)  # 20 per page\n   page = paginator.get_page(request.GET.get('page'))\n   \`\`\`\n\n3. **Database Indexing**:\n   \`\`\`python\n   class Movie(models.Model):\n       title = models.CharField(max_length=200, db_index=True)\n       release_date = models.DateField(db_index=True)\n   \`\`\`\n\n---\n\n## 🎯 Integration Examples\n\n### Complete View with All Utilities\n\n\`\`\`python\nfrom django.shortcuts import render\nfrom utils.rate_limit import api_rate_limit\nfrom utils.cache_utils import cache_page_with_user\nfrom utils.performance import monitor_performance\nfrom .models import Movie\n\n@api_rate_limit                          # Rate limiting\n@cache_page_with_user(timeout=300)       # Caching\n@monitor_performance                      # Performance monitoring\ndef movie_list_view(request):\n    """\n    Movie list view with full protection:\n    - Rate limited to 100 requests per minute\n    - Cached for 5 minutes\n    - Performance monitored\n    """\n    movies = Movie.objects.filter(is_active=True).select_related('theater')\n    return render(request, 'movies/movie_list.html', {'movies': movies})\n\`\`\`\n\n### API Endpoint with Rate Limiting\n\n\`\`\`python\nfrom django.http import JsonResponse\nfrom utils.rate_limit import api_rate_limit\n\n@api_rate_limit\ndef movie_autocomplete_api(request):\n    query = request.GET.get('q', '')\n    movies = Movie.objects.filter(title__icontains=query)[:10]\n    \n    return JsonResponse({\n        'results': [{'id': m.id, 'title': m.title} for m in movies]\n    })\n\`\`\`\n\n### Cache Invalidation on Update\n\n\`\`\`python\nfrom django.contrib import admin\nfrom utils.cache_utils import invalidate_model_cache\nfrom .models import Movie\n\n@admin.register(Movie)\nclass MovieAdmin(admin.ModelAdmin):\n    def save_model(self, request, obj, form, change):\n        super().save_model(request, obj, form, change)\n        # Invalidate cache after saving\n        invalidate_model_cache('movies_list')\n        invalidate_model_cache(f'movie_{obj.id}')\n\`\`\`\n\n---\n\n## 🔧 Configuration\n\n### Settings Required\n\n\`\`\`python\n# settings.py\n\n# Cache Configuration\nCACHES = {\n    'default': {\n        'BACKEND': 'django.core.cache.backends.redis.RedisCache',\n        'LOCATION': 'redis://127.0.0.1:6379/1',\n    }\n}\n\n# Rate Limiting\nRATE_LIMIT_ENABLE = True  # Set to False to disable globally\n\n# Performance Monitoring\nDEBUG_PERFORMANCE = True  # Enable detailed performance logs\nSLOW_QUERY_THRESHOLD = 100  # milliseconds\n\`\`\`\n\n### URL Configuration\n\n\`\`\`python\n# urls.py\n\nhandler429 = 'django.views.defaults.page_not_found'  # Use default or custom\n\n# Or in your main urls.py:\nfrom django.conf.urls import handler429\n\ndef rate_limit_exceeded(request, exception=None):\n    from django.shortcuts import render\n    return render(request, 'errors/429.html', status=429)\n\nhandler429 = rate_limit_exceeded\n\`\`\`\n\n---\n\n## 📈 Monitoring & Debugging\n\n### 1. Check Cache Status\n\n\`\`\`python\nfrom django.core.cache import cache\n\n# Check if key exists\nif cache.get('my_key'):\n    print("Cache hit!")\nelse:\n    print("Cache miss!")\n\n# Get all cache keys (Redis)\nfrom django_redis import get_redis_connection\nredis_conn = get_redis_connection("default")\nall_keys = redis_conn.keys("*")\nprint(f"Total cached items: {len(all_keys)}")\n\`\`\`\n\n### 2. Monitor Rate Limiting\n\n\`\`\`bash\n# Check Redis for rate limit keys\nredis-cli\n> KEYS rate_limit:*\n> TTL rate_limit:user_123_login\n\`\`\`\n\n### 3. Performance Logs\n\nThe \`monitor_performance\` decorator logs to console and can be configured to log to files:\n\n\`\`\`python\nimport logging\n\nlogger = logging.getLogger('performance')\nlogger.info(f"View {view_name} took {duration}ms")\n\`\`\`\n\n---\n\n## 🧪 Testing\n\n### Test Rate Limiting\n\n\`\`\`python\nfrom django.test import TestCase, Client\n\nclass RateLimitTest(TestCase):\n    def test_login_rate_limit(self):\n        client = Client()\n        \n        # Make 6 requests (limit is 5)\n        for i in range(6):\n            response = client.post('/accounts/login/', {\n                'username': 'test',\n                'password': 'wrong'\n            })\n        \n        # Last request should be rate limited\n        self.assertEqual(response.status_code, 429)\n\`\`\`\n\n### Test Caching\n\n\`\`\`python\nfrom django.test import TestCase\nfrom django.core.cache import cache\nfrom utils.cache_utils import get_cached_queryset\nfrom movies.models import Movie\n\nclass CacheTest(TestCase):\n    def test_queryset_caching(self):\n        # Clear cache\n        cache.clear()\n        \n        # First call - cache miss\n        movies1 = get_cached_queryset('test_movies', Movie.objects.all())\n        \n        # Second call - cache hit\n        movies2 = get_cached_queryset('test_movies', Movie.objects.all())\n        \n        # Should be same object from cache\n        self.assertEqual(list(movies1), list(movies2))\n\`\`\`\n\n### Test Performance Monitoring\n\n\`\`\`python\nfrom django.test import TestCase\nfrom utils.performance import monitor_performance\n\nclass PerformanceTest(TestCase):\n    def test_monitor_decorator(self):\n        @monitor_performance\n        def test_function():\n            return "Hello"\n        \n        result = test_function()\n        self.assertEqual(result, "Hello")\n        # Check logs for performance data\n\`\`\`\n\n---\n\n## 🚀 Production Deployment\n\n### 1. Redis Setup\n\n\`\`\`bash\n# Install Redis\nbrew install redis  # macOS\nsudo apt-get install redis-server  # Ubuntu\n\n# Start Redis\nredis-server\n\n# Check status\nredis-cli ping  # Should return "PONG"\n\`\`\`\n\n### 2. Environment Variables\n\n\`\`\`bash\n# .env\nREDIS_URL=redis://localhost:6379/1\nCACHE_TIMEOUT=300\nRATE_LIMIT_ENABLE=True\nDEBUG_PERFORMANCE=False  # Disable in production\n\`\`\`\n\n### 3. Gunicorn Configuration\n\n\`\`\`python\n# gunicorn.conf.py\nworkers = 4\nworker_class = 'gevent'\ntimeout = 30\nkeepalive = 2\n\`\`\`\n\n### 4. Nginx Configuration\n\n\`\`\`nginx\n# Rate limiting at nginx level (additional layer)\nlimit_req_zone \$binary_remote_addr zone=mylimit:10m rate=10r/s;\n\nserver {\n    location / {\n        limit_req zone=mylimit burst=20 nodelay;\n        proxy_pass http://localhost:8000;\n    }\n}\n\`\`\`\n\n---\n\n## 🎓 Best Practices Summary\n\n### Rate Limiting\n- ✅ Set reasonable limits based on expected user behavior\n- ✅ Different limits for different endpoints (login stricter than browsing)\n- ✅ Monitor and adjust based on real usage patterns\n- ✅ Provide clear error messages to users\n\n### Caching\n- ✅ Cache expensive database queries\n- ✅ Use appropriate timeout values\n- ✅ Invalidate cache when data changes\n- ✅ Monitor cache hit rates\n- ✅ Don't cache personalized content without user-specific keys\n\n### Performance Monitoring\n- ✅ Monitor all critical paths\n- ✅ Set alerts for slow queries (>100ms)\n- ✅ Regular performance audits\n- ✅ Use Django Debug Toolbar in development\n- ✅ Log performance metrics in production\n\n---\n\n## 📚 Additional Resources\n\n### Django Documentation\n- [Django Caching](https://docs.djangoproject.com/en/stable/topics/cache/)\n- [Django Performance](https://docs.djangoproject.com/en/stable/topics/performance/)\n- [Database Optimization](https://docs.djangoproject.com/en/stable/topics/db/optimization/)\n\n### Tools\n- **Django Debug Toolbar**: Visual performance profiler\n- **django-silk**: Request profiling and analysis\n- **New Relic / Sentry**: Production monitoring\n- **Redis Commander**: Visual Redis management\n\n### Testing\n- **Locust**: Load testing tool\n- **Apache Bench (ab)**: Simple load testing\n- **pytest-django**: Enhanced testing for Django\n\n---\n\n## 🆘 Troubleshooting\n\n### Common Issues\n\n#### 1. "Too Many Requests" Error\n**Problem**: Users getting 429 too frequently  \n**Solution**: Increase rate limits or period in \`rate_limit.py\`\n\n#### 2. Stale Cache Data\n**Problem**: Users seeing old data  \n**Solution**: Reduce cache timeout or implement proper invalidation\n\n#### 3. High Memory Usage\n**Problem**: Cache consuming too much memory  \n**Solution**: \n- Reduce cache timeout values\n- Use cache eviction policies (LRU)\n- Monitor Redis memory usage\n\n#### 4. Slow Performance Despite Caching\n**Problem**: Views still slow  \n**Solution**:\n- Check N+1 queries with \`select_related()\` / \`prefetch_related()\`\n- Review database indexes\n- Use pagination for large datasets\n\n#### 5. Redis Connection Errors\n**Problem**: \`ConnectionError: Error connecting to Redis\`  \n**Solution**:\n- Ensure Redis is running: \`redis-cli ping\`\n- Check Redis URL in settings\n- Verify firewall/network settings\n\n---\n\n## 📝 Maintenance Checklist\n\n### Weekly\n- [ ] Review rate limit hit rates\n- [ ] Check cache hit/miss ratios\n- [ ] Monitor slow query logs\n- [ ] Review performance metrics\n\n### Monthly\n- [ ] Analyze rate limit effectiveness\n- [ ] Optimize cache timeout values\n- [ ] Update cache invalidation logic\n- [ ] Performance benchmark tests\n\n### Quarterly\n- [ ] Review and adjust rate limits\n- [ ] Cache strategy review\n- [ ] Performance optimization sprint\n- [ ] Update documentation\n\n---\n\n## 📞 Support\n\nFor questions or issues:\n- **Documentation**: This guide + code comments\n- **GitHub Issues**: [Project Repository]\n- **Email**: support@moviebooking.com\n- **Slack**: #backend-support\n\n---\n\n**Last Updated**: January 4, 2026  \n**Version**: 1.0.0  \n**Author**: Development Team\n\n---\n\n## ✅ Quick Reference\n\n### Import Statements\n\`\`\`python\n# Rate Limiting\nfrom utils.rate_limit import rate_limit, login_rate_limit, api_rate_limit\n\n# Caching\nfrom utils.cache_utils import cache_page_with_user, get_cached_queryset, invalidate_model_cache\n\n# Performance\nfrom utils.performance import monitor_performance, count_queries, get_system_stats\n\`\`\`\n\n### Common Patterns\n\`\`\`python\n# Full stack protection\n@api_rate_limit\n@cache_page_with_user(timeout=300)\n@monitor_performance\ndef protected_view(request):\n    pass\n\n# Model caching\nmovies = get_cached_queryset('movies_active', Movie.objects.filter(is_active=True), timeout=600)\n\n# Cache invalidation\ninvalidate_model_cache('movies_list')\n\n# Rate limiting check\nfrom django.core.cache import cache\nif cache.get(f'rate_limit:{user_id}'):\n    # User is rate limited\n    pass\n\`\`\`\n\n---\n\n**🎉 Happy Coding!**\n`;
+            const blob = new Blob([markdownContent], { type: 'text/markdown' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'UTILITIES_IMPLEMENTATION_GUIDE.md';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        }
+        
+        // Keyboard shortcut for print
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+                e.preventDefault();
+                window.print();
+            }
+        });
+    </script>
+</body>
+</html>

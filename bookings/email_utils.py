@@ -63,8 +63,8 @@ def send_booking_confirmation_email(booking_id):
             'total_amount': booking.total_amount,
         }
         
-        text_content = render_to_string('email_templates/booking_confirmation.txt', context)
-        html_content = render_to_string('email_templates/booking_confirmation.html', context)
+        text_content = render_to_string('booking_confirmation.txt', context)
+        html_content = render_to_string('booking_confirmation.html', context)
         
         subject = f'🎬 Booking Confirmed - {booking.booking_number}'
         from_email = settings.DEFAULT_FROM_EMAIL
@@ -104,8 +104,8 @@ def send_payment_failed_email(booking_id):
             'movie': booking.showtime.movie,
         }
         
-        text_content = render_to_string('email_templates/payment_failed.txt', context)
-        html_content = render_to_string('email_templates/payment_failed.html', context)
+        text_content = render_to_string('payment_failed.txt', context)
+        html_content = render_to_string('payment_failed.html', context)
         
         subject = f'❌ Payment Failed - Booking {booking.booking_number}'
         from_email = settings.DEFAULT_FROM_EMAIL
@@ -149,8 +149,8 @@ def send_seat_reminder_email(booking_id):
             'theater': booking.showtime.screen.theater,
         }
         
-        text_content = render_to_string('email_templates/showtime_reminder.txt', context)
-        html_content = render_to_string('email_templates/showtime_reminder.html', context)
+        text_content = render_to_string('showtime_reminder.txt', context)
+        html_content = render_to_string('showtime_reminder.html', context)
         
         subject = f'⏰ Reminder: Your movie "{booking.showtime.movie.title}" starts soon!'
         from_email = settings.DEFAULT_FROM_EMAIL

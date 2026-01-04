@@ -1,0 +1,1372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Understanding Razorpay - Movie Booking System</title>
+    <style>
+        /* Screen Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            line-height: 1.8;
+            color: #000;
+            background: #f5f5f5;
+            padding: 20px;
+            font-size: 12pt;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        
+        .header {
+            border-bottom: 3px solid #007bff;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #007bff;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+        
+        .meta {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .meta-info {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #0056b3;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .content {
+            margin-top: 30px;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+            color: #2c3e50;
+        }
+        
+        h1 { font-size: 2em; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
+        h2 { font-size: 1.75em; border-bottom: 1px solid #dee2e6; padding-bottom: 8px; }
+        h3 { font-size: 1.5em; }
+        h4 { font-size: 1.25em; }
+        
+        p {
+            margin-bottom: 1em;
+        }
+        
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 10pt;
+            color: #000;
+            font-weight: 500;
+        }
+        
+        pre {
+            background: #f8f8f8;
+            color: #000;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin: 15px 0;
+            line-height: 1.6;
+            font-size: 10pt;
+        }
+        
+        pre code {
+            background: none;
+            color: #000;
+            padding: 0;
+            border: none;
+            font-size: 10pt;
+            font-weight: normal;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        table th, table td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #dee2e6;
+        }
+        
+        table th {
+            background: #007bff;
+            color: white;
+            font-weight: 600;
+        }
+        
+        table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        blockquote {
+            border-left: 4px solid #007bff;
+            padding-left: 20px;
+            margin: 20px 0;
+            color: #666;
+            font-style: italic;
+        }
+        
+        ul, ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+        
+        li {
+            margin: 5px 0;
+        }
+        
+        a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        
+        a:hover {
+            text-decoration: underline;
+        }
+        
+        hr {
+            border: none;
+            border-top: 2px solid #dee2e6;
+            margin: 30px 0;
+        }
+        
+        /* Print Styles - Optimized for Black & White */
+        @media print {
+            @page {
+                margin: 0.75in;
+                size: A4;
+            }
+            
+            body {
+                background: white;
+                padding: 0;
+                color: #000;
+                font-size: 11pt;
+                line-height: 1.6;
+            }
+            
+            .container {
+                box-shadow: none;
+                padding: 0;
+                max-width: 100%;
+            }
+            
+            .actions, .no-print {
+                display: none !important;
+            }
+            
+            .header {
+                border-bottom: 2px solid #000;
+                padding-bottom: 10pt;
+                margin-bottom: 15pt;
+            }
+            
+            .header h1 {
+                color: #000;
+                font-size: 18pt;
+            }
+            
+            .header p {
+                color: #333;
+                font-size: 11pt;
+            }
+            
+            .meta {
+                background: #f9f9f9;
+                border: 1px solid #ddd;
+                padding: 10pt;
+                margin-bottom: 15pt;
+            }
+            
+            h1 {
+                font-size: 16pt;
+                border-bottom: 2px solid #000;
+                padding-bottom: 5pt;
+                margin-top: 20pt;
+                margin-bottom: 10pt;
+                page-break-after: avoid;
+            }
+            
+            h2 {
+                font-size: 14pt;
+                border-bottom: 1px solid #666;
+                padding-bottom: 4pt;
+                margin-top: 15pt;
+                margin-bottom: 8pt;
+                page-break-after: avoid;
+            }
+            
+            h3 {
+                font-size: 13pt;
+                margin-top: 12pt;
+                margin-bottom: 6pt;
+                page-break-after: avoid;
+            }
+            
+            h4 {
+                font-size: 12pt;
+                margin-top: 10pt;
+                margin-bottom: 5pt;
+                page-break-after: avoid;
+            }
+            
+            p {
+                margin-bottom: 8pt;
+                orphans: 3;
+                widows: 3;
+            }
+            
+            /* Code blocks - BLACK & WHITE optimized */
+            code {
+                background: #f0f0f0;
+                border: 1px solid #999;
+                padding: 2pt 4pt;
+                font-family: 'Courier New', 'Consolas', monospace;
+                font-size: 9pt;
+                color: #000;
+                font-weight: 600;
+            }
+            
+            pre {
+                background: #f8f8f8;
+                border: 2px solid #666;
+                padding: 10pt;
+                margin: 10pt 0;
+                page-break-inside: avoid;
+                font-size: 9pt;
+                line-height: 1.4;
+                overflow: visible;
+                white-space: pre-wrap;
+                word-wrap: break-word;
+            }
+            
+            pre code {
+                background: none;
+                border: none;
+                padding: 0;
+                font-size: 9pt;
+                font-weight: normal;
+                color: #000;
+            }
+            
+            /* Tables - BLACK & WHITE optimized */
+            table {
+                page-break-inside: avoid;
+                border-collapse: collapse;
+                width: 100%;
+                margin: 10pt 0;
+                border: 2px solid #000;
+            }
+            
+            table th {
+                background: #e0e0e0;
+                color: #000;
+                border: 1px solid #666;
+                padding: 6pt;
+                font-weight: bold;
+                text-align: left;
+            }
+            
+            table td {
+                border: 1px solid #999;
+                padding: 6pt;
+                color: #000;
+            }
+            
+            table tr:nth-child(even) {
+                background: #f5f5f5;
+            }
+            
+            /* Blockquotes */
+            blockquote {
+                border-left: 3px solid #000;
+                padding-left: 10pt;
+                margin: 10pt 0;
+                font-style: italic;
+                color: #333;
+                page-break-inside: avoid;
+            }
+            
+            /* Links */
+            a {
+                color: #000;
+                text-decoration: underline;
+            }
+            
+            a[href]:after {
+                content: " (" attr(href) ")";
+                font-size: 9pt;
+                color: #666;
+            }
+            
+            /* Lists */
+            ul, ol {
+                margin: 8pt 0;
+                padding-left: 20pt;
+            }
+            
+            li {
+                margin: 4pt 0;
+            }
+            
+            /* Horizontal rules */
+            hr {
+                border: none;
+                border-top: 1px solid #000;
+                margin: 15pt 0;
+            }
+            
+            /* Image handling */
+            img {
+                max-width: 100%;
+                page-break-inside: avoid;
+            }
+            
+            /* Page breaks */
+            .page-break {
+                page-break-before: always;
+            }
+            
+            /* Ensure visibility of all content */
+            * {
+                color: #000 !important;
+                background: white !important;
+            }
+            
+            code, pre {
+                background: #f5f5f5 !important;
+                border-color: #666 !important;
+            }
+            
+            table th {
+                background: #e0e0e0 !important;
+            }
+            
+            table tr:nth-child(even) {
+                background: #f8f8f8 !important;
+            }
+        }
+        
+        /* Code syntax highlighting */
+        .codehilite .hll { background-color: #49483e }
+        .codehilite .c { color: #75715e }
+        .codehilite .k { color: #66d9ef }
+        .codehilite .l { color: #ae81ff }
+        .codehilite .n { color: #f8f8f2 }
+        .codehilite .o { color: #f92672 }
+        .codehilite .p { color: #f8f8f2 }
+        .codehilite .cm { color: #75715e }
+        .codehilite .cp { color: #75715e }
+        .codehilite .c1 { color: #75715e }
+        .codehilite .cs { color: #75715e }
+        .codehilite .kc { color: #66d9ef }
+        .codehilite .kd { color: #66d9ef }
+        .codehilite .kn { color: #f92672 }
+        .codehilite .kp { color: #66d9ef }
+        .codehilite .kr { color: #66d9ef }
+        .codehilite .kt { color: #66d9ef }
+        .codehilite .ld { color: #e6db74 }
+        .codehilite .m { color: #ae81ff }
+        .codehilite .s { color: #e6db74 }
+        .codehilite .na { color: #a6e22e }
+        .codehilite .nb { color: #f8f8f2 }
+        .codehilite .nc { color: #a6e22e }
+        .codehilite .no { color: #66d9ef }
+        .codehilite .nd { color: #a6e22e }
+        .codehilite .ni { color: #f8f8f2 }
+        .codehilite .ne { color: #a6e22e }
+        .codehilite .nf { color: #a6e22e }
+        .codehilite .nl { color: #f8f8f2 }
+        .codehilite .nn { color: #f8f8f2 }
+        .codehilite .nx { color: #a6e22e }
+        .codehilite .py { color: #f8f8f2 }
+        .codehilite .nt { color: #f92672 }
+        .codehilite .nv { color: #f8f8f2 }
+        .codehilite .ow { color: #f92672 }
+        .codehilite .w { color: #f8f8f2 }
+        .codehilite .mf { color: #ae81ff }
+        .codehilite .mh { color: #ae81ff }
+        .codehilite .mi { color: #ae81ff }
+        .codehilite .mo { color: #ae81ff }
+        .codehilite .sb { color: #e6db74 }
+        .codehilite .sc { color: #e6db74 }
+        .codehilite .sd { color: #e6db74 }
+        .codehilite .s2 { color: #e6db74 }
+        .codehilite .se { color: #ae81ff }
+        .codehilite .sh { color: #e6db74 }
+        .codehilite .si { color: #e6db74 }
+        .codehilite .sx { color: #e6db74 }
+        .codehilite .sr { color: #e6db74 }
+        .codehilite .s1 { color: #e6db74 }
+        .codehilite .ss { color: #e6db74 }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Understanding Razorpay</h1>
+            <p>Payment gateway integration and implementation</p>
+        </div>
+        
+        <div class="meta">
+            <div class="meta-info">
+                <strong>Generated:</strong> January 04, 2026<br>
+                <strong>Source:</strong> UNDERSTANDING_RAZORPAY.md<br>
+                <strong>Project:</strong> Movie Booking System
+            </div>
+            <div class="actions no-print">
+                <button class="btn btn-primary" onclick="window.print()">
+                    <span>🖨️</span> Print / Save as PDF
+                </button>
+                <button class="btn btn-success" onclick="downloadMarkdown()">
+                    <span>📥</span> Download Markdown
+                </button>
+                <a href="index.html" class="btn btn-secondary">
+                    <span>🏠</span> Back to Index
+                </a>
+            </div>
+        </div>
+        
+        <div class="content">
+            <h1 id="understanding-razorpay-in-movie-booking-system">💳 Understanding Razorpay in Movie Booking System</h1>
+<h2 id="a-beginners-guide">A Beginner&rsquo;s Guide</h2>
+<hr />
+<h2 id="table-of-contents">📚 Table of Contents</h2>
+<ol>
+<li><a href="#what-is-razorpay">What is Razorpay?</a></li>
+<li><a href="#why-we-need-razorpay">Why We Need Razorpay</a></li>
+<li><a href="#how-razorpay-works">How Razorpay Works</a></li>
+<li><a href="#payment-flow-in-our-system">Payment Flow in Our System</a></li>
+<li><a href="#razorpay-integration">Razorpay Integration</a></li>
+<li><a href="#real-world-example">Real-World Example</a></li>
+<li><a href="#security--verification">Security &amp; Verification</a></li>
+<li><a href="#troubleshooting">Troubleshooting</a></li>
+</ol>
+<hr />
+<h2 id="what-is-razorpay">🤔 What is Razorpay?</h2>
+<p><strong>Razorpay</strong> is a <strong>payment gateway</strong> - a service that lets you accept online payments (credit cards, debit cards, UPI, wallets) without handling sensitive financial data yourself.</p>
+<h3 id="simple-analogy">Simple Analogy 🎯</h3>
+<p>Imagine you&rsquo;re running a movie theater:</p>
+<p><strong>Without Razorpay:</strong></p>
+<pre><code>Customer: &quot;Here's my credit card&quot;
+You: &quot;Let me process it...&quot;
+     - Store card number? 😱 (Illegal without PCI compliance!)
+     - Build payment infrastructure? 💸 (Costs millions!)
+     - Handle refunds manually? 😫 (Time-consuming!)
+     - Support all payment methods? 🤯 (Impossible!)
+</code></pre>
+<p><strong>With Razorpay:</strong></p>
+<pre><code>Customer: &quot;I want to pay&quot;
+You: &quot;Sure! Please pay through Razorpay&quot;
+     [Razorpay modal opens]
+Customer: Enters card details (Razorpay handles it securely)
+     [Payment processed]
+Razorpay: &quot;Payment successful! Here's payment_id: pay_xyz123&quot;
+You: &quot;Great! Booking confirmed!&quot; ✅
+
+     - No card data stored on your server ✅
+     - All payment methods supported ✅
+     - Refunds handled automatically ✅
+     - Secure and PCI compliant ✅
+</code></pre>
+<h3 id="key-characteristics">Key Characteristics</h3>
+<ul>
+<li><strong>Payment Gateway</strong>: Handles money transactions securely</li>
+<li><strong>No Card Data</strong>: You never see or store sensitive card information</li>
+<li><strong>Multiple Methods</strong>: Supports cards, UPI, wallets, net banking</li>
+<li><strong>Test Mode</strong>: Practice with fake payments before going live</li>
+<li><strong>Webhooks</strong>: Get notified when payments succeed/fail</li>
+</ul>
+<hr />
+<h2 id="why-we-need-razorpay">🎯 Why We Need Razorpay</h2>
+<h3 id="problems-without-payment-gateway">Problems Without Payment Gateway ❌</h3>
+<h4 id="problem-1-security-nightmare">Problem 1: Security Nightmare</h4>
+<pre><code class="language-python"># DON'T EVER DO THIS! ❌❌❌
+def process_payment(card_number, cvv, expiry):
+    # Storing card details = ILLEGAL without PCI-DSS compliance
+    # PCI-DSS compliance costs $50,000+ per year
+    # One data breach = lawsuit + bankruptcy
+    pass
+</code></pre>
+<h4 id="problem-2-limited-payment-options">Problem 2: Limited Payment Options</h4>
+<pre><code class="language-python"># Supporting just credit cards = losing 60% of customers
+# In India: UPI, Paytm, PhonePe, Google Pay are more popular
+# Each integration = months of work 
+</code></pre>
+<h4 id="problem-3-manual-refunds">Problem 3: Manual Refunds</h4>
+<pre><code class="language-python"># Customer cancels booking
+# You have to manually process refund
+# Takes 7-10 days, customer unhappy
+</code></pre>
+<h3 id="solutions-with-razorpay">Solutions With Razorpay ✅</h3>
+<h4 id="solution-1-secure-compliant">Solution 1: Secure &amp; Compliant</h4>
+<pre><code class="language-python"># Razorpay handles all security
+# You just get a payment_id when payment succeeds
+# No card data ever touches your server
+payment_id = razorpay.payment.fetch('pay_xyz123')
+</code></pre>
+<h4 id="solution-2-all-payment-methods">Solution 2: All Payment Methods</h4>
+<pre><code class="language-python"># One integration = all payment methods
+# Cards, UPI, wallets, net banking, EMI
+# Razorpay adds new methods automatically
+</code></pre>
+<h4 id="solution-3-instant-refunds">Solution 3: Instant Refunds</h4>
+<pre><code class="language-python"># One API call = instant refund
+razorpay.payment.refund('pay_xyz123', amount=500)
+# Money credited in 5-7 days (bank processing time)
+</code></pre>
+<hr />
+<h2 id="how-razorpay-works">💡 How Razorpay Works</h2>
+<h3 id="high-level-flow">High-Level Flow</h3>
+<pre><code>┌─────────────────────────────────────────────────────────────┐
+│                        YOUR WEBSITE                          │
+│                   (Django Server)                            │
+│                                                              │
+│  1. User clicks &quot;Pay ₹500&quot;                                   │
+│  2. Server creates Razorpay Order                            │
+│  3. Server shows Razorpay checkout modal                     │
+└────────────────────────┬────────────────────────────────────┘
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    RAZORPAY CHECKOUT                         │
+│                   (Secure Payment Modal)                     │
+│                                                              │
+│  [Enter Card Details]                                        │
+│  Card Number: 4111 1111 1111 1111                            │
+│  CVV: 123                                                    │
+│  Expiry: 12/25                                               │
+│                                                              │
+│  [Pay ₹500] ←─── Customer clicks                            │
+└────────────────────────┬────────────────────────────────────┘
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    RAZORPAY BACKEND                          │
+│               (Payment Processing)                           │
+│                                                              │
+│  1. Validate card with bank                                  │
+│  2. Process payment                                          │
+│  3. If successful, generate payment_id                       │
+│  4. Return result to your website                            │
+└────────────────────────┬────────────────────────────────────┘
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────────┐
+│                        YOUR WEBSITE                          │
+│                   (Payment Success)                          │
+│                                                              │
+│  1. Receive payment_id: &quot;pay_xyz123&quot;                         │
+│  2. Verify signature (security check)                        │
+│  3. Mark booking as CONFIRMED                                │
+│  4. Show success page to user                                │
+└─────────────────────────────────────────────────────────────┘
+</code></pre>
+<h3 id="key-concepts">Key Concepts</h3>
+<h4 id="1-order-created-by-your-server">1. <strong>Order</strong> (Created by Your Server)</h4>
+<pre><code class="language-python"># Your server creates an order BEFORE showing payment modal
+order = {
+    'id': 'order_abc123',
+    'amount': 50000,  # Amount in paise (₹500.00)
+    'currency': 'INR',
+    'receipt': 'booking_12345',
+    'notes': {
+        'booking_id': 12345,
+        'user_id': 7
+    }
+}
+</code></pre>
+<p>Think of it as a <strong>bill</strong> - you create it, customer pays it.</p>
+<h4 id="2-payment-created-by-razorpay">2. <strong>Payment</strong> (Created by Razorpay)</h4>
+<pre><code class="language-python"># Razorpay creates payment when customer pays
+payment = {
+    'id': 'pay_xyz789',
+    'order_id': 'order_abc123',
+    'amount': 50000,
+    'status': 'captured',  # Money received!
+    'method': 'card',
+    'card': {
+        'network': 'Visa',
+        'last4': '1111'
+    }
+}
+</code></pre>
+<p>Think of it as a <strong>receipt</strong> - proof of payment.</p>
+<h4 id="3-signature-security-verification">3. <strong>Signature</strong> (Security Verification)</h4>
+<pre><code class="language-python"># Razorpay sends signature to prove payment is genuine
+signature = 'abc123def456...'
+
+# You verify it using your secret key
+# If valid = payment is real
+# If invalid = potential fraud, reject it!
+</code></pre>
+<p>Think of it as a <strong>seal</strong> on a certificate - proves authenticity.</p>
+<hr />
+<h2 id="payment-flow-in-our-system">🎬 Payment Flow in Our System</h2>
+<h3 id="step-by-step-process">Step-by-Step Process</h3>
+<h4 id="step-1-user-selects-seats"><strong>Step 1: User Selects Seats</strong></h4>
+<pre><code class="language-python"># File: bookings/views.py
+
+def select_seats(request):
+    # User picks seats A1, A2
+    seats = ['A1', 'A2']
+
+    # Reserve in Redis (10-minute lock)
+    SeatManager.reserve_seats(showtime_id, seats, user.id)
+
+    # Create PENDING booking
+    booking = Booking.objects.create(
+        user=user,
+        showtime=showtime,
+        seats=seats,
+        total_amount=500.00,
+        status='PENDING',
+        expires_at=now() + timedelta(minutes=10)
+    )
+
+    return redirect('booking_summary', booking.id)
+</code></pre>
+<h4 id="step-2-user-confirms-booking"><strong>Step 2: User Confirms Booking</strong></h4>
+<pre><code class="language-python"># File: bookings/views.py
+
+def booking_summary(request, booking_id): 
+    booking = Booking.objects.get(id=booking_id)
+
+    # Show summary page with &quot;Proceed to Payment&quot; button
+    context = {
+        'booking': booking,
+        'seats': booking.seats,
+        'total': booking.total_amount
+    }
+
+    return render('booking_summary.html', context)
+</code></pre>
+<h4 id="step-3-user-clicks-proceed-to-payment"><strong>Step 3: User Clicks &ldquo;Proceed to Payment&rdquo;</strong></h4>
+<pre><code class="language-python"># File: bookings/views.py
+
+def payment_page(request, booking_id):
+    booking = Booking.objects.get(id=booking_id)
+
+    # Create Razorpay order (or reuse existing)
+    order_data = BookingService.get_or_create_razorpay_order(booking)
+
+    if not order_data['success']:
+        return render('error.html', {'message': 'Payment failed'})
+
+    # Pass order details to template
+    context = {
+        'booking': booking,
+        'order_id': order_data['order_id'],
+        'amount': order_data['amount'],
+        'razorpay_key': settings.RAZORPAY_KEY_ID
+    }
+
+    return render('payment.html', context)
+</code></pre>
+<h4 id="step-4-frontend-shows-razorpay-modal"><strong>Step 4: Frontend Shows Razorpay Modal</strong></h4>
+<pre><code class="language-javascript">// File: bookings/templates/bookings/payment.html
+
+// Razorpay configuration
+var options = {
+    &quot;key&quot;: &quot;{{ razorpay_key }}&quot;,  // Your API key
+    &quot;amount&quot;: {{ amount }},        // Amount in paise
+    &quot;currency&quot;: &quot;INR&quot;,
+    &quot;order_id&quot;: &quot;{{ order_id }}&quot;,  // Order ID from backend
+
+    &quot;handler&quot;: function (response) {
+        // Payment successful! ✅
+        console.log(&quot;Payment ID:&quot;, response.razorpay_payment_id);
+        console.log(&quot;Order ID:&quot;, response.razorpay_order_id);
+        console.log(&quot;Signature:&quot;, response.razorpay_signature);
+
+        // Send to backend for verification
+        verifyPayment(response);
+    },
+
+    &quot;modal&quot;: { 
+        &quot;ondismiss&quot;: function() {  
+            // User closed modal without paying ❌
+            console.log(&quot;Payment cancelled&quot;);
+            cancelBooking();
+        }
+    }
+};
+
+// Show Razorpay checkout modal
+var rzp = new Razorpay(options);
+rzp.open();
+</code></pre>
+<h4 id="step-5-backend-verifies-payment"><strong>Step 5: Backend Verifies Payment</strong></h4>
+<pre><code class="language-python"># File: bookings/views.py
+
+def verify_payment(request):
+    payment_id = request.POST.get('razorpay_payment_id')
+    order_id = request.POST.get('razorpay_order_id')
+    signature = request.POST.get('razorpay_signature')
+
+    # CRITICAL: Verify signature (security check)
+    is_valid = PaymentVerificationService.verify_payment_signature(
+        order_id, payment_id, signature
+    )
+
+    if not is_valid:
+        return JsonResponse({'success': False, 'error': 'Invalid signature'})
+
+    # Find booking by order_id
+    booking = Booking.objects.get(razorpay_order_id=order_id)
+
+    # Confirm payment and booking
+    success, error = BookingService.confirm_payment(
+        booking, payment_id, signature_verified=True
+    )
+
+    if success:
+        return JsonResponse({'success': True, 'booking_id': booking.id})
+    else:
+        return JsonResponse({'success': False, 'error': error})
+</code></pre>
+<h4 id="step-6-confirmation-cleanup"><strong>Step 6: Confirmation &amp; Cleanup</strong></h4>
+<pre><code class="language-python"># File: bookings/services.py
+
+def confirm_payment(booking, payment_id):
+    # Update booking
+    booking.status = 'CONFIRMED'
+    booking.payment_id = payment_id
+    booking.confirmed_at = timezone.now()
+    booking.save()
+
+    # Permanently mark seats as booked
+    SeatManager.confirm_seats(booking.showtime.id, booking.seats)
+
+    # Send confirmation email (async via Celery)
+    send_booking_confirmation_email.delay(booking.id)
+
+    return True, None
+</code></pre>
+<hr />
+<h2 id="security-verification">🔐 Security &amp; Verification</h2>
+<h3 id="why-signature-verification-is-critical">Why Signature Verification is Critical</h3>
+<p><strong>Without Signature Verification:</strong></p>
+<pre><code>Hacker: *Opens browser console*
+        *Sends fake payment success to your server*
+
+POST /verify_payment/
+{
+    &quot;payment_id&quot;: &quot;pay_FAKE123&quot;,
+    &quot;order_id&quot;: &quot;order_abc123&quot;,
+    &quot;signature&quot;: &quot;fake_signature&quot;
+}
+
+Your Server: &quot;Looks good! Booking confirmed!&quot; ❌
+Hacker: *Gets free tickets* 😈
+</code></pre>
+<p><strong>With Signature Verification:</strong></p>
+<pre><code>Hacker: *Sends fake payment*
+
+Your Server: *Verifies signature using secret key*
+              *Signature doesn't match!*
+              &quot;Invalid signature, payment rejected!&quot; ✅
+
+Hacker: *Can't get free tickets* 😤
+</code></pre>
+<h3 id="how-signature-verification-works">How Signature Verification Works</h3>
+<pre><code class="language-python"># File: bookings/services.py
+
+def verify_payment_signature(order_id, payment_id, signature):
+    &quot;&quot;&quot;
+    Verify that payment came from Razorpay and wasn't tampered with.
+    Uses HMAC-SHA256 algorithm with your secret key.
+    &quot;&quot;&quot;
+    import hmac
+    import hashlib
+
+    # Create message by joining order_id and payment_id
+    message = f&quot;{order_id}|{payment_id}&quot;
+
+    # Calculate expected signature using your secret key
+    expected_signature = hmac.new(
+        key=settings.RAZORPAY_KEY_SECRET.encode(),
+        msg=message.encode(),
+        digestmod=hashlib.sha256
+    ).hexdigest()
+
+    # Compare signatures
+    if signature == expected_signature:
+        return True  # Valid! ✅
+    else:
+        return False  # Fraud! ❌
+</code></pre>
+<p><strong>Math Behind It:</strong></p>
+<pre><code>Message = &quot;order_abc123|pay_xyz789&quot;
+Secret Key = &quot;your_secret_key_123&quot;
+
+Signature = HMAC_SHA256(Message, Secret Key)
+         = &quot;a1b2c3d4e5f6...&quot;
+
+Only someone with your secret key can generate valid signatures!
+Hackers don't have your secret key = can't fake payments ✅
+</code></pre>
+<hr />
+<h2 id="real-world-example">🎭 Real-World Example</h2>
+<h3 id="scenario-john-books-tickets-for-500">Scenario: John Books Tickets for ₹500</h3>
+<h4 id="step-1-john-clicks-pay-now-600-pm"><strong>Step 1: John Clicks &ldquo;Pay Now&rdquo;</strong> (6:00 PM)</h4>
+<pre><code class="language-python"># Backend creates Razorpay order
+order = razorpay_client.order.create({
+    'amount': 50000,  # ₹500.00 in paise
+    'currency': 'INR',
+    'receipt': 'booking_12345',
+    'notes': {
+        'booking_id': 12345,
+        'user_id': 7,
+        'user_name': 'John'
+    }
+})
+
+# Response from Razorpay:
+{
+    'id': 'order_MfL8Dxyz123',
+    'amount': 50000,
+    'currency': 'INR',
+    'receipt': 'booking_12345',
+    'status': 'created'
+}
+
+# Save order_id to booking
+booking.razorpay_order_id = 'order_MfL8Dxyz123'
+booking.save()
+</code></pre>
+<h4 id="step-2-razorpay-modal-opens"><strong>Step 2: Razorpay Modal Opens</strong></h4>
+<pre><code class="language-javascript">// Frontend shows Razorpay checkout
+var rzp = new Razorpay({
+    key: &quot;rzp_test_xxxxx&quot;,
+    amount: 50000,  // ₹500.00
+    order_id: &quot;order_MfL8Dxyz123&quot;,
+
+    handler: function(response) {
+        // This runs when payment succeeds
+        verifyPayment(response);
+    }
+});
+
+rzp.open();  // Modal appears to John
+</code></pre>
+<p><strong>John Sees:</strong></p>
+<pre><code>┌─────────────────────────────────────┐
+│      RAZORPAY CHECKOUT              │
+├─────────────────────────────────────┤
+│  Pay ₹500.00                        │
+│                                     │
+│  [Card] [UPI] [Wallet] [NetBanking]│
+│                                     │
+│  Card Number: ________________      │
+│  CVV: ___    Expiry: __/__         │
+│                                     │
+│  [Pay ₹500] ← John clicks this     │
+└─────────────────────────────────────┘
+</code></pre>
+<h4 id="step-3-john-enters-card-pays-602-pm"><strong>Step 3: John Enters Card &amp; Pays</strong> (6:02 PM)</h4>
+<pre><code>John enters: 4111 1111 1111 1111 (Test card)
+CVV: 123
+Expiry: 12/25
+
+[Razorpay processes payment]
+[Bank approves transaction]
+[Razorpay generates payment_id]
+</code></pre>
+<h4 id="step-4-razorpay-returns-success"><strong>Step 4: Razorpay Returns Success</strong></h4>
+<pre><code class="language-javascript">// Razorpay calls handler function
+function handler(response) {
+    console.log(response);
+    // {
+    //   razorpay_payment_id: &quot;pay_MfL8EABCD456&quot;,
+    //   razorpay_order_id: &quot;order_MfL8Dxyz123&quot;,
+    //   razorpay_signature: &quot;a1b2c3d4e5f6...&quot;
+    // }
+
+    // Send to backend for verification
+    fetch('/verify_payment/', {
+        method: 'POST',
+        body: JSON.stringify(response)
+    });
+}
+</code></pre>
+<h4 id="step-5-backend-verifies-confirms"><strong>Step 5: Backend Verifies &amp; Confirms</strong></h4>
+<pre><code class="language-python">def verify_payment(request):
+    payment_id = &quot;pay_MfL8EABCD456&quot;
+    order_id = &quot;order_MfL8Dxyz123&quot;
+    signature = &quot;a1b2c3d4e5f6...&quot;
+
+    # Verify signature
+    is_valid = verify_signature(order_id, payment_id, signature)
+    # Returns: True ✅
+
+    # Find booking
+    booking = Booking.objects.get(razorpay_order_id=order_id)
+
+    # Confirm booking
+    booking.status = 'CONFIRMED'
+    booking.payment_id = payment_id
+    booking.save()
+
+    # Release Redis locks, confirm seats
+    SeatManager.confirm_seats(booking.showtime.id, booking.seats)
+
+    # Send email
+    send_booking_confirmation_email.delay(booking.id)
+
+    return JsonResponse({'success': True})
+</code></pre>
+<h4 id="step-6-john-sees-success-page-603-pm"><strong>Step 6: John Sees Success Page</strong> (6:03 PM)</h4>
+<pre><code class="language-html">&lt;!-- Frontend redirects to success page --&gt;
+&lt;div class=&quot;success&quot;&gt;
+    &lt;h1&gt;🎉 Booking Confirmed!&lt;/h1&gt;
+    &lt;p&gt;Booking Number: BOOK-20260103-12345&lt;/p&gt;
+    &lt;p&gt;Seats: A1, A2&lt;/p&gt;
+    &lt;p&gt;Payment ID: pay_MfL8EABCD456&lt;/p&gt;
+    &lt;p&gt;Check your email for confirmation!&lt;/p&gt;
+&lt;/div&gt;
+</code></pre>
+<p><strong>Timeline:</strong></p>
+<pre><code>6:00 PM - Order created
+6:02 PM - John enters card details
+6:02 PM - Razorpay processes payment
+6:02 PM - Payment successful
+6:03 PM - Backend verifies signature ✅
+6:03 PM - Booking confirmed in database ✅
+6:03 PM - Email queued (Celery) ✅
+6:03 PM - John sees success page ✅
+6:05 PM - John receives email ✅
+</code></pre>
+<hr />
+<h2 id="razorpay-integration-code">🛠️ Razorpay Integration Code</h2>
+<h3 id="1-creating-an-order-backend">1. <strong>Creating an Order</strong> (Backend)</h3>
+<pre><code class="language-python"># File: bookings/razorpay_utils.py
+
+import razorpay
+from django.conf import settings
+
+# Initialize Razorpay client
+client = razorpay.Client(auth=(
+    settings.RAZORPAY_KEY_ID,
+    settings.RAZORPAY_KEY_SECRET
+))
+
+def create_order(amount, receipt, notes=None):
+    &quot;&quot;&quot;
+    Create a Razorpay order.
+
+    Args:
+        amount: Amount in rupees (will be converted to paise)
+        receipt: Unique receipt ID (e.g., booking number)
+        notes: Optional metadata
+
+    Returns:
+        Order data or error
+    &quot;&quot;&quot;
+    try:
+        order = client.order.create({
+            'amount': int(amount * 100),  # Convert to paise
+            'currency': 'INR',
+            'receipt': receipt,
+            'notes': notes or {}
+        })
+
+        return {
+            'success': True,
+            'order_id': order['id'],
+            'amount': order['amount'],
+            'currency': order['currency']
+        }
+    except Exception as e:
+        return {
+            'success': False,
+            'error': str(e)
+        }
+</code></pre>
+<h3 id="2-payment-page-template">2. <strong>Payment Page</strong> (Template)</h3>
+<pre><code class="language-html">&lt;!-- File: bookings/templates/bookings/payment.html --&gt;
+
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+    &lt;!-- Include Razorpay checkout.js --&gt;
+    &lt;script src=&quot;https://checkout.razorpay.com/v1/checkout.js&quot;&gt;&lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;Payment&lt;/h1&gt;
+    &lt;p&gt;Amount: ₹{{ booking.total_amount }}&lt;/p&gt;
+
+    &lt;button id=&quot;pay-button&quot;&gt;Pay Now&lt;/button&gt;
+
+    &lt;script&gt;
+        document.getElementById('pay-button').onclick = function() {
+            var options = {
+                &quot;key&quot;: &quot;{{ razorpay_key }}&quot;,
+                &quot;amount&quot;: {{ amount }},  // In paise
+                &quot;currency&quot;: &quot;INR&quot;,
+                &quot;order_id&quot;: &quot;{{ order_id }}&quot;,
+                &quot;name&quot;: &quot;Movie Booking&quot;,
+                &quot;description&quot;: &quot;Booking #{{ booking.booking_number }}&quot;,
+
+                &quot;handler&quot;: function (response) {
+                    // Payment success!
+                    verifyPayment(response);
+                },
+
+                &quot;modal&quot;: {
+                    &quot;ondismiss&quot;: function() {
+                        // User closed modal
+                        alert(&quot;Payment cancelled&quot;);
+                    }
+                },
+
+                &quot;theme&quot;: {
+                    &quot;color&quot;: &quot;#F37254&quot;
+                }
+            };
+
+            var rzp = new Razorpay(options);
+            rzp.open();
+        };
+
+        function verifyPayment(response) {
+            fetch('/bookings/verify_payment/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    razorpay_payment_id: response.razorpay_payment_id,
+                    razorpay_order_id: response.razorpay_order_id,
+                    razorpay_signature: response.razorpay_signature,
+                    booking_id: {{ booking.id }}
+                })
+            })
+            .then(res =&gt; res.json())
+            .then(data =&gt; {
+                if (data.success) {
+                    window.location.href = '/bookings/success/' + data.booking_id + '/';
+                } else {
+                    alert('Payment verification failed!');
+                }
+            });
+        }
+    &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<h3 id="3-verify-payment-backend">3. <strong>Verify Payment</strong> (Backend)</h3>
+<pre><code class="language-python"># File: bookings/views.py
+
+def verify_payment(request):
+    data = json.loads(request.body)
+
+    payment_id = data.get('razorpay_payment_id')
+    order_id = data.get('razorpay_order_id')
+    signature = data.get('razorpay_signature')
+    booking_id = data.get('booking_id')
+
+    # Verify signature
+    is_valid = PaymentVerificationService.verify_payment_signature(
+        order_id, payment_id, signature
+    )
+
+    if not is_valid:
+        logger.error(f&quot;Invalid signature for order {order_id}&quot;)
+        return JsonResponse({
+            'success': False,
+            'error': 'Payment verification failed'
+        })
+
+    # Confirm booking
+    booking = Booking.objects.get(id=booking_id)
+    success, error = BookingService.confirm_payment(
+        booking, payment_id, signature_verified=True
+    )
+
+    if success:
+        return JsonResponse({
+            'success': True,
+            'booking_id': booking.id
+        })
+    else:
+        return JsonResponse({
+            'success': False,
+            'error': error
+        })
+</code></pre>
+<hr />
+<h2 id="test-vs-live-mode">🧪 Test vs Live Mode</h2>
+<h3 id="test-mode-development">Test Mode (Development)</h3>
+<pre><code class="language-python"># Test credentials (fake payments)
+RAZORPAY_KEY_ID = 'rzp_test_xxxxxxxxxxxxx'
+RAZORPAY_KEY_SECRET = 'test_secret_key_xxxxx'
+
+# Test card numbers:
+# Success: 4111 1111 1111 1111
+# Failure: 4000 0000 0000 0002
+</code></pre>
+<p><strong>Benefits:</strong><br />
+- No real money involved<br />
+- Can simulate success/failure<br />
+- Unlimited test transactions<br />
+- Perfect for development</p>
+<h3 id="live-mode-production">Live Mode (Production)</h3>
+<pre><code class="language-python"># Live credentials (real payments)
+RAZORPAY_KEY_ID = 'rzp_live_xxxxxxxxxxxxx'
+RAZORPAY_KEY_SECRET = 'live_secret_key_xxxxx'
+
+# Real cards, real money!
+# Must complete KYC verification
+# Razorpay charges 2% + GST per transaction
+</code></pre>
+<p><strong>Requirements:</strong><br />
+- Complete KYC (business documents)<br />
+- Bank account verification<br />
+- Live website (HTTPS required)<br />
+- Real customers, real money</p>
+<hr />
+<h2 id="troubleshooting">🔧 Troubleshooting</h2>
+<h3 id="problem-1-payment-modal-not-opening">Problem 1: Payment Modal Not Opening</h3>
+<pre><code class="language-javascript">// Check if Razorpay script loaded
+if (typeof Razorpay === 'undefined') {
+    console.error(&quot;Razorpay script not loaded!&quot;);
+    // Add script tag:
+    // &lt;script src=&quot;https://checkout.razorpay.com/v1/checkout.js&quot;&gt;&lt;/script&gt;
+}
+
+// Check for errors in console
+rzp.open();  // Any error messages?
+</code></pre>
+<h3 id="problem-2-order-id-not-found">Problem 2: &ldquo;Order ID not found&rdquo;</h3>
+<pre><code class="language-python"># Make sure order was created and saved to booking
+booking = Booking.objects.get(id=booking_id)
+if not booking.razorpay_order_id:
+    # Order not created yet!
+    order_data = create_razorpay_order(booking)
+    booking.razorpay_order_id = order_data['order_id']
+    booking.save()
+</code></pre>
+<h3 id="problem-3-signature-verification-failing">Problem 3: Signature Verification Failing</h3>
+<pre><code class="language-python"># Check if using correct secret key
+print(settings.RAZORPAY_KEY_SECRET)  # Should be test key in development
+
+# Check message format (must be exact!)
+message = f&quot;{order_id}|{payment_id}&quot;  # Correct format
+# NOT: f&quot;{payment_id}|{order_id}&quot;  # Wrong!
+
+# Try manual verification:
+import hmac
+import hashlib
+expected = hmac.new(
+    key=settings.RAZORPAY_KEY_SECRET.encode(),
+    msg=message.encode(),
+    digestmod=hashlib.sha256
+).hexdigest()
+print(f&quot;Expected: {expected}&quot;)
+print(f&quot;Received: {signature}&quot;)
+</code></pre>
+<h3 id="problem-4-payment-success-but-booking-not-confirmed">Problem 4: Payment Success but Booking Not Confirmed</h3>
+<pre><code class="language-python"># Check backend logs
+# Look for errors in verify_payment() function
+
+# Check if webhook received (optional)
+# Razorpay can send webhook notifications
+# Configure in Razorpay dashboard
+
+# Check Razorpay dashboard
+# See if payment was actually captured
+# Maybe it's in &quot;authorized&quot; state, not &quot;captured&quot;
+</code></pre>
+<hr />
+<h2 id="razorpay-payment-states">📊 Razorpay Payment States</h2>
+<pre><code>Order Created → Payment Authorized → Payment Captured → Settled
+     ↓                  ↓                  ↓               ↓
+  Not Paid         Money on Hold     Money Received   In Bank Account
+  (Waiting)        (Pending)         (Success!)       (1-2 days)
+</code></pre>
+<h3 id="state-details">State Details</h3>
+<table>
+<thead>
+<tr>
+<th>State</th>
+<th>Meaning</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>created</strong></td>
+<td>Order created, waiting for payment</td>
+<td>Show payment modal</td>
+</tr>
+<tr>
+<td><strong>authorized</strong></td>
+<td>Card charged, money on hold</td>
+<td>Capture payment</td>
+</tr>
+<tr>
+<td><strong>captured</strong></td>
+<td>Money received by Razorpay</td>
+<td>Confirm booking</td>
+</tr>
+<tr>
+<td><strong>refund_pending</strong></td>
+<td>Refund initiated</td>
+<td>Wait for completion</td>
+</tr>
+<tr>
+<td><strong>refunded</strong></td>
+<td>Money returned to customer</td>
+<td>Cancel booking</td>
+</tr>
+<tr>
+<td><strong>failed</strong></td>
+<td>Payment failed</td>
+<td>Show error, retry</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="key-takeaways">🎓 Key Takeaways</h2>
+<ol>
+<li><strong>Payment Gateway = Security</strong>: Never handle card data yourself</li>
+<li><strong>Order First</strong>: Create order before showing payment modal</li>
+<li><strong>Verify Signature</strong>: Always verify payment signature (security!)</li>
+<li><strong>Test Mode</strong>: Use test credentials during development</li>
+<li><strong>Error Handling</strong>: Payment can fail, handle it gracefully</li>
+<li><strong>Webhooks</strong>: Optional but recommended for reliability</li>
+<li><strong>Refunds</strong>: Easy with one API call</li>
+</ol>
+<hr />
+<h2 id="next-steps">🚀 Next Steps</h2>
+<ol>
+<li>Read: <a href="./UNDERSTANDING_REDIS.md">Understanding Redis</a> - Learn about caching</li>
+<li>Read: <a href="./UNDERSTANDING_CELERY.md">Understanding Celery</a> - Learn about background tasks</li>
+<li>Practice: Create test orders and payments</li>
+<li>Explore: Razorpay Dashboard (see all transactions)</li>
+</ol>
+<hr />
+<p><strong>Remember</strong>: Razorpay is like a secure cash register - customers pay through it, you get confirmation, nobody sees sensitive card data! 💳🔒</p>
+<p><em>Last Updated: January 3, 2026</em></p>
+        </div>
+        
+        <hr class="no-print">
+        <div class="meta no-print" style="margin-top: 30px;">
+            <p style="color: #666; font-size: 0.9em;">
+                💡 <strong>Tip:</strong> Use <kbd>Ctrl+P</kbd> (Windows/Linux) or <kbd>Cmd+P</kbd> (Mac) to print or save as PDF.
+                Select "Save as PDF" as your destination.
+            </p>
+        </div>
+    </div>
+    
+    <script>
+        // Download markdown function
+        function downloadMarkdown() {
+            const markdownContent = `# 💳 Understanding Razorpay in Movie Booking System\n## A Beginner's Guide\n\n---\n\n## 📚 Table of Contents\n1. [What is Razorpay?](#what-is-razorpay)\n2. [Why We Need Razorpay](#why-we-need-razorpay)\n3. [How Razorpay Works](#how-razorpay-works)\n4. [Payment Flow in Our System](#payment-flow-in-our-system)\n5. [Razorpay Integration](#razorpay-integration)\n6. [Real-World Example](#real-world-example)\n7. [Security & Verification](#security--verification)\n8. [Troubleshooting](#troubleshooting)\n\n---\n\n## 🤔 What is Razorpay?\n\n**Razorpay** is a **payment gateway** - a service that lets you accept online payments (credit cards, debit cards, UPI, wallets) without handling sensitive financial data yourself.\n\n### Simple Analogy 🎯\nImagine you're running a movie theater:\n\n**Without Razorpay:**\n\`\`\`\nCustomer: "Here's my credit card"\nYou: "Let me process it..."\n     - Store card number? 😱 (Illegal without PCI compliance!)\n     - Build payment infrastructure? 💸 (Costs millions!)\n     - Handle refunds manually? 😫 (Time-consuming!)\n     - Support all payment methods? 🤯 (Impossible!)\n\`\`\`\n\n**With Razorpay:**\n\`\`\`\nCustomer: "I want to pay"\nYou: "Sure! Please pay through Razorpay"\n     [Razorpay modal opens]\nCustomer: Enters card details (Razorpay handles it securely)\n     [Payment processed]\nRazorpay: "Payment successful! Here's payment_id: pay_xyz123"\nYou: "Great! Booking confirmed!" ✅\n\n     - No card data stored on your server ✅\n     - All payment methods supported ✅\n     - Refunds handled automatically ✅\n     - Secure and PCI compliant ✅\n\`\`\`\n\n### Key Characteristics\n- **Payment Gateway**: Handles money transactions securely\n- **No Card Data**: You never see or store sensitive card information\n- **Multiple Methods**: Supports cards, UPI, wallets, net banking\n- **Test Mode**: Practice with fake payments before going live\n- **Webhooks**: Get notified when payments succeed/fail\n\n---\n\n## 🎯 Why We Need Razorpay\n\n### Problems Without Payment Gateway ❌\n\n#### Problem 1: Security Nightmare\n\`\`\`python\n# DON'T EVER DO THIS! ❌❌❌\ndef process_payment(card_number, cvv, expiry):\n    # Storing card details = ILLEGAL without PCI-DSS compliance\n    # PCI-DSS compliance costs \$50,000+ per year\n    # One data breach = lawsuit + bankruptcy\n    pass\n\`\`\`\n\n#### Problem 2: Limited Payment Options\n\`\`\`python\n# Supporting just credit cards = losing 60% of customers\n# In India: UPI, Paytm, PhonePe, Google Pay are more popular\n# Each integration = months of work \n\`\`\`\n\n#### Problem 3: Manual Refunds\n\`\`\`python\n# Customer cancels booking\n# You have to manually process refund\n# Takes 7-10 days, customer unhappy\n\`\`\`\n\n### Solutions With Razorpay ✅\n\n#### Solution 1: Secure & Compliant\n\`\`\`python\n# Razorpay handles all security\n# You just get a payment_id when payment succeeds\n# No card data ever touches your server\npayment_id = razorpay.payment.fetch('pay_xyz123')\n\`\`\`\n\n#### Solution 2: All Payment Methods\n\`\`\`python\n# One integration = all payment methods\n# Cards, UPI, wallets, net banking, EMI\n# Razorpay adds new methods automatically\n\`\`\`\n\n#### Solution 3: Instant Refunds\n\`\`\`python\n# One API call = instant refund\nrazorpay.payment.refund('pay_xyz123', amount=500)\n# Money credited in 5-7 days (bank processing time)\n\`\`\`\n\n---\n\n## 💡 How Razorpay Works\n\n### High-Level Flow\n\n\`\`\`\n┌─────────────────────────────────────────────────────────────┐\n│                        YOUR WEBSITE                          │\n│                   (Django Server)                            │\n│                                                              │\n│  1. User clicks "Pay ₹500"                                   │\n│  2. Server creates Razorpay Order                            │\n│  3. Server shows Razorpay checkout modal                     │\n└────────────────────────┬────────────────────────────────────┘\n                         │\n                         ▼\n┌─────────────────────────────────────────────────────────────┐\n│                    RAZORPAY CHECKOUT                         │\n│                   (Secure Payment Modal)                     │\n│                                                              │\n│  [Enter Card Details]                                        │\n│  Card Number: 4111 1111 1111 1111                            │\n│  CVV: 123                                                    │\n│  Expiry: 12/25                                               │\n│                                                              │\n│  [Pay ₹500] ←─── Customer clicks                            │\n└────────────────────────┬────────────────────────────────────┘\n                         │\n                         ▼\n┌─────────────────────────────────────────────────────────────┐\n│                    RAZORPAY BACKEND                          │\n│               (Payment Processing)                           │\n│                                                              │\n│  1. Validate card with bank                                  │\n│  2. Process payment                                          │\n│  3. If successful, generate payment_id                       │\n│  4. Return result to your website                            │\n└────────────────────────┬────────────────────────────────────┘\n                         │\n                         ▼\n┌─────────────────────────────────────────────────────────────┐\n│                        YOUR WEBSITE                          │\n│                   (Payment Success)                          │\n│                                                              │\n│  1. Receive payment_id: "pay_xyz123"                         │\n│  2. Verify signature (security check)                        │\n│  3. Mark booking as CONFIRMED                                │\n│  4. Show success page to user                                │\n└─────────────────────────────────────────────────────────────┘\n\`\`\`\n\n### Key Concepts\n\n#### 1. **Order** (Created by Your Server)\n\`\`\`python\n# Your server creates an order BEFORE showing payment modal\norder = {\n    'id': 'order_abc123',\n    'amount': 50000,  # Amount in paise (₹500.00)\n    'currency': 'INR',\n    'receipt': 'booking_12345',\n    'notes': {\n        'booking_id': 12345,\n        'user_id': 7\n    }\n}\n\`\`\`\n\nThink of it as a **bill** - you create it, customer pays it.\n\n#### 2. **Payment** (Created by Razorpay)\n\`\`\`python\n# Razorpay creates payment when customer pays\npayment = {\n    'id': 'pay_xyz789',\n    'order_id': 'order_abc123',\n    'amount': 50000,\n    'status': 'captured',  # Money received!\n    'method': 'card',\n    'card': {\n        'network': 'Visa',\n        'last4': '1111'\n    }\n}\n\`\`\`\n\nThink of it as a **receipt** - proof of payment.\n\n#### 3. **Signature** (Security Verification)\n\`\`\`python\n# Razorpay sends signature to prove payment is genuine\nsignature = 'abc123def456...'\n\n# You verify it using your secret key\n# If valid = payment is real\n# If invalid = potential fraud, reject it!\n\`\`\`\n\nThink of it as a **seal** on a certificate - proves authenticity.\n\n---\n\n## 🎬 Payment Flow in Our System\n\n### Step-by-Step Process\n\n#### **Step 1: User Selects Seats**\n\`\`\`python\n# File: bookings/views.py\n\ndef select_seats(request):\n    # User picks seats A1, A2\n    seats = ['A1', 'A2']\n    \n    # Reserve in Redis (10-minute lock)\n    SeatManager.reserve_seats(showtime_id, seats, user.id)\n    \n    # Create PENDING booking\n    booking = Booking.objects.create(\n        user=user,\n        showtime=showtime,\n        seats=seats,\n        total_amount=500.00,\n        status='PENDING',\n        expires_at=now() + timedelta(minutes=10)\n    )\n    \n    return redirect('booking_summary', booking.id)\n\`\`\`\n\n#### **Step 2: User Confirms Booking**\n\`\`\`python\n# File: bookings/views.py\n\ndef booking_summary(request, booking_id): \n    booking = Booking.objects.get(id=booking_id)\n    \n    # Show summary page with "Proceed to Payment" button\n    context = {\n        'booking': booking,\n        'seats': booking.seats,\n        'total': booking.total_amount\n    }\n    \n    return render('booking_summary.html', context)\n\`\`\`\n\n#### **Step 3: User Clicks "Proceed to Payment"**\n\`\`\`python\n# File: bookings/views.py\n\ndef payment_page(request, booking_id):\n    booking = Booking.objects.get(id=booking_id)\n    \n    # Create Razorpay order (or reuse existing)\n    order_data = BookingService.get_or_create_razorpay_order(booking)\n    \n    if not order_data['success']:\n        return render('error.html', {'message': 'Payment failed'})\n    \n    # Pass order details to template\n    context = {\n        'booking': booking,\n        'order_id': order_data['order_id'],\n        'amount': order_data['amount'],\n        'razorpay_key': settings.RAZORPAY_KEY_ID\n    }\n    \n    return render('payment.html', context)\n\`\`\`\n\n#### **Step 4: Frontend Shows Razorpay Modal**\n\`\`\`javascript\n// File: bookings/templates/bookings/payment.html\n\n// Razorpay configuration\nvar options = {\n    "key": "{{ razorpay_key }}",  // Your API key\n    "amount": {{ amount }},        // Amount in paise\n    "currency": "INR",\n    "order_id": "{{ order_id }}",  // Order ID from backend\n    \n    "handler": function (response) {\n        // Payment successful! ✅\n        console.log("Payment ID:", response.razorpay_payment_id);\n        console.log("Order ID:", response.razorpay_order_id);\n        console.log("Signature:", response.razorpay_signature);\n        \n        // Send to backend for verification\n        verifyPayment(response);\n    },\n    \n    "modal": { \n        "ondismiss": function() {  \n            // User closed modal without paying ❌\n            console.log("Payment cancelled");\n            cancelBooking();\n        }\n    }\n};\n\n// Show Razorpay checkout modal\nvar rzp = new Razorpay(options);\nrzp.open();\n\`\`\`\n\n#### **Step 5: Backend Verifies Payment**\n\`\`\`python\n# File: bookings/views.py\n\ndef verify_payment(request):\n    payment_id = request.POST.get('razorpay_payment_id')\n    order_id = request.POST.get('razorpay_order_id')\n    signature = request.POST.get('razorpay_signature')\n    \n    # CRITICAL: Verify signature (security check)\n    is_valid = PaymentVerificationService.verify_payment_signature(\n        order_id, payment_id, signature\n    )\n    \n    if not is_valid:\n        return JsonResponse({'success': False, 'error': 'Invalid signature'})\n    \n    # Find booking by order_id\n    booking = Booking.objects.get(razorpay_order_id=order_id)\n    \n    # Confirm payment and booking\n    success, error = BookingService.confirm_payment(\n        booking, payment_id, signature_verified=True\n    )\n    \n    if success:\n        return JsonResponse({'success': True, 'booking_id': booking.id})\n    else:\n        return JsonResponse({'success': False, 'error': error})\n\`\`\`\n\n#### **Step 6: Confirmation & Cleanup**\n\`\`\`python\n# File: bookings/services.py\n\ndef confirm_payment(booking, payment_id):\n    # Update booking\n    booking.status = 'CONFIRMED'\n    booking.payment_id = payment_id\n    booking.confirmed_at = timezone.now()\n    booking.save()\n    \n    # Permanently mark seats as booked\n    SeatManager.confirm_seats(booking.showtime.id, booking.seats)\n    \n    # Send confirmation email (async via Celery)\n    send_booking_confirmation_email.delay(booking.id)\n    \n    return True, None\n\`\`\`\n\n---\n\n## 🔐 Security & Verification\n\n### Why Signature Verification is Critical\n\n**Without Signature Verification:**\n\`\`\`\nHacker: *Opens browser console*\n        *Sends fake payment success to your server*\n        \nPOST /verify_payment/\n{\n    "payment_id": "pay_FAKE123",\n    "order_id": "order_abc123",\n    "signature": "fake_signature"\n}\n\nYour Server: "Looks good! Booking confirmed!" ❌\nHacker: *Gets free tickets* 😈\n\`\`\`\n\n**With Signature Verification:**\n\`\`\`\nHacker: *Sends fake payment*\n\nYour Server: *Verifies signature using secret key*\n              *Signature doesn't match!*\n              "Invalid signature, payment rejected!" ✅\n              \nHacker: *Can't get free tickets* 😤\n\`\`\`\n\n### How Signature Verification Works\n\n\`\`\`python\n# File: bookings/services.py\n\ndef verify_payment_signature(order_id, payment_id, signature):\n    """\n    Verify that payment came from Razorpay and wasn't tampered with.\n    Uses HMAC-SHA256 algorithm with your secret key.\n    """\n    import hmac\n    import hashlib\n    \n    # Create message by joining order_id and payment_id\n    message = f"{order_id}|{payment_id}"\n    \n    # Calculate expected signature using your secret key\n    expected_signature = hmac.new(\n        key=settings.RAZORPAY_KEY_SECRET.encode(),\n        msg=message.encode(),\n        digestmod=hashlib.sha256\n    ).hexdigest()\n    \n    # Compare signatures\n    if signature == expected_signature:\n        return True  # Valid! ✅\n    else:\n        return False  # Fraud! ❌\n\`\`\`\n\n**Math Behind It:**\n\`\`\`\nMessage = "order_abc123|pay_xyz789"\nSecret Key = "your_secret_key_123"\n\nSignature = HMAC_SHA256(Message, Secret Key)\n         = "a1b2c3d4e5f6..."\n\nOnly someone with your secret key can generate valid signatures!\nHackers don't have your secret key = can't fake payments ✅\n\`\`\`\n\n---\n\n## 🎭 Real-World Example\n\n### Scenario: John Books Tickets for ₹500\n\n#### **Step 1: John Clicks "Pay Now"** (6:00 PM)\n\`\`\`python\n# Backend creates Razorpay order\norder = razorpay_client.order.create({\n    'amount': 50000,  # ₹500.00 in paise\n    'currency': 'INR',\n    'receipt': 'booking_12345',\n    'notes': {\n        'booking_id': 12345,\n        'user_id': 7,\n        'user_name': 'John'\n    }\n})\n\n# Response from Razorpay:\n{\n    'id': 'order_MfL8Dxyz123',\n    'amount': 50000,\n    'currency': 'INR',\n    'receipt': 'booking_12345',\n    'status': 'created'\n}\n\n# Save order_id to booking\nbooking.razorpay_order_id = 'order_MfL8Dxyz123'\nbooking.save()\n\`\`\`\n\n#### **Step 2: Razorpay Modal Opens**\n\`\`\`javascript\n// Frontend shows Razorpay checkout\nvar rzp = new Razorpay({\n    key: "rzp_test_xxxxx",\n    amount: 50000,  // ₹500.00\n    order_id: "order_MfL8Dxyz123",\n    \n    handler: function(response) {\n        // This runs when payment succeeds\n        verifyPayment(response);\n    }\n});\n\nrzp.open();  // Modal appears to John\n\`\`\`\n\n**John Sees:**\n\`\`\`\n┌─────────────────────────────────────┐\n│      RAZORPAY CHECKOUT              │\n├─────────────────────────────────────┤\n│  Pay ₹500.00                        │\n│                                     │\n│  [Card] [UPI] [Wallet] [NetBanking]│\n│                                     │\n│  Card Number: ________________      │\n│  CVV: ___    Expiry: __/__         │\n│                                     │\n│  [Pay ₹500] ← John clicks this     │\n└─────────────────────────────────────┘\n\`\`\`\n\n#### **Step 3: John Enters Card & Pays** (6:02 PM)\n\`\`\`\nJohn enters: 4111 1111 1111 1111 (Test card)\nCVV: 123\nExpiry: 12/25\n\n[Razorpay processes payment]\n[Bank approves transaction]\n[Razorpay generates payment_id]\n\`\`\`\n\n#### **Step 4: Razorpay Returns Success**\n\`\`\`javascript\n// Razorpay calls handler function\nfunction handler(response) {\n    console.log(response);\n    // {\n    //   razorpay_payment_id: "pay_MfL8EABCD456",\n    //   razorpay_order_id: "order_MfL8Dxyz123",\n    //   razorpay_signature: "a1b2c3d4e5f6..."\n    // }\n    \n    // Send to backend for verification\n    fetch('/verify_payment/', {\n        method: 'POST',\n        body: JSON.stringify(response)\n    });\n}\n\`\`\`\n\n#### **Step 5: Backend Verifies & Confirms**\n\`\`\`python\ndef verify_payment(request):\n    payment_id = "pay_MfL8EABCD456"\n    order_id = "order_MfL8Dxyz123"\n    signature = "a1b2c3d4e5f6..."\n    \n    # Verify signature\n    is_valid = verify_signature(order_id, payment_id, signature)\n    # Returns: True ✅\n    \n    # Find booking\n    booking = Booking.objects.get(razorpay_order_id=order_id)\n    \n    # Confirm booking\n    booking.status = 'CONFIRMED'\n    booking.payment_id = payment_id\n    booking.save()\n    \n    # Release Redis locks, confirm seats\n    SeatManager.confirm_seats(booking.showtime.id, booking.seats)\n    \n    # Send email\n    send_booking_confirmation_email.delay(booking.id)\n    \n    return JsonResponse({'success': True})\n\`\`\`\n\n#### **Step 6: John Sees Success Page** (6:03 PM)\n\`\`\`html\n<!-- Frontend redirects to success page -->\n<div class="success">\n    <h1>🎉 Booking Confirmed!</h1>\n    <p>Booking Number: BOOK-20260103-12345</p>\n    <p>Seats: A1, A2</p>\n    <p>Payment ID: pay_MfL8EABCD456</p>\n    <p>Check your email for confirmation!</p>\n</div>\n\`\`\`\n\n**Timeline:**\n\`\`\`\n6:00 PM - Order created\n6:02 PM - John enters card details\n6:02 PM - Razorpay processes payment\n6:02 PM - Payment successful\n6:03 PM - Backend verifies signature ✅\n6:03 PM - Booking confirmed in database ✅\n6:03 PM - Email queued (Celery) ✅\n6:03 PM - John sees success page ✅\n6:05 PM - John receives email ✅\n\`\`\`\n\n---\n\n## 🛠️ Razorpay Integration Code\n\n### 1. **Creating an Order** (Backend)\n\`\`\`python\n# File: bookings/razorpay_utils.py\n\nimport razorpay\nfrom django.conf import settings\n\n# Initialize Razorpay client\nclient = razorpay.Client(auth=(\n    settings.RAZORPAY_KEY_ID,\n    settings.RAZORPAY_KEY_SECRET\n))\n\ndef create_order(amount, receipt, notes=None):\n    """\n    Create a Razorpay order.\n    \n    Args:\n        amount: Amount in rupees (will be converted to paise)\n        receipt: Unique receipt ID (e.g., booking number)\n        notes: Optional metadata\n    \n    Returns:\n        Order data or error\n    """\n    try:\n        order = client.order.create({\n            'amount': int(amount * 100),  # Convert to paise\n            'currency': 'INR',\n            'receipt': receipt,\n            'notes': notes or {}\n        })\n        \n        return {\n            'success': True,\n            'order_id': order['id'],\n            'amount': order['amount'],\n            'currency': order['currency']\n        }\n    except Exception as e:\n        return {\n            'success': False,\n            'error': str(e)\n        }\n\`\`\`\n\n### 2. **Payment Page** (Template)\n\`\`\`html\n<!-- File: bookings/templates/bookings/payment.html -->\n\n<!DOCTYPE html>\n<html>\n<head>\n    <!-- Include Razorpay checkout.js -->\n    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>\n</head>\n<body>\n    <h1>Payment</h1>\n    <p>Amount: ₹{{ booking.total_amount }}</p>\n    \n    <button id="pay-button">Pay Now</button>\n    \n    <script>\n        document.getElementById('pay-button').onclick = function() {\n            var options = {\n                "key": "{{ razorpay_key }}",\n                "amount": {{ amount }},  // In paise\n                "currency": "INR",\n                "order_id": "{{ order_id }}",\n                "name": "Movie Booking",\n                "description": "Booking #{{ booking.booking_number }}",\n                \n                "handler": function (response) {\n                    // Payment success!\n                    verifyPayment(response);\n                },\n                \n                "modal": {\n                    "ondismiss": function() {\n                        // User closed modal\n                        alert("Payment cancelled");\n                    }\n                },\n                \n                "theme": {\n                    "color": "#F37254"\n                }\n            };\n            \n            var rzp = new Razorpay(options);\n            rzp.open();\n        };\n        \n        function verifyPayment(response) {\n            fetch('/bookings/verify_payment/', {\n                method: 'POST',\n                headers: {\n                    'Content-Type': 'application/json',\n                    'X-CSRFToken': '{{ csrf_token }}'\n                },\n                body: JSON.stringify({\n                    razorpay_payment_id: response.razorpay_payment_id,\n                    razorpay_order_id: response.razorpay_order_id,\n                    razorpay_signature: response.razorpay_signature,\n                    booking_id: {{ booking.id }}\n                })\n            })\n            .then(res => res.json())\n            .then(data => {\n                if (data.success) {\n                    window.location.href = '/bookings/success/' + data.booking_id + '/';\n                } else {\n                    alert('Payment verification failed!');\n                }\n            });\n        }\n    </script>\n</body>\n</html>\n\`\`\`\n\n### 3. **Verify Payment** (Backend)\n\`\`\`python\n# File: bookings/views.py\n\ndef verify_payment(request):\n    data = json.loads(request.body)\n    \n    payment_id = data.get('razorpay_payment_id')\n    order_id = data.get('razorpay_order_id')\n    signature = data.get('razorpay_signature')\n    booking_id = data.get('booking_id')\n    \n    # Verify signature\n    is_valid = PaymentVerificationService.verify_payment_signature(\n        order_id, payment_id, signature\n    )\n    \n    if not is_valid:\n        logger.error(f"Invalid signature for order {order_id}")\n        return JsonResponse({\n            'success': False,\n            'error': 'Payment verification failed'\n        })\n    \n    # Confirm booking\n    booking = Booking.objects.get(id=booking_id)\n    success, error = BookingService.confirm_payment(\n        booking, payment_id, signature_verified=True\n    )\n    \n    if success:\n        return JsonResponse({\n            'success': True,\n            'booking_id': booking.id\n        })\n    else:\n        return JsonResponse({\n            'success': False,\n            'error': error\n        })\n\`\`\`\n\n---\n\n## 🧪 Test vs Live Mode\n\n### Test Mode (Development)\n\`\`\`python\n# Test credentials (fake payments)\nRAZORPAY_KEY_ID = 'rzp_test_xxxxxxxxxxxxx'\nRAZORPAY_KEY_SECRET = 'test_secret_key_xxxxx'\n\n# Test card numbers:\n# Success: 4111 1111 1111 1111\n# Failure: 4000 0000 0000 0002\n\`\`\`\n\n**Benefits:**\n- No real money involved\n- Can simulate success/failure\n- Unlimited test transactions\n- Perfect for development\n\n### Live Mode (Production)\n\`\`\`python\n# Live credentials (real payments)\nRAZORPAY_KEY_ID = 'rzp_live_xxxxxxxxxxxxx'\nRAZORPAY_KEY_SECRET = 'live_secret_key_xxxxx'\n\n# Real cards, real money!\n# Must complete KYC verification\n# Razorpay charges 2% + GST per transaction\n\`\`\`\n\n**Requirements:**\n- Complete KYC (business documents)\n- Bank account verification\n- Live website (HTTPS required)\n- Real customers, real money\n\n---\n\n## 🔧 Troubleshooting\n\n### Problem 1: Payment Modal Not Opening\n\`\`\`javascript\n// Check if Razorpay script loaded\nif (typeof Razorpay === 'undefined') {\n    console.error("Razorpay script not loaded!");\n    // Add script tag:\n    // <script src="https://checkout.razorpay.com/v1/checkout.js"></script>\n}\n\n// Check for errors in console\nrzp.open();  // Any error messages?\n\`\`\`\n\n### Problem 2: "Order ID not found"\n\`\`\`python\n# Make sure order was created and saved to booking\nbooking = Booking.objects.get(id=booking_id)\nif not booking.razorpay_order_id:\n    # Order not created yet!\n    order_data = create_razorpay_order(booking)\n    booking.razorpay_order_id = order_data['order_id']\n    booking.save()\n\`\`\`\n\n### Problem 3: Signature Verification Failing\n\`\`\`python\n# Check if using correct secret key\nprint(settings.RAZORPAY_KEY_SECRET)  # Should be test key in development\n\n# Check message format (must be exact!)\nmessage = f"{order_id}|{payment_id}"  # Correct format\n# NOT: f"{payment_id}|{order_id}"  # Wrong!\n\n# Try manual verification:\nimport hmac\nimport hashlib\nexpected = hmac.new(\n    key=settings.RAZORPAY_KEY_SECRET.encode(),\n    msg=message.encode(),\n    digestmod=hashlib.sha256\n).hexdigest()\nprint(f"Expected: {expected}")\nprint(f"Received: {signature}")\n\`\`\`\n\n### Problem 4: Payment Success but Booking Not Confirmed\n\`\`\`python\n# Check backend logs\n# Look for errors in verify_payment() function\n\n# Check if webhook received (optional)\n# Razorpay can send webhook notifications\n# Configure in Razorpay dashboard\n\n# Check Razorpay dashboard\n# See if payment was actually captured\n# Maybe it's in "authorized" state, not "captured"\n\`\`\`\n\n---\n\n## 📊 Razorpay Payment States\n\n\`\`\`\nOrder Created → Payment Authorized → Payment Captured → Settled\n     ↓                  ↓                  ↓               ↓\n  Not Paid         Money on Hold     Money Received   In Bank Account\n  (Waiting)        (Pending)         (Success!)       (1-2 days)\n\`\`\`\n\n### State Details\n\n| State | Meaning | Action |\n|-------|---------|--------|\n| **created** | Order created, waiting for payment | Show payment modal |\n| **authorized** | Card charged, money on hold | Capture payment |\n| **captured** | Money received by Razorpay | Confirm booking |\n| **refund_pending** | Refund initiated | Wait for completion |\n| **refunded** | Money returned to customer | Cancel booking |\n| **failed** | Payment failed | Show error, retry |\n\n---\n\n## 🎓 Key Takeaways\n\n1. **Payment Gateway = Security**: Never handle card data yourself\n2. **Order First**: Create order before showing payment modal\n3. **Verify Signature**: Always verify payment signature (security!)\n4. **Test Mode**: Use test credentials during development\n5. **Error Handling**: Payment can fail, handle it gracefully\n6. **Webhooks**: Optional but recommended for reliability\n7. **Refunds**: Easy with one API call\n\n---\n\n## 🚀 Next Steps\n\n1. Read: [Understanding Redis](./UNDERSTANDING_REDIS.md) - Learn about caching\n2. Read: [Understanding Celery](./UNDERSTANDING_CELERY.md) - Learn about background tasks\n3. Practice: Create test orders and payments\n4. Explore: Razorpay Dashboard (see all transactions)\n\n---\n\n**Remember**: Razorpay is like a secure cash register - customers pay through it, you get confirmation, nobody sees sensitive card data! 💳🔒\n\n*Last Updated: January 3, 2026*\n`;
+            const blob = new Blob([markdownContent], { type: 'text/markdown' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'UNDERSTANDING_RAZORPAY.md';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        }
+        
+        // Keyboard shortcut for print
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+                e.preventDefault();
+                window.print();
+            }
+        });
+    </script>
+</body>
+</html>

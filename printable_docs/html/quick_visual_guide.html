@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quick Visual Guide - Movie Booking System</title>
+    <style>
+        /* Screen Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            line-height: 1.8;
+            color: #000;
+            background: #f5f5f5;
+            padding: 20px;
+            font-size: 12pt;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        
+        .header {
+            border-bottom: 3px solid #007bff;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #007bff;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+        
+        .meta {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .meta-info {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #0056b3;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .content {
+            margin-top: 30px;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+            color: #2c3e50;
+        }
+        
+        h1 { font-size: 2em; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
+        h2 { font-size: 1.75em; border-bottom: 1px solid #dee2e6; padding-bottom: 8px; }
+        h3 { font-size: 1.5em; }
+        h4 { font-size: 1.25em; }
+        
+        p {
+            margin-bottom: 1em;
+        }
+        
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 10pt;
+            color: #000;
+            font-weight: 500;
+        }
+        
+        pre {
+            background: #f8f8f8;
+            color: #000;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin: 15px 0;
+            line-height: 1.6;
+            font-size: 10pt;
+        }
+        
+        pre code {
+            background: none;
+            color: #000;
+            padding: 0;
+            border: none;
+            font-size: 10pt;
+            font-weight: normal;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        table th, table td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #dee2e6;
+        }
+        
+        table th {
+            background: #007bff;
+            color: white;
+            font-weight: 600;
+        }
+        
+        table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        blockquote {
+            border-left: 4px solid #007bff;
+            padding-left: 20px;
+            margin: 20px 0;
+            color: #666;
+            font-style: italic;
+        }
+        
+        ul, ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+        
+        li {
+            margin: 5px 0;
+        }
+        
+        a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        
+        a:hover {
+            text-decoration: underline;
+        }
+        
+        hr {
+            border: none;
+            border-top: 2px solid #dee2e6;
+            margin: 30px 0;
+        }
+        
+        /* Print Styles - Optimized for Black & White */
+        @media print {
+            @page {
+                margin: 0.75in;
+                size: A4;
+            }
+            
+            body {
+                background: white;
+                padding: 0;
+                color: #000;
+                font-size: 11pt;
+                line-height: 1.6;
+            }
+            
+            .container {
+                box-shadow: none;
+                padding: 0;
+                max-width: 100%;
+            }
+            
+            .actions, .no-print {
+                display: none !important;
+            }
+            
+            .header {
+                border-bottom: 2px solid #000;
+                padding-bottom: 10pt;
+                margin-bottom: 15pt;
+            }
+            
+            .header h1 {
+                color: #000;
+                font-size: 18pt;
+            }
+            
+            .header p {
+                color: #333;
+                font-size: 11pt;
+            }
+            
+            .meta {
+                background: #f9f9f9;
+                border: 1px solid #ddd;
+                padding: 10pt;
+                margin-bottom: 15pt;
+            }
+            
+            h1 {
+                font-size: 16pt;
+                border-bottom: 2px solid #000;
+                padding-bottom: 5pt;
+                margin-top: 20pt;
+                margin-bottom: 10pt;
+                page-break-after: avoid;
+            }
+            
+            h2 {
+                font-size: 14pt;
+                border-bottom: 1px solid #666;
+                padding-bottom: 4pt;
+                margin-top: 15pt;
+                margin-bottom: 8pt;
+                page-break-after: avoid;
+            }
+            
+            h3 {
+                font-size: 13pt;
+                margin-top: 12pt;
+                margin-bottom: 6pt;
+                page-break-after: avoid;
+            }
+            
+            h4 {
+                font-size: 12pt;
+                margin-top: 10pt;
+                margin-bottom: 5pt;
+                page-break-after: avoid;
+            }
+            
+            p {
+                margin-bottom: 8pt;
+                orphans: 3;
+                widows: 3;
+            }
+            
+            /* Code blocks - BLACK & WHITE optimized */
+            code {
+                background: #f0f0f0;
+                border: 1px solid #999;
+                padding: 2pt 4pt;
+                font-family: 'Courier New', 'Consolas', monospace;
+                font-size: 9pt;
+                color: #000;
+                font-weight: 600;
+            }
+            
+            pre {
+                background: #f8f8f8;
+                border: 2px solid #666;
+                padding: 10pt;
+                margin: 10pt 0;
+                page-break-inside: avoid;
+                font-size: 9pt;
+                line-height: 1.4;
+                overflow: visible;
+                white-space: pre-wrap;
+                word-wrap: break-word;
+            }
+            
+            pre code {
+                background: none;
+                border: none;
+                padding: 0;
+                font-size: 9pt;
+                font-weight: normal;
+                color: #000;
+            }
+            
+            /* Tables - BLACK & WHITE optimized */
+            table {
+                page-break-inside: avoid;
+                border-collapse: collapse;
+                width: 100%;
+                margin: 10pt 0;
+                border: 2px solid #000;
+            }
+            
+            table th {
+                background: #e0e0e0;
+                color: #000;
+                border: 1px solid #666;
+                padding: 6pt;
+                font-weight: bold;
+                text-align: left;
+            }
+            
+            table td {
+                border: 1px solid #999;
+                padding: 6pt;
+                color: #000;
+            }
+            
+            table tr:nth-child(even) {
+                background: #f5f5f5;
+            }
+            
+            /* Blockquotes */
+            blockquote {
+                border-left: 3px solid #000;
+                padding-left: 10pt;
+                margin: 10pt 0;
+                font-style: italic;
+                color: #333;
+                page-break-inside: avoid;
+            }
+            
+            /* Links */
+            a {
+                color: #000;
+                text-decoration: underline;
+            }
+            
+            a[href]:after {
+                content: " (" attr(href) ")";
+                font-size: 9pt;
+                color: #666;
+            }
+            
+            /* Lists */
+            ul, ol {
+                margin: 8pt 0;
+                padding-left: 20pt;
+            }
+            
+            li {
+                margin: 4pt 0;
+            }
+            
+            /* Horizontal rules */
+            hr {
+                border: none;
+                border-top: 1px solid #000;
+                margin: 15pt 0;
+            }
+            
+            /* Image handling */
+            img {
+                max-width: 100%;
+                page-break-inside: avoid;
+            }
+            
+            /* Page breaks */
+            .page-break {
+                page-break-before: always;
+            }
+            
+            /* Ensure visibility of all content */
+            * {
+                color: #000 !important;
+                background: white !important;
+            }
+            
+            code, pre {
+                background: #f5f5f5 !important;
+                border-color: #666 !important;
+            }
+            
+            table th {
+                background: #e0e0e0 !important;
+            }
+            
+            table tr:nth-child(even) {
+                background: #f8f8f8 !important;
+            }
+        }
+        
+        /* Code syntax highlighting */
+        .codehilite .hll { background-color: #49483e }
+        .codehilite .c { color: #75715e }
+        .codehilite .k { color: #66d9ef }
+        .codehilite .l { color: #ae81ff }
+        .codehilite .n { color: #f8f8f2 }
+        .codehilite .o { color: #f92672 }
+        .codehilite .p { color: #f8f8f2 }
+        .codehilite .cm { color: #75715e }
+        .codehilite .cp { color: #75715e }
+        .codehilite .c1 { color: #75715e }
+        .codehilite .cs { color: #75715e }
+        .codehilite .kc { color: #66d9ef }
+        .codehilite .kd { color: #66d9ef }
+        .codehilite .kn { color: #f92672 }
+        .codehilite .kp { color: #66d9ef }
+        .codehilite .kr { color: #66d9ef }
+        .codehilite .kt { color: #66d9ef }
+        .codehilite .ld { color: #e6db74 }
+        .codehilite .m { color: #ae81ff }
+        .codehilite .s { color: #e6db74 }
+        .codehilite .na { color: #a6e22e }
+        .codehilite .nb { color: #f8f8f2 }
+        .codehilite .nc { color: #a6e22e }
+        .codehilite .no { color: #66d9ef }
+        .codehilite .nd { color: #a6e22e }
+        .codehilite .ni { color: #f8f8f2 }
+        .codehilite .ne { color: #a6e22e }
+        .codehilite .nf { color: #a6e22e }
+        .codehilite .nl { color: #f8f8f2 }
+        .codehilite .nn { color: #f8f8f2 }
+        .codehilite .nx { color: #a6e22e }
+        .codehilite .py { color: #f8f8f2 }
+        .codehilite .nt { color: #f92672 }
+        .codehilite .nv { color: #f8f8f2 }
+        .codehilite .ow { color: #f92672 }
+        .codehilite .w { color: #f8f8f2 }
+        .codehilite .mf { color: #ae81ff }
+        .codehilite .mh { color: #ae81ff }
+        .codehilite .mi { color: #ae81ff }
+        .codehilite .mo { color: #ae81ff }
+        .codehilite .sb { color: #e6db74 }
+        .codehilite .sc { color: #e6db74 }
+        .codehilite .sd { color: #e6db74 }
+        .codehilite .s2 { color: #e6db74 }
+        .codehilite .se { color: #ae81ff }
+        .codehilite .sh { color: #e6db74 }
+        .codehilite .si { color: #e6db74 }
+        .codehilite .sx { color: #e6db74 }
+        .codehilite .sr { color: #e6db74 }
+        .codehilite .s1 { color: #e6db74 }
+        .codehilite .ss { color: #e6db74 }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Quick Visual Guide</h1>
+            <p>Visual guide to the project structure and features</p>
+        </div>
+        
+        <div class="meta">
+            <div class="meta-info">
+                <strong>Generated:</strong> January 04, 2026<br>
+                <strong>Source:</strong> QUICK_VISUAL_GUIDE.md<br>
+                <strong>Project:</strong> Movie Booking System
+            </div>
+            <div class="actions no-print">
+                <button class="btn btn-primary" onclick="window.print()">
+                    <span>🖨️</span> Print / Save as PDF
+                </button>
+                <button class="btn btn-success" onclick="downloadMarkdown()">
+                    <span>📥</span> Download Markdown
+                </button>
+                <a href="index.html" class="btn btn-secondary">
+                    <span>🏠</span> Back to Index
+                </a>
+            </div>
+        </div>
+        
+        <div class="content">
+            <h1 id="quick-visual-guide-movie-booking-system">🎯 Quick Visual Guide - Movie Booking System</h1>
+<p>A visual reference guide for understanding the system at a glance.</p>
+<hr />
+<h2 id="system-components">🏗️ System Components</h2>
+<pre><code>┌─────────────────────────────────────────────────────────┐
+│                    🌐 USER'S BROWSER                    │
+│  • Select seats                                         │
+│  • Make payment                                         │
+│  • See confirmation                                     │
+└────────────────────┬───────────────────────────────────┘
+                     │ HTTP Requests
+                     ▼
+┌─────────────────────────────────────────────────────────┐
+│               🎯 DJANGO WEB SERVER                      │
+│  • Handle requests                                      │
+│  • Business logic                                       │
+│  • Coordinate components                                │
+└──┬──────────────┬──────────────┬──────────────────────┘
+   │              │              │
+   ▼              ▼              ▼
+┌────────────┐ ┌────────────┐ ┌──────────────┐
+│ 🗄️ REDIS   │ │ 💾 DATABASE│ │ 💳 RAZORPAY  │
+│ Temp cache │ │ Permanent  │ │ Payments     │
+│ 10 min TTL │ │ storage    │ │ gateway      │
+└─────┬──────┘ └────────────┘ └──────────────┘
+      │
+      ▼
+┌────────────────────────────────┐
+│      ⚙️ CELERY WORKERS         │
+│  • Send emails                 │
+│  • Background tasks            │
+└────────────────┬───────────────┘
+                 │
+                 ▼
+┌────────────────────────────────┐
+│      ⏰ CELERY BEAT             │
+│  • Expire bookings (60s)       │
+│  • Send reminders (daily)      │
+└────────────────────────────────┘
+</code></pre>
+<hr />
+<h2 id="booking-state-transitions">📊 Booking State Transitions</h2>
+<pre><code>┌──────────┐    Select Seats    ┌──────────┐
+│  START   │───────────────────→│ PENDING  │
+│          │                     │ (10 min) │
+└──────────┘                     └────┬─────┘
+                                      │
+                    ┌─────────────────┼─────────────────┐
+                    │                 │                 │
+              User Completes    User Abandons    Timer Expires
+                Payment           Payment         or Refresh
+                    │                 │                 │
+                    ▼                 ▼                 ▼
+              ┌───────────┐     ┌──────────┐    ┌──────────┐
+              │ CONFIRMED │     │ CANCELLED│    │ EXPIRED  │
+              │ (Permanent)│     │          │    │          │
+              └───────────┘     └──────────┘    └──────────┘
+</code></pre>
+<hr />
+<h2 id="complete-booking-flow">🔄 Complete Booking Flow</h2>
+<pre><code>1️⃣ USER SELECTS SEATS
+    ↓
+2️⃣ DJANGO → REDIS (Lock seats, 10-min TTL)
+    ↓
+3️⃣ DJANGO → DATABASE (Create PENDING booking)
+    ↓
+4️⃣ USER SEES PAYMENT PAGE
+    ↓
+5️⃣ DJANGO → RAZORPAY (Create order)
+    ↓
+6️⃣ RAZORPAY MODAL OPENS
+    ↓
+7️⃣ USER ENTERS CARD &amp; PAYS
+    ↓
+8️⃣ RAZORPAY PROCESSES PAYMENT
+    ↓
+9️⃣ DJANGO VERIFIES SIGNATURE ✅
+    ↓
+🔟 DJANGO → DATABASE (Update to CONFIRMED)
+    ↓
+1️⃣1️⃣ DJANGO → REDIS (Clear locks)
+    ↓
+1️⃣2️⃣ DJANGO → CELERY (Queue email)
+    ↓
+1️⃣3️⃣ CELERY SENDS EMAIL
+    ↓
+1️⃣4️⃣ USER SEES SUCCESS PAGE! 🎉
+</code></pre>
+<hr />
+<h2 id="timeline-visualization">⏰ Timeline Visualization</h2>
+<pre><code>Time    | User Action           | System Response
+--------|-----------------------|------------------------------------
+6:00 PM | Select seats A1, A2   | Redis: Lock A1, A2 (expires 6:10)
+        |                       | DB: Create booking (PENDING)
+--------|-----------------------|------------------------------------
+6:02 PM | Click &quot;Pay Now&quot;       | Razorpay: Create order
+        |                       | Show payment modal
+--------|-----------------------|------------------------------------
+6:05 PM | Enter card, pay       | Razorpay: Process payment
+        |                       | Django: Verify signature ✅
+        |                       | DB: Update to CONFIRMED
+        |                       | Redis: Clear locks
+        |                       | Celery: Queue email
+--------|-----------------------|------------------------------------
+6:05 PM | See success page      | User happy! ✅
+--------|-----------------------|------------------------------------
+6:07 PM | -                     | Celery: Send email ✅
+--------|-----------------------|------------------------------------
+
+ALTERNATIVE TIMELINE (User Abandons):
+
+Time    | User Action           | System Response
+--------|-----------------------|------------------------------------
+6:00 PM | Select seats          | Redis: Lock seats (expires 6:10)
+        |                       | DB: Create booking (PENDING)
+--------|-----------------------|------------------------------------
+6:05 PM | Close browser ❌       | (No action)
+--------|-----------------------|------------------------------------
+6:10 PM | -                     | Redis: Auto-delete locks (TTL=0)
+--------|-----------------------|------------------------------------
+6:11 PM | -                     | Celery Beat: Find expired booking
+        |                       | DB: Update to EXPIRED
+        |                       | Redis: Cleanup (if any remaining)
+--------|-----------------------|------------------------------------
+Result  | Seats A1, A2 now available for others! ✅
+</code></pre>
+<hr />
+<h2 id="redis-keys-structure">🗄️ Redis Keys Structure</h2>
+<pre><code>For Showtime ID: 24, User ID: 7, Seats: A1, A2
+
+┌────────────────────────────────────────────────┐
+│ Key: seat_lock:24:A1                           │
+│ Value: &quot;7&quot; (user_id)                           │
+│ TTL: 600 seconds (10 minutes)                  │
+│ Purpose: Lock individual seat A1               │
+└────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────┐
+│ Key: seat_lock:24:A2                           │
+│ Value: &quot;7&quot; (user_id)                           │
+│ TTL: 600 seconds                               │
+│ Purpose: Lock individual seat A2               │
+└────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────┐
+│ Key: reserved_seats_24                         │
+│ Value: [&quot;A1&quot;, &quot;A2&quot;]                            │
+│ TTL: 600 seconds                               │
+│ Purpose: List of all reserved seats            │
+└────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────┐
+│ Key: seat_reservation_24_7                     │
+│ Value: {                                       │
+│   &quot;seat_ids&quot;: [&quot;A1&quot;, &quot;A2&quot;],                    │
+│   &quot;reserved_at&quot;: 1767451157.5                  │
+│ }                                              │
+│ TTL: 600 seconds                               │
+│ Purpose: User's specific reservation           │
+└────────────────────────────────────────────────┘
+</code></pre>
+<hr />
+<h2 id="decision-tree-what-component-to-use">💡 Decision Tree: What Component to Use?</h2>
+<pre><code>Need to...
+
+├─ Store data temporarily (&lt; 1 hour)?
+│  └─→ USE: Redis ✅
+│      Examples: Seat locks, session data
+│
+├─ Store data permanently?
+│  └─→ USE: Database ✅
+│      Examples: Users, bookings, movies
+│
+├─ Process payment?
+│  └─→ USE: Razorpay ✅
+│      Example: Credit card payments
+│
+├─ Send email/SMS?
+│  └─→ USE: Celery (async) ✅
+│      Why: Don't make user wait
+│
+├─ Run task on schedule?
+│  └─→ USE: Celery Beat ✅
+│      Example: Expire bookings every 60s
+│
+└─ Handle user request?
+   └─→ USE: Django ✅
+       Example: All HTTP requests
+</code></pre>
+<hr />
+<h2 id="error-handling-flow">🚨 Error Handling Flow</h2>
+<pre><code>SCENARIO: User Refreshes Payment Page
+
+1. Frontend JS detects refresh
+   ↓
+2. sessionStorage check
+   ├─→ New tab? → Show error page ✅
+   └─→ Refresh? → Continue below
+   ↓
+3. Call /api/cancel_booking/
+   ↓
+4. Backend: force_expire_booking()
+   ├─→ Update DB: status = EXPIRED
+   ├─→ Clear Redis: seat_lock:*
+   ├─→ Clear Redis: seat_reservation_*
+   └─→ Clear Redis: reserved_seats_*
+   ↓
+5. Frontend: Show error page
+   └─→ &quot;Booking expired. Start new booking?&quot;
+</code></pre>
+<hr />
+<h2 id="system-health-dashboard">📊 System Health Dashboard</h2>
+<pre><code>┌─────────────────────────────────────────────┐
+│           COMPONENT STATUS                  │
+├─────────────────────────────────────────────┤
+│ ✅ Django           Running on :8000        │
+│ ✅ Redis            Running on :6379        │
+│ ✅ Celery Worker    3 tasks completed       │
+│ ✅ Celery Beat      Running every 60s       │
+│ ✅ Database         28 bookings today       │
+│ ✅ Razorpay         Test mode active        │
+└─────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────┐
+│         REDIS KEY STATISTICS                │
+├─────────────────────────────────────────────┤
+│ Seat Locks:              12 keys            │
+│ User Reservations:       4 keys             │
+│ Reserved Seats Lists:    3 keys             │
+│ Total Memory Used:       2.1 MB             │
+│ Keys Expiring Soon:      5 (&lt; 5 min)        │
+└─────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────┐
+│         CELERY TASK STATISTICS              │
+├─────────────────────────────────────────────┤
+│ Tasks Today:             47                 │
+│ ├─ Email Sent:           38 ✅               │
+│ ├─ Expired Bookings:     7 ✅                │
+│ └─ Failed:               2 ❌                │
+│ Average Task Time:       2.3s               │
+│ Queue Length:            0 (empty)          │
+└─────────────────────────────────────────────┘
+</code></pre>
+<hr />
+<h2 id="performance-metrics">🎯 Performance Metrics</h2>
+<pre><code>OPERATION                  | TIME      | COMPONENT
+---------------------------|-----------|------------------
+Check seat availability    | ~1 ms     | Redis (cache hit)
+Lock seats                 | ~5 ms     | Redis
+Create booking             | ~50 ms    | Database
+Create Razorpay order      | ~200 ms   | Razorpay API
+Process payment            | ~2 sec    | Razorpay
+Verify signature           | ~10 ms    | Django (HMAC)
+Confirm booking            | ~100 ms   | Database + Redis
+Queue email task           | ~5 ms     | Redis (Celery)
+Send email (async)         | ~2 sec    | Celery (background)
+
+TOTAL USER WAIT TIME: ~2.5 seconds (without email)
+USER SEES: &quot;Booking confirmed!&quot; immediately
+BACKGROUND: Email sends 5 seconds later
+</code></pre>
+<hr />
+<h2 id="security-layers">🔐 Security Layers</h2>
+<pre><code>Layer 1: HTTPS
+         └─→ All data encrypted in transit
+
+Layer 2: CSRF Protection
+         └─→ Prevent cross-site attacks
+
+Layer 3: Session Management
+         └─→ Secure user sessions in Redis
+
+Layer 4: Payment Security
+         ├─→ No card data stored
+         ├─→ Razorpay handles PCI compliance
+         └─→ Signature verification (HMAC-SHA256)
+
+Layer 5: Rate Limiting (Planned)
+         └─→ Prevent brute force attacks
+
+Layer 6: Input Validation
+         └─→ Sanitize all user input
+</code></pre>
+<hr />
+<h2 id="responsive-design">📱 Responsive Design</h2>
+<pre><code>┌─────────────────────────────────┐
+│         DESKTOP (1920px)        │
+├─────────────────────────────────┤
+│ [Header]                        │
+│                                 │
+│ [Movie Details]  [Seat Layout]  │
+│                                 │
+│ [Theater Info]   [Price Info]   │
+│                                 │
+│        [Book Now Button]        │
+└─────────────────────────────────┘
+
+┌──────────────┐
+│ MOBILE (375px)│
+├──────────────┤
+│  [Header]    │
+│              │
+│ [Movie Info] │
+│              │
+│ [Seat Layout]│
+│  (scrollable)│
+│              │
+│ [Price Info] │
+│              │
+│ [Book Button]│
+└──────────────┘
+</code></pre>
+<hr />
+<h2 id="learning-roadmap">🎓 Learning Roadmap</h2>
+<pre><code>Week 1: Basics
+├─ Day 1-2: Django fundamentals
+├─ Day 3-4: Redis basics
+└─ Day 5-7: Celery introduction
+
+Week 2: Integration
+├─ Day 1-2: Redis + Django
+├─ Day 3-4: Celery + Django
+└─ Day 5-7: Razorpay integration
+
+Week 3: Advanced
+├─ Day 1-2: Concurrency &amp; locking
+├─ Day 3-4: Error handling
+└─ Day 5-7: Testing &amp; debugging
+
+Week 4: Production
+├─ Day 1-2: Deployment setup
+├─ Day 3-4: Monitoring &amp; logging
+└─ Day 5-7: Performance optimization
+</code></pre>
+<hr />
+<h2 id="next-steps">🚀 Next Steps</h2>
+<ol>
+<li><strong>Read</strong>: Start with <a href="./UNDERSTANDING_REDIS.md">UNDERSTANDING_REDIS.md</a></li>
+<li><strong>Practice</strong>: Run test scripts and watch the logs</li>
+<li><strong>Experiment</strong>: Try different scenarios (refresh, cancel, etc.)</li>
+<li><strong>Build</strong>: Create your own features on top of this system</li>
+</ol>
+<hr />
+<p><strong>Remember</strong>: This visual guide is a quick reference. For detailed explanations, see the full documentation! 📚</p>
+<p><em>Last Updated: January 3, 2026</em></p>
+        </div>
+        
+        <hr class="no-print">
+        <div class="meta no-print" style="margin-top: 30px;">
+            <p style="color: #666; font-size: 0.9em;">
+                💡 <strong>Tip:</strong> Use <kbd>Ctrl+P</kbd> (Windows/Linux) or <kbd>Cmd+P</kbd> (Mac) to print or save as PDF.
+                Select "Save as PDF" as your destination.
+            </p>
+        </div>
+    </div>
+    
+    <script>
+        // Download markdown function
+        function downloadMarkdown() {
+            const markdownContent = `# 🎯 Quick Visual Guide - Movie Booking System\n\nA visual reference guide for understanding the system at a glance.\n\n---\n\n## 🏗️ System Components\n\n\`\`\`\n┌─────────────────────────────────────────────────────────┐\n│                    🌐 USER'S BROWSER                    │\n│  • Select seats                                         │\n│  • Make payment                                         │\n│  • See confirmation                                     │\n└────────────────────┬───────────────────────────────────┘\n                     │ HTTP Requests\n                     ▼\n┌─────────────────────────────────────────────────────────┐\n│               🎯 DJANGO WEB SERVER                      │\n│  • Handle requests                                      │\n│  • Business logic                                       │\n│  • Coordinate components                                │\n└──┬──────────────┬──────────────┬──────────────────────┘\n   │              │              │\n   ▼              ▼              ▼\n┌────────────┐ ┌────────────┐ ┌──────────────┐\n│ 🗄️ REDIS   │ │ 💾 DATABASE│ │ 💳 RAZORPAY  │\n│ Temp cache │ │ Permanent  │ │ Payments     │\n│ 10 min TTL │ │ storage    │ │ gateway      │\n└─────┬──────┘ └────────────┘ └──────────────┘\n      │\n      ▼\n┌────────────────────────────────┐\n│      ⚙️ CELERY WORKERS         │\n│  • Send emails                 │\n│  • Background tasks            │\n└────────────────┬───────────────┘\n                 │\n                 ▼\n┌────────────────────────────────┐\n│      ⏰ CELERY BEAT             │\n│  • Expire bookings (60s)       │\n│  • Send reminders (daily)      │\n└────────────────────────────────┘\n\`\`\`\n\n---\n\n## 📊 Booking State Transitions\n\n\`\`\`\n┌──────────┐    Select Seats    ┌──────────┐\n│  START   │───────────────────→│ PENDING  │\n│          │                     │ (10 min) │\n└──────────┘                     └────┬─────┘\n                                      │\n                    ┌─────────────────┼─────────────────┐\n                    │                 │                 │\n              User Completes    User Abandons    Timer Expires\n                Payment           Payment         or Refresh\n                    │                 │                 │\n                    ▼                 ▼                 ▼\n              ┌───────────┐     ┌──────────┐    ┌──────────┐\n              │ CONFIRMED │     │ CANCELLED│    │ EXPIRED  │\n              │ (Permanent)│     │          │    │          │\n              └───────────┘     └──────────┘    └──────────┘\n\`\`\`\n\n---\n\n## 🔄 Complete Booking Flow\n\n\`\`\`\n1️⃣ USER SELECTS SEATS\n    ↓\n2️⃣ DJANGO → REDIS (Lock seats, 10-min TTL)\n    ↓\n3️⃣ DJANGO → DATABASE (Create PENDING booking)\n    ↓\n4️⃣ USER SEES PAYMENT PAGE\n    ↓\n5️⃣ DJANGO → RAZORPAY (Create order)\n    ↓\n6️⃣ RAZORPAY MODAL OPENS\n    ↓\n7️⃣ USER ENTERS CARD & PAYS\n    ↓\n8️⃣ RAZORPAY PROCESSES PAYMENT\n    ↓\n9️⃣ DJANGO VERIFIES SIGNATURE ✅\n    ↓\n🔟 DJANGO → DATABASE (Update to CONFIRMED)\n    ↓\n1️⃣1️⃣ DJANGO → REDIS (Clear locks)\n    ↓\n1️⃣2️⃣ DJANGO → CELERY (Queue email)\n    ↓\n1️⃣3️⃣ CELERY SENDS EMAIL\n    ↓\n1️⃣4️⃣ USER SEES SUCCESS PAGE! 🎉\n\`\`\`\n\n---\n\n## ⏰ Timeline Visualization\n\n\`\`\`\nTime    | User Action           | System Response\n--------|-----------------------|------------------------------------\n6:00 PM | Select seats A1, A2   | Redis: Lock A1, A2 (expires 6:10)\n        |                       | DB: Create booking (PENDING)\n--------|-----------------------|------------------------------------\n6:02 PM | Click "Pay Now"       | Razorpay: Create order\n        |                       | Show payment modal\n--------|-----------------------|------------------------------------\n6:05 PM | Enter card, pay       | Razorpay: Process payment\n        |                       | Django: Verify signature ✅\n        |                       | DB: Update to CONFIRMED\n        |                       | Redis: Clear locks\n        |                       | Celery: Queue email\n--------|-----------------------|------------------------------------\n6:05 PM | See success page      | User happy! ✅\n--------|-----------------------|------------------------------------\n6:07 PM | -                     | Celery: Send email ✅\n--------|-----------------------|------------------------------------\n\nALTERNATIVE TIMELINE (User Abandons):\n\nTime    | User Action           | System Response\n--------|-----------------------|------------------------------------\n6:00 PM | Select seats          | Redis: Lock seats (expires 6:10)\n        |                       | DB: Create booking (PENDING)\n--------|-----------------------|------------------------------------\n6:05 PM | Close browser ❌       | (No action)\n--------|-----------------------|------------------------------------\n6:10 PM | -                     | Redis: Auto-delete locks (TTL=0)\n--------|-----------------------|------------------------------------\n6:11 PM | -                     | Celery Beat: Find expired booking\n        |                       | DB: Update to EXPIRED\n        |                       | Redis: Cleanup (if any remaining)\n--------|-----------------------|------------------------------------\nResult  | Seats A1, A2 now available for others! ✅\n\`\`\`\n\n---\n\n## 🗄️ Redis Keys Structure\n\n\`\`\`\nFor Showtime ID: 24, User ID: 7, Seats: A1, A2\n\n┌────────────────────────────────────────────────┐\n│ Key: seat_lock:24:A1                           │\n│ Value: "7" (user_id)                           │\n│ TTL: 600 seconds (10 minutes)                  │\n│ Purpose: Lock individual seat A1               │\n└────────────────────────────────────────────────┘\n\n┌────────────────────────────────────────────────┐\n│ Key: seat_lock:24:A2                           │\n│ Value: "7" (user_id)                           │\n│ TTL: 600 seconds                               │\n│ Purpose: Lock individual seat A2               │\n└────────────────────────────────────────────────┘\n\n┌────────────────────────────────────────────────┐\n│ Key: reserved_seats_24                         │\n│ Value: ["A1", "A2"]                            │\n│ TTL: 600 seconds                               │\n│ Purpose: List of all reserved seats            │\n└────────────────────────────────────────────────┘\n\n┌────────────────────────────────────────────────┐\n│ Key: seat_reservation_24_7                     │\n│ Value: {                                       │\n│   "seat_ids": ["A1", "A2"],                    │\n│   "reserved_at": 1767451157.5                  │\n│ }                                              │\n│ TTL: 600 seconds                               │\n│ Purpose: User's specific reservation           │\n└────────────────────────────────────────────────┘\n\`\`\`\n\n---\n\n## 💡 Decision Tree: What Component to Use?\n\n\`\`\`\nNeed to...\n\n├─ Store data temporarily (< 1 hour)?\n│  └─→ USE: Redis ✅\n│      Examples: Seat locks, session data\n│\n├─ Store data permanently?\n│  └─→ USE: Database ✅\n│      Examples: Users, bookings, movies\n│\n├─ Process payment?\n│  └─→ USE: Razorpay ✅\n│      Example: Credit card payments\n│\n├─ Send email/SMS?\n│  └─→ USE: Celery (async) ✅\n│      Why: Don't make user wait\n│\n├─ Run task on schedule?\n│  └─→ USE: Celery Beat ✅\n│      Example: Expire bookings every 60s\n│\n└─ Handle user request?\n   └─→ USE: Django ✅\n       Example: All HTTP requests\n\`\`\`\n\n---\n\n## 🚨 Error Handling Flow\n\n\`\`\`\nSCENARIO: User Refreshes Payment Page\n\n1. Frontend JS detects refresh\n   ↓\n2. sessionStorage check\n   ├─→ New tab? → Show error page ✅\n   └─→ Refresh? → Continue below\n   ↓\n3. Call /api/cancel_booking/\n   ↓\n4. Backend: force_expire_booking()\n   ├─→ Update DB: status = EXPIRED\n   ├─→ Clear Redis: seat_lock:*\n   ├─→ Clear Redis: seat_reservation_*\n   └─→ Clear Redis: reserved_seats_*\n   ↓\n5. Frontend: Show error page\n   └─→ "Booking expired. Start new booking?"\n\`\`\`\n\n---\n\n## 📊 System Health Dashboard\n\n\`\`\`\n┌─────────────────────────────────────────────┐\n│           COMPONENT STATUS                  │\n├─────────────────────────────────────────────┤\n│ ✅ Django           Running on :8000        │\n│ ✅ Redis            Running on :6379        │\n│ ✅ Celery Worker    3 tasks completed       │\n│ ✅ Celery Beat      Running every 60s       │\n│ ✅ Database         28 bookings today       │\n│ ✅ Razorpay         Test mode active        │\n└─────────────────────────────────────────────┘\n\n┌─────────────────────────────────────────────┐\n│         REDIS KEY STATISTICS                │\n├─────────────────────────────────────────────┤\n│ Seat Locks:              12 keys            │\n│ User Reservations:       4 keys             │\n│ Reserved Seats Lists:    3 keys             │\n│ Total Memory Used:       2.1 MB             │\n│ Keys Expiring Soon:      5 (< 5 min)        │\n└─────────────────────────────────────────────┘\n\n┌─────────────────────────────────────────────┐\n│         CELERY TASK STATISTICS              │\n├─────────────────────────────────────────────┤\n│ Tasks Today:             47                 │\n│ ├─ Email Sent:           38 ✅               │\n│ ├─ Expired Bookings:     7 ✅                │\n│ └─ Failed:               2 ❌                │\n│ Average Task Time:       2.3s               │\n│ Queue Length:            0 (empty)          │\n└─────────────────────────────────────────────┘\n\`\`\`\n\n---\n\n## 🎯 Performance Metrics\n\n\`\`\`\nOPERATION                  | TIME      | COMPONENT\n---------------------------|-----------|------------------\nCheck seat availability    | ~1 ms     | Redis (cache hit)\nLock seats                 | ~5 ms     | Redis\nCreate booking             | ~50 ms    | Database\nCreate Razorpay order      | ~200 ms   | Razorpay API\nProcess payment            | ~2 sec    | Razorpay\nVerify signature           | ~10 ms    | Django (HMAC)\nConfirm booking            | ~100 ms   | Database + Redis\nQueue email task           | ~5 ms     | Redis (Celery)\nSend email (async)         | ~2 sec    | Celery (background)\n\nTOTAL USER WAIT TIME: ~2.5 seconds (without email)\nUSER SEES: "Booking confirmed!" immediately\nBACKGROUND: Email sends 5 seconds later\n\`\`\`\n\n---\n\n## 🔐 Security Layers\n\n\`\`\`\nLayer 1: HTTPS\n         └─→ All data encrypted in transit\n\nLayer 2: CSRF Protection\n         └─→ Prevent cross-site attacks\n\nLayer 3: Session Management\n         └─→ Secure user sessions in Redis\n\nLayer 4: Payment Security\n         ├─→ No card data stored\n         ├─→ Razorpay handles PCI compliance\n         └─→ Signature verification (HMAC-SHA256)\n\nLayer 5: Rate Limiting (Planned)\n         └─→ Prevent brute force attacks\n\nLayer 6: Input Validation\n         └─→ Sanitize all user input\n\`\`\`\n\n---\n\n## 📱 Responsive Design\n\n\`\`\`\n┌─────────────────────────────────┐\n│         DESKTOP (1920px)        │\n├─────────────────────────────────┤\n│ [Header]                        │\n│                                 │\n│ [Movie Details]  [Seat Layout]  │\n│                                 │\n│ [Theater Info]   [Price Info]   │\n│                                 │\n│        [Book Now Button]        │\n└─────────────────────────────────┘\n\n┌──────────────┐\n│ MOBILE (375px)│\n├──────────────┤\n│  [Header]    │\n│              │\n│ [Movie Info] │\n│              │\n│ [Seat Layout]│\n│  (scrollable)│\n│              │\n│ [Price Info] │\n│              │\n│ [Book Button]│\n└──────────────┘\n\`\`\`\n\n---\n\n## 🎓 Learning Roadmap\n\n\`\`\`\nWeek 1: Basics\n├─ Day 1-2: Django fundamentals\n├─ Day 3-4: Redis basics\n└─ Day 5-7: Celery introduction\n\nWeek 2: Integration\n├─ Day 1-2: Redis + Django\n├─ Day 3-4: Celery + Django\n└─ Day 5-7: Razorpay integration\n\nWeek 3: Advanced\n├─ Day 1-2: Concurrency & locking\n├─ Day 3-4: Error handling\n└─ Day 5-7: Testing & debugging\n\nWeek 4: Production\n├─ Day 1-2: Deployment setup\n├─ Day 3-4: Monitoring & logging\n└─ Day 5-7: Performance optimization\n\`\`\`\n\n---\n\n## 🚀 Next Steps\n\n1. **Read**: Start with [UNDERSTANDING_REDIS.md](./UNDERSTANDING_REDIS.md)\n2. **Practice**: Run test scripts and watch the logs\n3. **Experiment**: Try different scenarios (refresh, cancel, etc.)\n4. **Build**: Create your own features on top of this system\n\n---\n\n**Remember**: This visual guide is a quick reference. For detailed explanations, see the full documentation! 📚\n\n*Last Updated: January 3, 2026*\n`;
+            const blob = new Blob([markdownContent], { type: 'text/markdown' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'QUICK_VISUAL_GUIDE.md';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        }
+        
+        // Keyboard shortcut for print
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+                e.preventDefault();
+                window.print();
+            }
+        });
+    </script>
+</body>
+</html>

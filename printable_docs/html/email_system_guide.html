@@ -1,0 +1,1532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email System Complete Guide - Movie Booking System</title>
+    <style>
+        /* Screen Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            line-height: 1.8;
+            color: #000;
+            background: #f5f5f5;
+            padding: 20px;
+            font-size: 12pt;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        
+        .header {
+            border-bottom: 3px solid #007bff;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #007bff;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+        
+        .meta {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .meta-info {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #0056b3;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .content {
+            margin-top: 30px;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+            color: #2c3e50;
+        }
+        
+        h1 { font-size: 2em; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
+        h2 { font-size: 1.75em; border-bottom: 1px solid #dee2e6; padding-bottom: 8px; }
+        h3 { font-size: 1.5em; }
+        h4 { font-size: 1.25em; }
+        
+        p {
+            margin-bottom: 1em;
+        }
+        
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 10pt;
+            color: #000;
+            font-weight: 500;
+        }
+        
+        pre {
+            background: #f8f8f8;
+            color: #000;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin: 15px 0;
+            line-height: 1.6;
+            font-size: 10pt;
+        }
+        
+        pre code {
+            background: none;
+            color: #000;
+            padding: 0;
+            border: none;
+            font-size: 10pt;
+            font-weight: normal;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        table th, table td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #dee2e6;
+        }
+        
+        table th {
+            background: #007bff;
+            color: white;
+            font-weight: 600;
+        }
+        
+        table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        blockquote {
+            border-left: 4px solid #007bff;
+            padding-left: 20px;
+            margin: 20px 0;
+            color: #666;
+            font-style: italic;
+        }
+        
+        ul, ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+        
+        li {
+            margin: 5px 0;
+        }
+        
+        a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        
+        a:hover {
+            text-decoration: underline;
+        }
+        
+        hr {
+            border: none;
+            border-top: 2px solid #dee2e6;
+            margin: 30px 0;
+        }
+        
+        /* Print Styles - Optimized for Black & White */
+        @media print {
+            @page {
+                margin: 0.75in;
+                size: A4;
+            }
+            
+            body {
+                background: white;
+                padding: 0;
+                color: #000;
+                font-size: 11pt;
+                line-height: 1.6;
+            }
+            
+            .container {
+                box-shadow: none;
+                padding: 0;
+                max-width: 100%;
+            }
+            
+            .actions, .no-print {
+                display: none !important;
+            }
+            
+            .header {
+                border-bottom: 2px solid #000;
+                padding-bottom: 10pt;
+                margin-bottom: 15pt;
+            }
+            
+            .header h1 {
+                color: #000;
+                font-size: 18pt;
+            }
+            
+            .header p {
+                color: #333;
+                font-size: 11pt;
+            }
+            
+            .meta {
+                background: #f9f9f9;
+                border: 1px solid #ddd;
+                padding: 10pt;
+                margin-bottom: 15pt;
+            }
+            
+            h1 {
+                font-size: 16pt;
+                border-bottom: 2px solid #000;
+                padding-bottom: 5pt;
+                margin-top: 20pt;
+                margin-bottom: 10pt;
+                page-break-after: avoid;
+            }
+            
+            h2 {
+                font-size: 14pt;
+                border-bottom: 1px solid #666;
+                padding-bottom: 4pt;
+                margin-top: 15pt;
+                margin-bottom: 8pt;
+                page-break-after: avoid;
+            }
+            
+            h3 {
+                font-size: 13pt;
+                margin-top: 12pt;
+                margin-bottom: 6pt;
+                page-break-after: avoid;
+            }
+            
+            h4 {
+                font-size: 12pt;
+                margin-top: 10pt;
+                margin-bottom: 5pt;
+                page-break-after: avoid;
+            }
+            
+            p {
+                margin-bottom: 8pt;
+                orphans: 3;
+                widows: 3;
+            }
+            
+            /* Code blocks - BLACK & WHITE optimized */
+            code {
+                background: #f0f0f0;
+                border: 1px solid #999;
+                padding: 2pt 4pt;
+                font-family: 'Courier New', 'Consolas', monospace;
+                font-size: 9pt;
+                color: #000;
+                font-weight: 600;
+            }
+            
+            pre {
+                background: #f8f8f8;
+                border: 2px solid #666;
+                padding: 10pt;
+                margin: 10pt 0;
+                page-break-inside: avoid;
+                font-size: 9pt;
+                line-height: 1.4;
+                overflow: visible;
+                white-space: pre-wrap;
+                word-wrap: break-word;
+            }
+            
+            pre code {
+                background: none;
+                border: none;
+                padding: 0;
+                font-size: 9pt;
+                font-weight: normal;
+                color: #000;
+            }
+            
+            /* Tables - BLACK & WHITE optimized */
+            table {
+                page-break-inside: avoid;
+                border-collapse: collapse;
+                width: 100%;
+                margin: 10pt 0;
+                border: 2px solid #000;
+            }
+            
+            table th {
+                background: #e0e0e0;
+                color: #000;
+                border: 1px solid #666;
+                padding: 6pt;
+                font-weight: bold;
+                text-align: left;
+            }
+            
+            table td {
+                border: 1px solid #999;
+                padding: 6pt;
+                color: #000;
+            }
+            
+            table tr:nth-child(even) {
+                background: #f5f5f5;
+            }
+            
+            /* Blockquotes */
+            blockquote {
+                border-left: 3px solid #000;
+                padding-left: 10pt;
+                margin: 10pt 0;
+                font-style: italic;
+                color: #333;
+                page-break-inside: avoid;
+            }
+            
+            /* Links */
+            a {
+                color: #000;
+                text-decoration: underline;
+            }
+            
+            a[href]:after {
+                content: " (" attr(href) ")";
+                font-size: 9pt;
+                color: #666;
+            }
+            
+            /* Lists */
+            ul, ol {
+                margin: 8pt 0;
+                padding-left: 20pt;
+            }
+            
+            li {
+                margin: 4pt 0;
+            }
+            
+            /* Horizontal rules */
+            hr {
+                border: none;
+                border-top: 1px solid #000;
+                margin: 15pt 0;
+            }
+            
+            /* Image handling */
+            img {
+                max-width: 100%;
+                page-break-inside: avoid;
+            }
+            
+            /* Page breaks */
+            .page-break {
+                page-break-before: always;
+            }
+            
+            /* Ensure visibility of all content */
+            * {
+                color: #000 !important;
+                background: white !important;
+            }
+            
+            code, pre {
+                background: #f5f5f5 !important;
+                border-color: #666 !important;
+            }
+            
+            table th {
+                background: #e0e0e0 !important;
+            }
+            
+            table tr:nth-child(even) {
+                background: #f8f8f8 !important;
+            }
+        }
+        
+        /* Code syntax highlighting */
+        .codehilite .hll { background-color: #49483e }
+        .codehilite .c { color: #75715e }
+        .codehilite .k { color: #66d9ef }
+        .codehilite .l { color: #ae81ff }
+        .codehilite .n { color: #f8f8f2 }
+        .codehilite .o { color: #f92672 }
+        .codehilite .p { color: #f8f8f2 }
+        .codehilite .cm { color: #75715e }
+        .codehilite .cp { color: #75715e }
+        .codehilite .c1 { color: #75715e }
+        .codehilite .cs { color: #75715e }
+        .codehilite .kc { color: #66d9ef }
+        .codehilite .kd { color: #66d9ef }
+        .codehilite .kn { color: #f92672 }
+        .codehilite .kp { color: #66d9ef }
+        .codehilite .kr { color: #66d9ef }
+        .codehilite .kt { color: #66d9ef }
+        .codehilite .ld { color: #e6db74 }
+        .codehilite .m { color: #ae81ff }
+        .codehilite .s { color: #e6db74 }
+        .codehilite .na { color: #a6e22e }
+        .codehilite .nb { color: #f8f8f2 }
+        .codehilite .nc { color: #a6e22e }
+        .codehilite .no { color: #66d9ef }
+        .codehilite .nd { color: #a6e22e }
+        .codehilite .ni { color: #f8f8f2 }
+        .codehilite .ne { color: #a6e22e }
+        .codehilite .nf { color: #a6e22e }
+        .codehilite .nl { color: #f8f8f2 }
+        .codehilite .nn { color: #f8f8f2 }
+        .codehilite .nx { color: #a6e22e }
+        .codehilite .py { color: #f8f8f2 }
+        .codehilite .nt { color: #f92672 }
+        .codehilite .nv { color: #f8f8f2 }
+        .codehilite .ow { color: #f92672 }
+        .codehilite .w { color: #f8f8f2 }
+        .codehilite .mf { color: #ae81ff }
+        .codehilite .mh { color: #ae81ff }
+        .codehilite .mi { color: #ae81ff }
+        .codehilite .mo { color: #ae81ff }
+        .codehilite .sb { color: #e6db74 }
+        .codehilite .sc { color: #e6db74 }
+        .codehilite .sd { color: #e6db74 }
+        .codehilite .s2 { color: #e6db74 }
+        .codehilite .se { color: #ae81ff }
+        .codehilite .sh { color: #e6db74 }
+        .codehilite .si { color: #e6db74 }
+        .codehilite .sx { color: #e6db74 }
+        .codehilite .sr { color: #e6db74 }
+        .codehilite .s1 { color: #e6db74 }
+        .codehilite .ss { color: #e6db74 }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Email System Complete Guide</h1>
+            <p>Complete email system documentation and setup</p>
+        </div>
+        
+        <div class="meta">
+            <div class="meta-info">
+                <strong>Generated:</strong> January 04, 2026<br>
+                <strong>Source:</strong> EMAIL_SYSTEM_COMPLETE_GUIDE.md<br>
+                <strong>Project:</strong> Movie Booking System
+            </div>
+            <div class="actions no-print">
+                <button class="btn btn-primary" onclick="window.print()">
+                    <span>🖨️</span> Print / Save as PDF
+                </button>
+                <button class="btn btn-success" onclick="downloadMarkdown()">
+                    <span>📥</span> Download Markdown
+                </button>
+                <a href="index.html" class="btn btn-secondary">
+                    <span>🏠</span> Back to Index
+                </a>
+            </div>
+        </div>
+        
+        <div class="content">
+            <h1 id="email-system-complete-technical-guide">📧 Email System - Complete Technical Guide</h1>
+<h2 id="overview">🎯 Overview</h2>
+<p>This document explains <strong>exactly how the email system works</strong> in the Movie Booking System, from start to finish. No external SDKs or complex libraries - just Django, Python standard library, and SMTP.</p>
+<hr />
+<h2 id="table-of-contents">🔍 Table of Contents</h2>
+<ol>
+<li><a href="#how-it-works-high-level">How It Works (High Level)</a></li>
+<li><a href="#technology-stack">Technology Stack</a></li>
+<li><a href="#email-flow-detailed">Email Flow (Detailed)</a></li>
+<li><a href="#django-email-system">Django Email System</a></li>
+<li><a href="#template-rendering">Template Rendering</a></li>
+<li><a href="#qr-code-generation">QR Code Generation</a></li>
+<li><a href="#smtp-configuration">SMTP Configuration</a></li>
+<li><a href="#celery-integration">Celery Integration</a></li>
+<li><a href="#complete-code-walkthrough">Complete Code Walkthrough</a></li>
+<li><a href="#testing--debugging">Testing &amp; Debugging</a></li>
+</ol>
+<hr />
+<h2 id="how-it-works-high-level">🚀 How It Works (High Level)</h2>
+<pre><code>USER ACTION → DJANGO VIEW → CELERY TASK → EMAIL UTILS → SMTP → USER'S INBOX
+</code></pre>
+<p><strong>Simple Explanation:</strong><br />
+1. User does something (books ticket, registers, etc.)<br />
+2. Django triggers an email task<br />
+3. Celery runs the task in background (async)<br />
+4. Email utility renders HTML/text templates<br />
+5. Generates QR code (if needed)<br />
+6. Sends email via Gmail&rsquo;s SMTP server<br />
+7. User receives professional email</p>
+<p><strong>Key Point:</strong> We&rsquo;re using <strong>standard SMTP protocol</strong> - no Google SDK, no third-party APIs. Just Python sending emails like any email client would.</p>
+<hr />
+<h2 id="technology-stack">🛠️ Technology Stack</h2>
+<h3 id="core-technologies">Core Technologies:</h3>
+<pre><code class="language-python"># NO external SDKs needed! Just these Python packages:
+
+1. Django (built-in email system)
+   - django.core.mail
+   - django.template.loader
+
+2. Python Standard Library
+   - smtplib (SMTP protocol)
+   - email (email formatting)
+   - base64 (encoding)
+   - io.BytesIO (in-memory files)
+
+3. Third-party Packages
+   - qrcode (QR code generation)
+   - Pillow (image processing)
+   - celery (async tasks)
+</code></pre>
+<h3 id="what-were-not-using">What We&rsquo;re NOT Using:</h3>
+<p>❌ No Google API SDK<br />
+❌ No SendGrid SDK<br />
+❌ No Mailgun SDK<br />
+❌ No AWS SES SDK<br />
+❌ No third-party email services</p>
+<h3 id="what-we-are-using">What We ARE Using:</h3>
+<p>✅ Standard SMTP protocol<br />
+✅ Gmail&rsquo;s SMTP server<br />
+✅ Django&rsquo;s built-in email system<br />
+✅ Python&rsquo;s standard libraries  </p>
+<hr />
+<h2 id="email-flow-detailed">📊 Email Flow (Detailed)</h2>
+<h3 id="example-booking-confirmation-email">Example: Booking Confirmation Email</h3>
+<pre><code>┌─────────────────────────────────────────────────────────────────┐
+│ STEP 1: User Completes Payment                                  │
+│ - User pays on Razorpay modal                                   │
+│ - Razorpay redirects back with payment details                  │
+└─────────────────────────────────────────────────────────────────┘
+                            ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ STEP 2: Django View (bookings/views.py)                        │
+│                                                                  │
+│ def verify_payment(request):                                    │
+│     # Verify Razorpay signature                                 │
+│     # Update booking status to CONFIRMED                        │
+│     # Trigger email task                                        │
+│     send_booking_confirmation_email.delay(booking.id)  ← ASYNC  │
+│     return redirect('booking_detail')                           │
+└─────────────────────────────────────────────────────────────────┘
+                            ↓ 
+┌─────────────────────────────────────────────────────────────────┐
+│ STEP 3: Celery Task Queue                                       │
+│ - Task added to Redis queue                                     │
+│ - Celery worker picks up task                                   │
+│ - Runs in background (doesn't block user)                       │
+└─────────────────────────────────────────────────────────────────┘
+                            ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ STEP 4: Email Utility (bookings/email_utils.py)                │
+│                                                                  │
+│ @shared_task                                                    │
+│ def send_booking_confirmation_email(booking_id):                │
+│     # Fetch booking from database                               │
+│     booking = Booking.objects.get(id=booking_id)                │
+│                                                                  │
+│     # Generate QR code                                          │
+│     qr_data = f&quot;Booking: {booking.booking_number}...&quot;           │
+│     qr_image = generate_qr_code(qr_data)                        │
+│                                                                  │
+│     # Prepare context data                                      │
+│     context = {                                                 │
+│         'user': booking.user,                                   │
+│         'booking': booking,                                     │
+│         'movie': booking.showtime.movie,                        │
+│         'qr_code': base64_encoded_qr,                           │
+│     }                                                            │
+│                                                                  │
+│     # Render templates                                          │
+│     html = render_to_string('email_templates/...html', context) │
+│     text = render_to_string('email_templates/...txt', context)  │
+│                                                                  │
+│     # Create and send email                                     │
+│     email = EmailMultiAlternatives(...)                         │
+│     email.send()                                                │
+└─────────────────────────────────────────────────────────────────┘
+                            ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ STEP 5: Django's Email Backend                                  │
+│                                                                  │
+│ - Uses Python's smtplib (standard library)                      │
+│ - Connects to smtp.gmail.com:587                                │
+│ - Authenticates with email/password                             │
+│ - Sends email using SMTP protocol                               │
+└─────────────────────────────────────────────────────────────────┘
+                            ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ STEP 6: Gmail SMTP Server                                       │
+│ - Receives email from our server                                │
+│ - Validates credentials                                         │
+│ - Routes to recipient                                           │
+└─────────────────────────────────────────────────────────────────┘
+                            ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ STEP 7: User's Email Client                                     │
+│ - Gmail/Outlook/Apple Mail receives email                       │
+│ - Displays professional HTML template                           │
+│ - Shows QR code attachment                                      │
+│ - User can view ticket                                          │
+└─────────────────────────────────────────────────────────────────┘
+</code></pre>
+<hr />
+<h2 id="django-email-system">📧 Django Email System</h2>
+<h3 id="how-django-sends-emails-under-the-hood">How Django Sends Emails (Under the Hood)</h3>
+<p>Django&rsquo;s email system is a wrapper around Python&rsquo;s standard <code>smtplib</code>. Here&rsquo;s what happens:</p>
+<pre><code class="language-python"># When you call:
+email.send()
+
+# Django does this internally:
+1. Reads EMAIL_* settings from settings.py/.env
+2. Creates SMTP connection: smtplib.SMTP('smtp.gmail.com', 587)
+3. Starts TLS encryption: smtp.starttls()
+4. Authenticates: smtp.login(EMAIL_HOST_USER, EMAIL_HOST_PASSWORD)
+5. Formats email with headers, body, attachments
+6. Sends: smtp.send_message(email_message)
+7. Closes connection: smtp.quit()
+</code></pre>
+<h3 id="configuration-settingspy">Configuration (settings.py)</h3>
+<pre><code class="language-python"># Email Configuration
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'          # Gmail's SMTP server
+EMAIL_PORT = 587                        # TLS port
+EMAIL_USE_TLS = True                    # Enable encryption
+EMAIL_HOST_USER = 'your-email@gmail.com'
+EMAIL_HOST_PASSWORD = 'app-password'    # Gmail App Password
+DEFAULT_FROM_EMAIL = 'MovieBooking &lt;your-email@gmail.com&gt;'
+</code></pre>
+<h3 id="what-each-setting-does">What Each Setting Does:</h3>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Purpose</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>EMAIL_BACKEND</code></td>
+<td>Which Django backend to use</td>
+<td>SMTP (default), Console (testing), File (development)</td>
+</tr>
+<tr>
+<td><code>EMAIL_HOST</code></td>
+<td>SMTP server address</td>
+<td><code>smtp.gmail.com</code>, <code>smtp.office365.com</code></td>
+</tr>
+<tr>
+<td><code>EMAIL_PORT</code></td>
+<td>SMTP port</td>
+<td><code>587</code> (TLS), <code>465</code> (SSL), <code>25</code> (unencrypted)</td>
+</tr>
+<tr>
+<td><code>EMAIL_USE_TLS</code></td>
+<td>Enable encryption</td>
+<td><code>True</code> (recommended)</td>
+</tr>
+<tr>
+<td><code>EMAIL_HOST_USER</code></td>
+<td>SMTP username</td>
+<td>Your email address</td>
+</tr>
+<tr>
+<td><code>EMAIL_HOST_PASSWORD</code></td>
+<td>SMTP password</td>
+<td>App password (not regular password)</td>
+</tr>
+<tr>
+<td><code>DEFAULT_FROM_EMAIL</code></td>
+<td>Default sender</td>
+<td>Display name + email</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="template-rendering">🎨 Template Rendering</h2>
+<h3 id="how-templates-work">How Templates Work</h3>
+<p>Django templates are HTML/text files with placeholders for dynamic content:</p>
+<pre><code class="language-html">&lt;!-- email_templates/booking_confirmation.html --&gt;
+&lt;h1&gt;Hello {{ user.username }}!&lt;/h1&gt;
+&lt;p&gt;Your booking {{ booking.booking_number }} is confirmed.&lt;/p&gt;
+&lt;p&gt;Movie: {{ movie.title }}&lt;/p&gt;
+</code></pre>
+<h3 id="rendering-process">Rendering Process</h3>
+<pre><code class="language-python"># 1. Prepare context data (dictionary of variables)
+context = {
+    'user': user_object,           # Django User model
+    'booking': booking_object,     # Django Booking model
+    'movie': movie_object,         # Django Movie model
+    'showtime': showtime_object,   # Django Showtime model
+    'qr_code': 'base64string',     # Generated QR code
+}
+
+# 2. Render template with context
+from django.template.loader import render_to_string
+
+html_content = render_to_string(
+    'email_templates/booking_confirmation.html',  # Template path
+    context                                        # Data to inject
+)
+
+# Result: HTML string with all {{ variables }} replaced with actual data
+</code></pre>
+<h3 id="template-variables-explained">Template Variables Explained</h3>
+<p><strong>User Object:</strong></p>
+<pre><code class="language-python">user.username          # &quot;john_doe&quot;
+user.email            # &quot;john@example.com&quot;
+user.get_full_name()  # &quot;John Doe&quot;
+</code></pre>
+<p><strong>Booking Object:</strong></p>
+<pre><code class="language-python">booking.booking_number      # &quot;BK001&quot;
+booking.total_amount        # 500
+booking.get_seats_display() # &quot;A1, A2, A3&quot;
+booking.status             # &quot;CONFIRMED&quot;
+</code></pre>
+<p><strong>Movie Object:</strong></p>
+<pre><code class="language-python">movie.title           # &quot;Inception&quot;
+movie.genre          # &quot;Sci-Fi&quot;
+movie.duration       # 148 (minutes)
+movie.poster.url     # &quot;/media/posters/inception.jpg&quot;
+</code></pre>
+<p><strong>Template Filters:</strong></p>
+<pre><code class="language-django">{{ user.username|upper }}              → &quot;JOHN_DOE&quot;
+{{ booking.created_at|date:&quot;d M Y&quot; }}  → &quot;04 Jan 2026&quot;
+{{ movie.title|truncatewords:5 }}      → &quot;Inception: The Movie...&quot;
+{{ value|default:&quot;N/A&quot; }}              → Shows &quot;N/A&quot; if value is None
+</code></pre>
+<hr />
+<h2 id="qr-code-generation">🔲 QR Code Generation</h2>
+<h3 id="how-qr-codes-work">How QR Codes Work</h3>
+<pre><code class="language-python">import qrcode
+import base64
+from io import BytesIO
+
+# 1. Create QR code data (text to encode)
+qr_data = f&quot;&quot;&quot;
+Booking ID: {booking.booking_number}
+Movie: {booking.showtime.movie.title}
+Theater: {booking.showtime.screen.theater.name}
+Date: {booking.showtime.date}
+Time: {booking.showtime.start_time}
+Seats: {booking.get_seats_display()}
+&quot;&quot;&quot;
+
+# 2. Generate QR code image
+qr = qrcode.QRCode(
+    version=1,           # Size (1-40, auto-adjusts)
+    box_size=10,         # Pixels per box
+    border=5,            # Border size
+)
+qr.add_data(qr_data)     # Add the text data
+qr.make(fit=True)        # Optimize size
+
+# 3. Create image
+img = qr.make_image(
+    fill_color=&quot;black&quot;,   # QR code color
+    back_color=&quot;white&quot;    # Background color
+)
+
+# 4. Convert to PNG in memory (not saved to disk)
+buffer = BytesIO()
+img.save(buffer, format=&quot;PNG&quot;)
+qr_image_bytes = buffer.getvalue()
+
+# 5. Encode to base64 (for embedding in HTML)
+qr_base64 = base64.b64encode(qr_image_bytes).decode()
+
+# 6. Use in email
+# A) Embed in HTML:
+#    &lt;img src=&quot;data:image/png;base64,{{ qr_code }}&quot;&gt;
+# B) Attach as file:
+#    email.attach('ticket.png', qr_image_bytes, 'image/png')
+</code></pre>
+<h3 id="why-base64-encoding">Why Base64 Encoding?</h3>
+<ul>
+<li>QR code is an image (binary data)</li>
+<li>Email HTML needs text format</li>
+<li>Base64 converts binary → text string</li>
+<li>Browser/email client decodes it back to image</li>
+</ul>
+<p><strong>Example:</strong></p>
+<pre><code>Binary: [89 50 4E 47 0D 0A 1A 0A ...]  (PNG file)
+Base64: iVBORw0KGgoAAAANSUhEUgAA...     (Text string)
+HTML:   &lt;img src=&quot;data:image/png;base64,iVBORw0KGgo...&quot;&gt;
+</code></pre>
+<hr />
+<h2 id="smtp-configuration">🔐 SMTP Configuration</h2>
+<h3 id="gmail-smtp-setup">Gmail SMTP Setup</h3>
+<p><strong>Step 1: Enable 2-Factor Authentication</strong><br />
+- Go to Google Account settings<br />
+- Security → 2-Step Verification → Enable</p>
+<p><strong>Step 2: Create App Password</strong><br />
+- Google Account → Security → App passwords<br />
+- Select &ldquo;Mail&rdquo; and your device<br />
+- Google generates 16-character password<br />
+- Example: <code>abcd efgh ijkl mnop</code></p>
+<p><strong>Step 3: Configure in .env</strong></p>
+<pre><code class="language-bash">EMAIL_HOST_USER=your-email@gmail.com
+EMAIL_HOST_PASSWORD=abcdefghijklmnop  # No spaces!
+</code></pre>
+<h3 id="how-smtp-works">How SMTP Works</h3>
+<pre><code>CLIENT (Our Django App)  ←→  SMTP SERVER (Gmail)  ←→  RECIPIENT
+
+1. CONNECT
+   Django: &quot;Hello, I want to send email&quot;
+   Gmail:  &quot;OK, connected on port 587&quot;
+
+2. STARTTLS
+   Django: &quot;Start encryption&quot;
+   Gmail:  &quot;TLS enabled, connection secured&quot;
+
+3. AUTH
+   Django: &quot;Username: user@gmail.com&quot;
+   Gmail:  &quot;Password?&quot;
+   Django: &quot;Password: app-password&quot;
+   Gmail:  &quot;Authenticated ✓&quot;
+
+4. MAIL FROM
+   Django: &quot;Sending from: moviebooking@gmail.com&quot;
+   Gmail:  &quot;OK ✓&quot;
+
+5. RCPT TO
+   Django: &quot;Sending to: user@example.com&quot;
+   Gmail:  &quot;OK ✓&quot;
+
+6. DATA
+   Django: &quot;Here's the email content...&quot;
+   Gmail:  &quot;Received, will deliver ✓&quot;
+
+7. QUIT
+   Django: &quot;Goodbye&quot;
+   Gmail:  &quot;Connection closed&quot;
+</code></pre>
+<h3 id="alternative-smtp-providers">Alternative SMTP Providers</h3>
+<p><strong>Gmail:</strong></p>
+<pre><code class="language-python">EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+</code></pre>
+<p><strong>Outlook/Office365:</strong></p>
+<pre><code class="language-python">EMAIL_HOST = 'smtp.office365.com'
+EMAIL_PORT = 587
+</code></pre>
+<p><strong>Yahoo:</strong></p>
+<pre><code class="language-python">EMAIL_HOST = 'smtp.mail.yahoo.com'
+EMAIL_PORT = 587
+</code></pre>
+<p><strong>Custom Domain (cPanel/Plesk):</strong></p>
+<pre><code class="language-python">EMAIL_HOST = 'mail.yourdomain.com'
+EMAIL_PORT = 587
+</code></pre>
+<hr />
+<h2 id="celery-integration">⚡ Celery Integration</h2>
+<h3 id="why-celery">Why Celery?</h3>
+<p><strong>Without Celery:</strong></p>
+<pre><code class="language-python">def verify_payment(request):
+    # ... verify payment ...
+    send_booking_confirmation_email(booking.id)  # ← BLOCKS for 2-3 seconds
+    return redirect('booking_detail')            # User waits...
+</code></pre>
+<p><strong>With Celery:</strong></p>
+<pre><code class="language-python">def verify_payment(request):
+    # ... verify payment ...
+    send_booking_confirmation_email.delay(booking.id)  # ← Returns instantly
+    return redirect('booking_detail')                  # User redirected immediately
+</code></pre>
+<h3 id="how-celery-works">How Celery Works</h3>
+<pre><code>┌─────────────────┐
+│  Django View    │
+│  (User request) │
+└────────┬────────┘
+         │ .delay(booking_id)
+         ↓
+┌─────────────────┐
+│  Redis Queue    │  ← Task stored here
+│  [Task 1, 2, 3] │
+└────────┬────────┘
+         │
+         ↓
+┌─────────────────┐
+│ Celery Worker   │  ← Separate process
+│ (Background)    │     Picks up tasks
+│ ┌─────────────┐ │     Runs them async
+│ │   send_     │ │
+│ │   email()   │ │
+│ └─────────────┘ │
+└─────────────────┘
+</code></pre>
+<h3 id="celery-configuration">Celery Configuration</h3>
+<p><strong>1. Install:</strong></p>
+<pre><code class="language-bash">pip install celery redis
+</code></pre>
+<p><strong>2. Configure (moviebooking/celery.py):</strong></p>
+<pre><code class="language-python">from celery import Celery
+import os
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'moviebooking.settings')
+
+app = Celery('moviebooking')
+app.config_from_object('django.conf:settings', namespace='CELERY')
+app.autodiscover_tasks()
+</code></pre>
+<p><strong>3. Settings (settings.py):</strong></p>
+<pre><code class="language-python">CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+</code></pre>
+<p><strong>4. Run Worker:</strong></p>
+<pre><code class="language-bash">celery -A moviebooking worker -l info
+</code></pre>
+<hr />
+<h2 id="complete-code-walkthrough">💻 Complete Code Walkthrough</h2>
+<h3 id="file-bookingsemail_utilspy">File: bookings/email_utils.py</h3>
+<pre><code class="language-python">&quot;&quot;&quot;
+Complete email sending utility with detailed explanations
+&quot;&quot;&quot;
+
+# ============================================================================
+# IMPORTS
+# ============================================================================
+
+# Standard library - no external SDKs!
+import logging          # For logging email events
+import qrcode          # Generate QR codes
+import base64          # Encode binary data to text
+from io import BytesIO # In-memory file handling
+
+# Django built-in email system
+from django.core.mail import EmailMultiAlternatives  # Send HTML + text emails
+from django.template.loader import render_to_string  # Render templates
+from django.conf import settings                     # Access settings
+
+# Celery for async tasks
+from celery import shared_task
+
+# Initialize logger
+logger = logging.getLogger(__name__)
+
+
+# ============================================================================
+# BOOKING CONFIRMATION EMAIL
+# ============================================================================
+
+@shared_task  # ← Makes this function run asynchronously via Celery
+def send_booking_confirmation_email(booking_id):
+    &quot;&quot;&quot;
+    Sends booking confirmation email with QR code ticket
+
+    FLOW:
+    1. Fetch booking data from database
+    2. Generate QR code with booking details
+    3. Prepare context data for template
+    4. Render HTML and text templates
+    5. Create email with both versions
+    6. Attach QR code as PNG file
+    7. Send via SMTP
+
+    HOW IT WORKS:
+    - NO external APIs or SDKs
+    - Uses Django's built-in email system
+    - Django uses Python's smtplib (standard library)
+    - SMTP = Simple Mail Transfer Protocol (like sending from Outlook)
+    &quot;&quot;&quot;
+
+    # Import here to avoid circular imports
+    from .models import Booking
+
+    try:
+        # ====================================================================
+        # STEP 1: GET DATA FROM DATABASE
+        # ====================================================================
+        booking = Booking.objects.get(id=booking_id)
+        user = booking.user
+
+        logger.info(f&quot;📧 Generating confirmation email for {booking.booking_number}&quot;)
+
+
+        # ====================================================================
+        # STEP 2: GENERATE QR CODE
+        # ====================================================================
+
+        # Create text data to encode in QR code
+        qr_data = (
+            f&quot;Booking ID: {booking.booking_number}\n&quot;
+            f&quot;Movie: {booking.showtime.movie.title}\n&quot;
+            f&quot;Theater: {booking.showtime.screen.theater.name}\n&quot;
+            f&quot;Date: {booking.showtime.date}\n&quot;
+            f&quot;Time: {booking.showtime.start_time}\n&quot;
+            f&quot;Seats: {booking.get_seats_display()}&quot;
+        )
+
+        # Generate QR code image
+        qr = qrcode.QRCode(version=1, box_size=10, border=5)
+        qr.add_data(qr_data)
+        qr.make(fit=True)
+        img = qr.make_image(fill_color=&quot;black&quot;, back_color=&quot;white&quot;)
+
+        # Convert to PNG in memory (not saved to disk)
+        buffer = BytesIO()
+        img.save(buffer, format=&quot;PNG&quot;)
+        qr_image = buffer.getvalue()  # Binary PNG data
+
+        # Encode to base64 for embedding in HTML
+        qr_base64 = base64.b64encode(qr_image).decode()
+
+
+        # ====================================================================
+        # STEP 3: PREPARE TEMPLATE CONTEXT
+        # ====================================================================
+
+        # Dictionary of variables to pass to template
+        context = {
+            'user': user,                      # Django User model instance
+            'booking': booking,                # Django Booking model instance
+            'movie': booking.showtime.movie,   # Related Movie object
+            'showtime': booking.showtime,      # Related Showtime object
+            'theater': booking.showtime.screen.theater,  # Related Theater
+            'qr_code': qr_base64,             # Base64 encoded QR image
+            'total_amount': booking.total_amount,
+        }
+
+
+        # ====================================================================
+        # STEP 4: RENDER TEMPLATES
+        # ====================================================================
+
+        # Render HTML version (for modern email clients)
+        html_content = render_to_string(
+            'email_templates/booking_confirmation.html',
+            context
+        )
+        # Result: HTML string with all {{ variables }} replaced
+
+        # Render plain text version (for old email clients or accessibility)
+        text_content = render_to_string(
+            'email_templates/booking_confirmation.txt',
+            context
+        )
+
+
+        # ====================================================================
+        # STEP 5: CREATE EMAIL
+        # ====================================================================
+
+        subject = f'🎬 Booking Confirmed - {booking.booking_number}'
+        from_email = settings.DEFAULT_FROM_EMAIL  # From .env
+        to_email = [user.email]                   # Recipient list
+
+        # EmailMultiAlternatives = Email with HTML + text versions
+        email = EmailMultiAlternatives(
+            subject,        # Email subject
+            text_content,   # Plain text body (fallback)
+            from_email,     # Sender
+            to_email        # Recipients (list)
+        )
+
+        # Attach HTML version as alternative
+        email.attach_alternative(html_content, &quot;text/html&quot;)
+
+        # Attach QR code as PNG file
+        email.attach(
+            f'booking_{booking.booking_number}.png',  # Filename
+            qr_image,                                  # Binary data
+            'image/png'                                # MIME type
+        )
+
+
+        # ====================================================================
+        # STEP 6: SEND EMAIL
+        # ====================================================================
+
+        # This is where Django's email backend connects to SMTP
+        email.send()
+
+        # What happens internally:
+        # 1. Django reads EMAIL_* settings from settings.py
+        # 2. Creates SMTP connection to smtp.gmail.com:587
+        # 3. Starts TLS encryption
+        # 4. Authenticates with email/password
+        # 5. Sends email using SMTP protocol
+        # 6. Closes connection
+
+        logger.info(f&quot;✅ Email sent successfully to {user.email}&quot;)
+        return f&quot;Email sent to {user.email}&quot;
+
+    except Exception as e:
+        logger.error(f&quot;❌ Error sending email: {str(e)}&quot;)
+        return f&quot;Error: {str(e)}&quot;
+
+
+# ============================================================================
+# PAYMENT FAILED EMAIL
+# ============================================================================
+
+@shared_task
+def send_payment_failed_email(booking_id):
+    &quot;&quot;&quot;
+    Sends email when payment fails or is cancelled
+
+    SIMPLER THAN CONFIRMATION:
+    - No QR code needed
+    - Just HTML/text templates
+    - Same SMTP process
+    &quot;&quot;&quot;
+    from .models import Booking
+
+    try:
+        booking = Booking.objects.get(id=booking_id)
+        user = booking.user
+
+        logger.info(f&quot;📧 Sending payment failed email for {booking.booking_number}&quot;)
+
+        # Prepare context
+        context = {
+            'user': user,
+            'booking': booking,
+            'movie': booking.showtime.movie,
+        }
+
+        # Render templates
+        text_content = render_to_string(
+            'email_templates/payment_failed.txt',
+            context
+        )
+        html_content = render_to_string(
+            'email_templates/payment_failed.html',
+            context
+        )
+
+        # Create and send email
+        subject = f'❌ Payment Failed - Booking {booking.booking_number}'
+        from_email = settings.DEFAULT_FROM_EMAIL
+        to_email = [user.email]
+
+        email = EmailMultiAlternatives(subject, text_content, from_email, to_email)
+        email.attach_alternative(html_content, &quot;text/html&quot;)
+        email.send()  # ← SMTP happens here
+
+        logger.info(f&quot;✅ Payment failed email sent to {user.email}&quot;)
+        return f&quot;Email sent to {user.email}&quot;
+
+    except Exception as e:
+        logger.error(f&quot;❌ Error: {str(e)}&quot;)
+        return f&quot;Error: {str(e)}&quot;
+
+
+# ============================================================================
+# SHOWTIME REMINDER EMAIL
+# ============================================================================
+
+@shared_task
+def send_seat_reminder_email(booking_id):
+    &quot;&quot;&quot;
+    Sends reminder email 24 hours before showtime
+
+    TRIGGERED BY:
+    - Celery Beat (scheduled task)
+    - Runs daily, checks which movies are tomorrow
+    &quot;&quot;&quot;
+    from .models import Booking
+
+    try:
+        booking = Booking.objects.get(id=booking_id)
+
+        # Only send if booking is confirmed
+        if booking.status != 'CONFIRMED':
+            logger.warning(f&quot;⚠️ Booking {booking.booking_number} not confirmed&quot;)
+            return &quot;Booking not confirmed&quot;
+
+        logger.info(f&quot;📧 Sending reminder for {booking.booking_number}&quot;)
+
+        # Prepare context
+        context = {
+            'booking': booking,
+            'user': booking.user,
+            'movie': booking.showtime.movie,
+            'showtime': booking.showtime,
+            'theater': booking.showtime.screen.theater,
+        }
+
+        # Render templates
+        text_content = render_to_string(
+            'email_templates/showtime_reminder.txt',
+            context
+        )
+        html_content = render_to_string(
+            'email_templates/showtime_reminder.html',
+            context
+        )
+
+        # Send email
+        subject = f'⏰ Reminder: &quot;{booking.showtime.movie.title}&quot; starts soon!'
+        from_email = settings.DEFAULT_FROM_EMAIL
+        to_email = [booking.user.email]
+
+        email = EmailMultiAlternatives(subject, text_content, from_email, to_email)
+        email.attach_alternative(html_content, &quot;text/html&quot;)
+        email.send()
+
+        logger.info(f&quot;✅ Reminder sent for {booking.booking_number}&quot;)
+        return f&quot;Reminder sent&quot;
+
+    except Exception as e:
+        logger.error(f&quot;❌ Error: {str(e)}&quot;)
+        return f&quot;Error: {str(e)}&quot;
+</code></pre>
+<hr />
+<h2 id="testing-debugging">🧪 Testing &amp; Debugging</h2>
+<h3 id="test-1-check-email-configuration">Test 1: Check Email Configuration</h3>
+<pre><code class="language-python">python manage.py shell
+
+from django.conf import settings
+print(&quot;Host:&quot;, settings.EMAIL_HOST)
+print(&quot;Port:&quot;, settings.EMAIL_PORT)
+print(&quot;User:&quot;, settings.EMAIL_HOST_USER)
+print(&quot;Password set:&quot;, bool(settings.EMAIL_HOST_PASSWORD))
+</code></pre>
+<h3 id="test-2-send-simple-test-email">Test 2: Send Simple Test Email</h3>
+<pre><code class="language-python">from django.core.mail import send_mail
+
+result = send_mail(
+    subject='Test Email',
+    message='If you receive this, SMTP works!',
+    from_email=settings.EMAIL_HOST_USER,
+    recipient_list=[settings.EMAIL_HOST_USER],
+    fail_silently=False,
+)
+
+print(f&quot;Sent: {result} email(s)&quot;)
+# Result = 1 means success
+</code></pre>
+<h3 id="test-3-test-template-rendering">Test 3: Test Template Rendering</h3>
+<pre><code class="language-python">from django.template.loader import render_to_string
+
+context = {
+    'user': {'username': 'TestUser'},
+    'booking': {'booking_number': 'TEST123'},
+    'movie': {'title': 'Test Movie'},
+}
+
+html = render_to_string('email_templates/booking_confirmation.html', context)
+print(&quot;Length:&quot;, len(html), &quot;characters&quot;)
+print(&quot;Contains booking number:&quot;, 'TEST123' in html)
+</code></pre>
+<h3 id="test-4-generate-qr-code">Test 4: Generate QR Code</h3>
+<pre><code class="language-python">import qrcode
+from io import BytesIO
+import base64
+
+qr = qrcode.QRCode(version=1, box_size=10, border=5)
+qr.add_data(&quot;Test Data&quot;)
+qr.make(fit=True)
+
+img = qr.make_image(fill_color=&quot;black&quot;, back_color=&quot;white&quot;)
+buffer = BytesIO()
+img.save(buffer, format=&quot;PNG&quot;)
+
+print(&quot;QR code size:&quot;, len(buffer.getvalue()), &quot;bytes&quot;)
+</code></pre>
+<h3 id="test-5-send-full-email">Test 5: Send Full Email</h3>
+<pre><code class="language-python">from bookings.email_utils import send_booking_confirmation_email
+
+# For a real booking
+result = send_booking_confirmation_email(1)
+print(result)
+
+# Check your email inbox!
+</code></pre>
+<h3 id="common-issues-solutions">Common Issues &amp; Solutions</h3>
+<table>
+<thead>
+<tr>
+<th>Issue</th>
+<th>Cause</th>
+<th>Solution</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>SMTPAuthenticationError</code></td>
+<td>Wrong password</td>
+<td>Check App Password (no spaces!)</td>
+</tr>
+<tr>
+<td><code>SMTPServerDisconnected</code></td>
+<td>Network/firewall</td>
+<td>Check internet, firewall rules</td>
+</tr>
+<tr>
+<td><code>Template not found</code></td>
+<td>Wrong path</td>
+<td>Verify <code>TEMPLATES['DIRS']</code> in settings</td>
+</tr>
+<tr>
+<td><code>QR code error</code></td>
+<td>Missing package</td>
+<td><code>pip install qrcode[pil]</code></td>
+</tr>
+<tr>
+<td><code>Celery not picking up</code></td>
+<td>Worker not running</td>
+<td>Start worker: <code>celery -A moviebooking worker</code></td>
+</tr>
+<tr>
+<td>Email not received</td>
+<td>Spam folder</td>
+<td>Check spam, verify recipient email</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="summary-diagram">📊 Summary Diagram</h2>
+<pre><code>╔════════════════════════════════════════════════════════════════════╗
+║                   EMAIL SYSTEM ARCHITECTURE                        ║
+╚════════════════════════════════════════════════════════════════════╝
+
+┌──────────────────────────────────────────────────────────────────┐
+│                         TECHNOLOGY STACK                          │
+├──────────────────────────────────────────────────────────────────┤
+│                                                                   │
+│  ✅ Django (built-in email system)                               │
+│     └─ django.core.mail.EmailMultiAlternatives                   │
+│                                                                   │
+│  ✅ Python Standard Library (NO SDKs!)                           │
+│     ├─ smtplib (SMTP protocol)                                   │
+│     ├─ email (message formatting)                                │
+│     ├─ base64 (encoding)                                         │
+│     └─ io.BytesIO (in-memory files)                              │
+│                                                                   │
+│  ✅ Third-party Packages                                         │
+│     ├─ qrcode (QR generation)                                    │
+│     ├─ Pillow (image processing)                                 │
+│     └─ celery (async tasks)                                      │
+│                                                                   │
+│  ✅ Gmail SMTP Server                                            │
+│     └─ smtp.gmail.com:587 (TLS)                                  │
+│                                                                   │
+└──────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────┐
+│                           DATA FLOW                               │
+├──────────────────────────────────────────────────────────────────┤
+│                                                                   │
+│  1. USER ACTION                                                   │
+│     └─ Books ticket, completes payment                           │
+│                                                                   │
+│  2. DJANGO VIEW                                                   │
+│     └─ Triggers: send_booking_confirmation_email.delay(id)       │
+│                                                                   │
+│  3. CELERY QUEUE (Redis)                                         │
+│     └─ Stores task for background processing                     │
+│                                                                   │
+│  4. CELERY WORKER                                                 │
+│     └─ Picks up and executes task async                          │
+│                                                                   │
+│  5. EMAIL UTILS (bookings/email_utils.py)                        │
+│     ├─ Fetch booking data from database                          │
+│     ├─ Generate QR code (qrcode library)                         │
+│     ├─ Prepare context data (dictionary)                         │
+│     ├─ Render HTML template (Django template engine)             │
+│     ├─ Render text template (fallback)                           │
+│     └─ Create EmailMultiAlternatives object                      │
+│                                                                   │
+│  6. DJANGO EMAIL BACKEND                                          │
+│     ├─ Opens SMTP connection (smtplib)                           │
+│     ├─ Connects to smtp.gmail.com:587                            │
+│     ├─ Starts TLS encryption                                     │
+│     ├─ Authenticates with credentials                            │
+│     ├─ Sends email using SMTP protocol                           │
+│     └─ Closes connection                                         │
+│                                                                   │
+│  7. GMAIL SMTP SERVER                                             │
+│     ├─ Receives email                                            │
+│     ├─ Validates sender                                          │
+│     └─ Routes to recipient                                       │
+│                                                                   │
+│  8. USER'S INBOX                                                  │
+│     └─ Professional email with QR ticket                         │
+│                                                                   │
+└──────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────┐
+│                       KEY COMPONENTS                              │
+├──────────────────────────────────────────────────────────────────┤
+│                                                                   │
+│  📁 /email_templates/           → HTML/text templates            │
+│  📄 bookings/email_utils.py     → Email sending logic            │
+│  ⚙️  moviebooking/settings.py   → Email configuration            │
+│  🔐 .env                        → SMTP credentials               │
+│  📦 requirements.txt            → Dependencies                   │
+│                                                                   │
+└──────────────────────────────────────────────────────────────────┘
+</code></pre>
+<hr />
+<h2 id="key-takeaways">🎓 Key Takeaways</h2>
+<h3 id="what-were-using">What We&rsquo;re Using:</h3>
+<ol>
+<li><strong>Django&rsquo;s Built-in Email System</strong> - No external SDKs</li>
+<li><strong>Python&rsquo;s Standard Library</strong> - smtplib for SMTP</li>
+<li><strong>Gmail&rsquo;s SMTP Server</strong> - Standard email protocol</li>
+<li><strong>Django Templates</strong> - For HTML/text rendering</li>
+<li><strong>QRCode Library</strong> - Simple Python package</li>
+<li><strong>Celery</strong> - For async processing</li>
+<li><strong>Redis</strong> - Task queue for Celery</li>
+</ol>
+<h3 id="what-makes-it-work">What Makes It Work:</h3>
+<ul>
+<li><strong>SMTP Protocol</strong> - Universal email standard (like HTTP for web)</li>
+<li><strong>Template Rendering</strong> - Django replaces {{ variables }} with real data</li>
+<li><strong>Base64 Encoding</strong> - Converts binary images to text for HTML</li>
+<li><strong>Async Processing</strong> - Celery runs email tasks in background</li>
+<li><strong>Multi-part Emails</strong> - Both HTML and plain text versions</li>
+</ul>
+<h3 id="no-magic-no-sdks">No Magic, No SDKs:</h3>
+<ul>
+<li>✅ Just Python standard library (smtplib)</li>
+<li>✅ Django&rsquo;s wrapper around smtplib</li>
+<li>✅ SMTP = same protocol Outlook/Thunderbird use</li>
+<li>✅ Works with any SMTP server (Gmail, Yahoo, custom)</li>
+<li>✅ No API keys, no quotas, no external dependencies</li>
+</ul>
+<hr />
+<h2 id="additional-resources">📚 Additional Resources</h2>
+<h3 id="learn-more">Learn More:</h3>
+<ul>
+<li><a href="https://docs.djangoproject.com/en/stable/topics/email/">Django Email Documentation</a></li>
+<li><a href="https://docs.python.org/3/library/smtplib.html">Python smtplib</a></li>
+<li><a href="https://tools.ietf.org/html/rfc5321">SMTP Protocol (RFC 5321)</a></li>
+<li><a href="https://docs.djangoproject.com/en/stable/topics/templates/">Django Templates</a></li>
+<li><a href="https://docs.celeryproject.org/">Celery Documentation</a></li>
+</ul>
+<h3 id="tools-for-testing">Tools for Testing:</h3>
+<ul>
+<li><a href="https://github.com/mailhog/MailHog">MailHog</a> - Local email testing</li>
+<li><a href="https://mailtrap.io/">Mailtrap</a> - Email sandbox</li>
+<li><a href="https://www.emailonacid.com/">Email Acid</a> - Email client testing</li>
+</ul>
+<hr />
+<p><strong>Last Updated:</strong> January 4, 2026<br />
+<strong>Author:</strong> Movie Booking System Development Team<br />
+<strong>Status:</strong> ✅ Complete &amp; Production Ready</p>
+<hr />
+        </div>
+        
+        <hr class="no-print">
+        <div class="meta no-print" style="margin-top: 30px;">
+            <p style="color: #666; font-size: 0.9em;">
+                💡 <strong>Tip:</strong> Use <kbd>Ctrl+P</kbd> (Windows/Linux) or <kbd>Cmd+P</kbd> (Mac) to print or save as PDF.
+                Select "Save as PDF" as your destination.
+            </p>
+        </div>
+    </div>
+    
+    <script>
+        // Download markdown function
+        function downloadMarkdown() {
+            const markdownContent = `# 📧 Email System - Complete Technical Guide\n\n## 🎯 Overview\n\nThis document explains **exactly how the email system works** in the Movie Booking System, from start to finish. No external SDKs or complex libraries - just Django, Python standard library, and SMTP.\n\n---\n\n## 🔍 Table of Contents\n\n1. [How It Works (High Level)](#how-it-works-high-level)\n2. [Technology Stack](#technology-stack)\n3. [Email Flow (Detailed)](#email-flow-detailed)\n4. [Django Email System](#django-email-system)\n5. [Template Rendering](#template-rendering)\n6. [QR Code Generation](#qr-code-generation)\n7. [SMTP Configuration](#smtp-configuration)\n8. [Celery Integration](#celery-integration)\n9. [Complete Code Walkthrough](#complete-code-walkthrough)\n10. [Testing & Debugging](#testing--debugging)\n\n---\n\n## 🚀 How It Works (High Level)\n\n\`\`\`\nUSER ACTION → DJANGO VIEW → CELERY TASK → EMAIL UTILS → SMTP → USER'S INBOX\n\`\`\`\n\n**Simple Explanation:**\n1. User does something (books ticket, registers, etc.)\n2. Django triggers an email task\n3. Celery runs the task in background (async)\n4. Email utility renders HTML/text templates\n5. Generates QR code (if needed)\n6. Sends email via Gmail's SMTP server\n7. User receives professional email\n\n**Key Point:** We're using **standard SMTP protocol** - no Google SDK, no third-party APIs. Just Python sending emails like any email client would.\n\n---\n\n## 🛠️ Technology Stack\n\n### Core Technologies:\n\`\`\`python\n# NO external SDKs needed! Just these Python packages:\n\n1. Django (built-in email system)\n   - django.core.mail\n   - django.template.loader\n\n2. Python Standard Library\n   - smtplib (SMTP protocol)\n   - email (email formatting)\n   - base64 (encoding)\n   - io.BytesIO (in-memory files)\n\n3. Third-party Packages\n   - qrcode (QR code generation)\n   - Pillow (image processing)\n   - celery (async tasks)\n\`\`\`\n\n### What We're NOT Using:\n❌ No Google API SDK  \n❌ No SendGrid SDK  \n❌ No Mailgun SDK  \n❌ No AWS SES SDK  \n❌ No third-party email services\n\n### What We ARE Using:\n✅ Standard SMTP protocol  \n✅ Gmail's SMTP server  \n✅ Django's built-in email system  \n✅ Python's standard libraries  \n\n---\n\n## 📊 Email Flow (Detailed)\n\n### Example: Booking Confirmation Email\n\n\`\`\`\n┌─────────────────────────────────────────────────────────────────┐\n│ STEP 1: User Completes Payment                                  │\n│ - User pays on Razorpay modal                                   │\n│ - Razorpay redirects back with payment details                  │\n└─────────────────────────────────────────────────────────────────┘\n                            ↓\n┌─────────────────────────────────────────────────────────────────┐\n│ STEP 2: Django View (bookings/views.py)                        │\n│                                                                  │\n│ def verify_payment(request):                                    │\n│     # Verify Razorpay signature                                 │\n│     # Update booking status to CONFIRMED                        │\n│     # Trigger email task                                        │\n│     send_booking_confirmation_email.delay(booking.id)  ← ASYNC  │\n│     return redirect('booking_detail')                           │\n└─────────────────────────────────────────────────────────────────┘\n                            ↓ \n┌─────────────────────────────────────────────────────────────────┐\n│ STEP 3: Celery Task Queue                                       │\n│ - Task added to Redis queue                                     │\n│ - Celery worker picks up task                                   │\n│ - Runs in background (doesn't block user)                       │\n└─────────────────────────────────────────────────────────────────┘\n                            ↓\n┌─────────────────────────────────────────────────────────────────┐\n│ STEP 4: Email Utility (bookings/email_utils.py)                │\n│                                                                  │\n│ @shared_task                                                    │\n│ def send_booking_confirmation_email(booking_id):                │\n│     # Fetch booking from database                               │\n│     booking = Booking.objects.get(id=booking_id)                │\n│                                                                  │\n│     # Generate QR code                                          │\n│     qr_data = f"Booking: {booking.booking_number}..."           │\n│     qr_image = generate_qr_code(qr_data)                        │\n│                                                                  │\n│     # Prepare context data                                      │\n│     context = {                                                 │\n│         'user': booking.user,                                   │\n│         'booking': booking,                                     │\n│         'movie': booking.showtime.movie,                        │\n│         'qr_code': base64_encoded_qr,                           │\n│     }                                                            │\n│                                                                  │\n│     # Render templates                                          │\n│     html = render_to_string('email_templates/...html', context) │\n│     text = render_to_string('email_templates/...txt', context)  │\n│                                                                  │\n│     # Create and send email                                     │\n│     email = EmailMultiAlternatives(...)                         │\n│     email.send()                                                │\n└─────────────────────────────────────────────────────────────────┘\n                            ↓\n┌─────────────────────────────────────────────────────────────────┐\n│ STEP 5: Django's Email Backend                                  │\n│                                                                  │\n│ - Uses Python's smtplib (standard library)                      │\n│ - Connects to smtp.gmail.com:587                                │\n│ - Authenticates with email/password                             │\n│ - Sends email using SMTP protocol                               │\n└─────────────────────────────────────────────────────────────────┘\n                            ↓\n┌─────────────────────────────────────────────────────────────────┐\n│ STEP 6: Gmail SMTP Server                                       │\n│ - Receives email from our server                                │\n│ - Validates credentials                                         │\n│ - Routes to recipient                                           │\n└─────────────────────────────────────────────────────────────────┘\n                            ↓\n┌─────────────────────────────────────────────────────────────────┐\n│ STEP 7: User's Email Client                                     │\n│ - Gmail/Outlook/Apple Mail receives email                       │\n│ - Displays professional HTML template                           │\n│ - Shows QR code attachment                                      │\n│ - User can view ticket                                          │\n└─────────────────────────────────────────────────────────────────┘\n\`\`\`\n\n---\n\n## 📧 Django Email System\n\n### How Django Sends Emails (Under the Hood)\n\nDjango's email system is a wrapper around Python's standard \`smtplib\`. Here's what happens:\n\n\`\`\`python\n# When you call:\nemail.send()\n\n# Django does this internally:\n1. Reads EMAIL_* settings from settings.py/.env\n2. Creates SMTP connection: smtplib.SMTP('smtp.gmail.com', 587)\n3. Starts TLS encryption: smtp.starttls()\n4. Authenticates: smtp.login(EMAIL_HOST_USER, EMAIL_HOST_PASSWORD)\n5. Formats email with headers, body, attachments\n6. Sends: smtp.send_message(email_message)\n7. Closes connection: smtp.quit()\n\`\`\`\n\n### Configuration (settings.py)\n\n\`\`\`python\n# Email Configuration\nEMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'\nEMAIL_HOST = 'smtp.gmail.com'          # Gmail's SMTP server\nEMAIL_PORT = 587                        # TLS port\nEMAIL_USE_TLS = True                    # Enable encryption\nEMAIL_HOST_USER = 'your-email@gmail.com'\nEMAIL_HOST_PASSWORD = 'app-password'    # Gmail App Password\nDEFAULT_FROM_EMAIL = 'MovieBooking <your-email@gmail.com>'\n\`\`\`\n\n### What Each Setting Does:\n\n| Setting | Purpose | Example |\n|---------|---------|---------|\n| \`EMAIL_BACKEND\` | Which Django backend to use | SMTP (default), Console (testing), File (development) |\n| \`EMAIL_HOST\` | SMTP server address | \`smtp.gmail.com\`, \`smtp.office365.com\` |\n| \`EMAIL_PORT\` | SMTP port | \`587\` (TLS), \`465\` (SSL), \`25\` (unencrypted) |\n| \`EMAIL_USE_TLS\` | Enable encryption | \`True\` (recommended) |\n| \`EMAIL_HOST_USER\` | SMTP username | Your email address |\n| \`EMAIL_HOST_PASSWORD\` | SMTP password | App password (not regular password) |\n| \`DEFAULT_FROM_EMAIL\` | Default sender | Display name + email |\n\n---\n\n## 🎨 Template Rendering\n\n### How Templates Work\n\nDjango templates are HTML/text files with placeholders for dynamic content:\n\n\`\`\`html\n<!-- email_templates/booking_confirmation.html -->\n<h1>Hello {{ user.username }}!</h1>\n<p>Your booking {{ booking.booking_number }} is confirmed.</p>\n<p>Movie: {{ movie.title }}</p>\n\`\`\`\n\n### Rendering Process\n\n\`\`\`python\n# 1. Prepare context data (dictionary of variables)\ncontext = {\n    'user': user_object,           # Django User model\n    'booking': booking_object,     # Django Booking model\n    'movie': movie_object,         # Django Movie model\n    'showtime': showtime_object,   # Django Showtime model\n    'qr_code': 'base64string',     # Generated QR code\n}\n\n# 2. Render template with context\nfrom django.template.loader import render_to_string\n\nhtml_content = render_to_string(\n    'email_templates/booking_confirmation.html',  # Template path\n    context                                        # Data to inject\n)\n\n# Result: HTML string with all {{ variables }} replaced with actual data\n\`\`\`\n\n### Template Variables Explained\n\n**User Object:**\n\`\`\`python\nuser.username          # "john_doe"\nuser.email            # "john@example.com"\nuser.get_full_name()  # "John Doe"\n\`\`\`\n\n**Booking Object:**\n\`\`\`python\nbooking.booking_number      # "BK001"\nbooking.total_amount        # 500\nbooking.get_seats_display() # "A1, A2, A3"\nbooking.status             # "CONFIRMED"\n\`\`\`\n\n**Movie Object:**\n\`\`\`python\nmovie.title           # "Inception"\nmovie.genre          # "Sci-Fi"\nmovie.duration       # 148 (minutes)\nmovie.poster.url     # "/media/posters/inception.jpg"\n\`\`\`\n\n**Template Filters:**\n\`\`\`django\n{{ user.username|upper }}              → "JOHN_DOE"\n{{ booking.created_at|date:"d M Y" }}  → "04 Jan 2026"\n{{ movie.title|truncatewords:5 }}      → "Inception: The Movie..."\n{{ value|default:"N/A" }}              → Shows "N/A" if value is None\n\`\`\`\n\n---\n\n## 🔲 QR Code Generation\n\n### How QR Codes Work\n\n\`\`\`python\nimport qrcode\nimport base64\nfrom io import BytesIO\n\n# 1. Create QR code data (text to encode)\nqr_data = f"""\nBooking ID: {booking.booking_number}\nMovie: {booking.showtime.movie.title}\nTheater: {booking.showtime.screen.theater.name}\nDate: {booking.showtime.date}\nTime: {booking.showtime.start_time}\nSeats: {booking.get_seats_display()}\n"""\n\n# 2. Generate QR code image\nqr = qrcode.QRCode(\n    version=1,           # Size (1-40, auto-adjusts)\n    box_size=10,         # Pixels per box\n    border=5,            # Border size\n)\nqr.add_data(qr_data)     # Add the text data\nqr.make(fit=True)        # Optimize size\n\n# 3. Create image\nimg = qr.make_image(\n    fill_color="black",   # QR code color\n    back_color="white"    # Background color\n)\n\n# 4. Convert to PNG in memory (not saved to disk)\nbuffer = BytesIO()\nimg.save(buffer, format="PNG")\nqr_image_bytes = buffer.getvalue()\n\n# 5. Encode to base64 (for embedding in HTML)\nqr_base64 = base64.b64encode(qr_image_bytes).decode()\n\n# 6. Use in email\n# A) Embed in HTML:\n#    <img src="data:image/png;base64,{{ qr_code }}">\n# B) Attach as file:\n#    email.attach('ticket.png', qr_image_bytes, 'image/png')\n\`\`\`\n\n### Why Base64 Encoding?\n\n- QR code is an image (binary data)\n- Email HTML needs text format\n- Base64 converts binary → text string\n- Browser/email client decodes it back to image\n\n**Example:**\n\`\`\`\nBinary: [89 50 4E 47 0D 0A 1A 0A ...]  (PNG file)\nBase64: iVBORw0KGgoAAAANSUhEUgAA...     (Text string)\nHTML:   <img src="data:image/png;base64,iVBORw0KGgo...">\n\`\`\`\n\n---\n\n## 🔐 SMTP Configuration\n\n### Gmail SMTP Setup\n\n**Step 1: Enable 2-Factor Authentication**\n- Go to Google Account settings\n- Security → 2-Step Verification → Enable\n\n**Step 2: Create App Password**\n- Google Account → Security → App passwords\n- Select "Mail" and your device\n- Google generates 16-character password\n- Example: \`abcd efgh ijkl mnop\`\n\n**Step 3: Configure in .env**\n\`\`\`bash\nEMAIL_HOST_USER=your-email@gmail.com\nEMAIL_HOST_PASSWORD=abcdefghijklmnop  # No spaces!\n\`\`\`\n\n### How SMTP Works\n\n\`\`\`\nCLIENT (Our Django App)  ←→  SMTP SERVER (Gmail)  ←→  RECIPIENT\n\n1. CONNECT\n   Django: "Hello, I want to send email"\n   Gmail:  "OK, connected on port 587"\n\n2. STARTTLS\n   Django: "Start encryption"\n   Gmail:  "TLS enabled, connection secured"\n\n3. AUTH\n   Django: "Username: user@gmail.com"\n   Gmail:  "Password?"\n   Django: "Password: app-password"\n   Gmail:  "Authenticated ✓"\n\n4. MAIL FROM\n   Django: "Sending from: moviebooking@gmail.com"\n   Gmail:  "OK ✓"\n\n5. RCPT TO\n   Django: "Sending to: user@example.com"\n   Gmail:  "OK ✓"\n\n6. DATA\n   Django: "Here's the email content..."\n   Gmail:  "Received, will deliver ✓"\n\n7. QUIT\n   Django: "Goodbye"\n   Gmail:  "Connection closed"\n\`\`\`\n\n### Alternative SMTP Providers\n\n**Gmail:**\n\`\`\`python\nEMAIL_HOST = 'smtp.gmail.com'\nEMAIL_PORT = 587\n\`\`\`\n\n**Outlook/Office365:**\n\`\`\`python\nEMAIL_HOST = 'smtp.office365.com'\nEMAIL_PORT = 587\n\`\`\`\n\n**Yahoo:**\n\`\`\`python\nEMAIL_HOST = 'smtp.mail.yahoo.com'\nEMAIL_PORT = 587\n\`\`\`\n\n**Custom Domain (cPanel/Plesk):**\n\`\`\`python\nEMAIL_HOST = 'mail.yourdomain.com'\nEMAIL_PORT = 587\n\`\`\`\n\n---\n\n## ⚡ Celery Integration\n\n### Why Celery?\n\n**Without Celery:**\n\`\`\`python\ndef verify_payment(request):\n    # ... verify payment ...\n    send_booking_confirmation_email(booking.id)  # ← BLOCKS for 2-3 seconds\n    return redirect('booking_detail')            # User waits...\n\`\`\`\n\n**With Celery:**\n\`\`\`python\ndef verify_payment(request):\n    # ... verify payment ...\n    send_booking_confirmation_email.delay(booking.id)  # ← Returns instantly\n    return redirect('booking_detail')                  # User redirected immediately\n\`\`\`\n\n### How Celery Works\n\n\`\`\`\n┌─────────────────┐\n│  Django View    │\n│  (User request) │\n└────────┬────────┘\n         │ .delay(booking_id)\n         ↓\n┌─────────────────┐\n│  Redis Queue    │  ← Task stored here\n│  [Task 1, 2, 3] │\n└────────┬────────┘\n         │\n         ↓\n┌─────────────────┐\n│ Celery Worker   │  ← Separate process\n│ (Background)    │     Picks up tasks\n│ ┌─────────────┐ │     Runs them async\n│ │   send_     │ │\n│ │   email()   │ │\n│ └─────────────┘ │\n└─────────────────┘\n\`\`\`\n\n### Celery Configuration\n\n**1. Install:**\n\`\`\`bash\npip install celery redis\n\`\`\`\n\n**2. Configure (moviebooking/celery.py):**\n\`\`\`python\nfrom celery import Celery\nimport os\n\nos.environ.setdefault('DJANGO_SETTINGS_MODULE', 'moviebooking.settings')\n\napp = Celery('moviebooking')\napp.config_from_object('django.conf:settings', namespace='CELERY')\napp.autodiscover_tasks()\n\`\`\`\n\n**3. Settings (settings.py):**\n\`\`\`python\nCELERY_BROKER_URL = 'redis://localhost:6379/0'\nCELERY_RESULT_BACKEND = 'redis://localhost:6379/0'\nCELERY_ACCEPT_CONTENT = ['json']\nCELERY_TASK_SERIALIZER = 'json'\n\`\`\`\n\n**4. Run Worker:**\n\`\`\`bash\ncelery -A moviebooking worker -l info\n\`\`\`\n\n---\n\n## 💻 Complete Code Walkthrough\n\n### File: bookings/email_utils.py\n\n\`\`\`python\n"""\nComplete email sending utility with detailed explanations\n"""\n\n# ============================================================================\n# IMPORTS\n# ============================================================================\n\n# Standard library - no external SDKs!\nimport logging          # For logging email events\nimport qrcode          # Generate QR codes\nimport base64          # Encode binary data to text\nfrom io import BytesIO # In-memory file handling\n\n# Django built-in email system\nfrom django.core.mail import EmailMultiAlternatives  # Send HTML + text emails\nfrom django.template.loader import render_to_string  # Render templates\nfrom django.conf import settings                     # Access settings\n\n# Celery for async tasks\nfrom celery import shared_task\n\n# Initialize logger\nlogger = logging.getLogger(__name__)\n\n\n# ============================================================================\n# BOOKING CONFIRMATION EMAIL\n# ============================================================================\n\n@shared_task  # ← Makes this function run asynchronously via Celery\ndef send_booking_confirmation_email(booking_id):\n    """\n    Sends booking confirmation email with QR code ticket\n    \n    FLOW:\n    1. Fetch booking data from database\n    2. Generate QR code with booking details\n    3. Prepare context data for template\n    4. Render HTML and text templates\n    5. Create email with both versions\n    6. Attach QR code as PNG file\n    7. Send via SMTP\n    \n    HOW IT WORKS:\n    - NO external APIs or SDKs\n    - Uses Django's built-in email system\n    - Django uses Python's smtplib (standard library)\n    - SMTP = Simple Mail Transfer Protocol (like sending from Outlook)\n    """\n    \n    # Import here to avoid circular imports\n    from .models import Booking\n    \n    try:\n        # ====================================================================\n        # STEP 1: GET DATA FROM DATABASE\n        # ====================================================================\n        booking = Booking.objects.get(id=booking_id)\n        user = booking.user\n        \n        logger.info(f"📧 Generating confirmation email for {booking.booking_number}")\n        \n        \n        # ====================================================================\n        # STEP 2: GENERATE QR CODE\n        # ====================================================================\n        \n        # Create text data to encode in QR code\n        qr_data = (\n            f"Booking ID: {booking.booking_number}\\n"\n            f"Movie: {booking.showtime.movie.title}\\n"\n            f"Theater: {booking.showtime.screen.theater.name}\\n"\n            f"Date: {booking.showtime.date}\\n"\n            f"Time: {booking.showtime.start_time}\\n"\n            f"Seats: {booking.get_seats_display()}"\n        )\n        \n        # Generate QR code image\n        qr = qrcode.QRCode(version=1, box_size=10, border=5)\n        qr.add_data(qr_data)\n        qr.make(fit=True)\n        img = qr.make_image(fill_color="black", back_color="white")\n        \n        # Convert to PNG in memory (not saved to disk)\n        buffer = BytesIO()\n        img.save(buffer, format="PNG")\n        qr_image = buffer.getvalue()  # Binary PNG data\n        \n        # Encode to base64 for embedding in HTML\n        qr_base64 = base64.b64encode(qr_image).decode()\n        \n        \n        # ====================================================================\n        # STEP 3: PREPARE TEMPLATE CONTEXT\n        # ====================================================================\n        \n        # Dictionary of variables to pass to template\n        context = {\n            'user': user,                      # Django User model instance\n            'booking': booking,                # Django Booking model instance\n            'movie': booking.showtime.movie,   # Related Movie object\n            'showtime': booking.showtime,      # Related Showtime object\n            'theater': booking.showtime.screen.theater,  # Related Theater\n            'qr_code': qr_base64,             # Base64 encoded QR image\n            'total_amount': booking.total_amount,\n        }\n        \n        \n        # ====================================================================\n        # STEP 4: RENDER TEMPLATES\n        # ====================================================================\n        \n        # Render HTML version (for modern email clients)\n        html_content = render_to_string(\n            'email_templates/booking_confirmation.html',\n            context\n        )\n        # Result: HTML string with all {{ variables }} replaced\n        \n        # Render plain text version (for old email clients or accessibility)\n        text_content = render_to_string(\n            'email_templates/booking_confirmation.txt',\n            context\n        )\n        \n        \n        # ====================================================================\n        # STEP 5: CREATE EMAIL\n        # ====================================================================\n        \n        subject = f'🎬 Booking Confirmed - {booking.booking_number}'\n        from_email = settings.DEFAULT_FROM_EMAIL  # From .env\n        to_email = [user.email]                   # Recipient list\n        \n        # EmailMultiAlternatives = Email with HTML + text versions\n        email = EmailMultiAlternatives(\n            subject,        # Email subject\n            text_content,   # Plain text body (fallback)\n            from_email,     # Sender\n            to_email        # Recipients (list)\n        )\n        \n        # Attach HTML version as alternative\n        email.attach_alternative(html_content, "text/html")\n        \n        # Attach QR code as PNG file\n        email.attach(\n            f'booking_{booking.booking_number}.png',  # Filename\n            qr_image,                                  # Binary data\n            'image/png'                                # MIME type\n        )\n        \n        \n        # ====================================================================\n        # STEP 6: SEND EMAIL\n        # ====================================================================\n        \n        # This is where Django's email backend connects to SMTP\n        email.send()\n        \n        # What happens internally:\n        # 1. Django reads EMAIL_* settings from settings.py\n        # 2. Creates SMTP connection to smtp.gmail.com:587\n        # 3. Starts TLS encryption\n        # 4. Authenticates with email/password\n        # 5. Sends email using SMTP protocol\n        # 6. Closes connection\n        \n        logger.info(f"✅ Email sent successfully to {user.email}")\n        return f"Email sent to {user.email}"\n        \n    except Exception as e:\n        logger.error(f"❌ Error sending email: {str(e)}")\n        return f"Error: {str(e)}"\n\n\n# ============================================================================\n# PAYMENT FAILED EMAIL\n# ============================================================================\n\n@shared_task\ndef send_payment_failed_email(booking_id):\n    """\n    Sends email when payment fails or is cancelled\n    \n    SIMPLER THAN CONFIRMATION:\n    - No QR code needed\n    - Just HTML/text templates\n    - Same SMTP process\n    """\n    from .models import Booking\n    \n    try:\n        booking = Booking.objects.get(id=booking_id)\n        user = booking.user\n        \n        logger.info(f"📧 Sending payment failed email for {booking.booking_number}")\n        \n        # Prepare context\n        context = {\n            'user': user,\n            'booking': booking,\n            'movie': booking.showtime.movie,\n        }\n        \n        # Render templates\n        text_content = render_to_string(\n            'email_templates/payment_failed.txt',\n            context\n        )\n        html_content = render_to_string(\n            'email_templates/payment_failed.html',\n            context\n        )\n        \n        # Create and send email\n        subject = f'❌ Payment Failed - Booking {booking.booking_number}'\n        from_email = settings.DEFAULT_FROM_EMAIL\n        to_email = [user.email]\n        \n        email = EmailMultiAlternatives(subject, text_content, from_email, to_email)\n        email.attach_alternative(html_content, "text/html")\n        email.send()  # ← SMTP happens here\n        \n        logger.info(f"✅ Payment failed email sent to {user.email}")\n        return f"Email sent to {user.email}"\n        \n    except Exception as e:\n        logger.error(f"❌ Error: {str(e)}")\n        return f"Error: {str(e)}"\n\n\n# ============================================================================\n# SHOWTIME REMINDER EMAIL\n# ============================================================================\n\n@shared_task\ndef send_seat_reminder_email(booking_id):\n    """\n    Sends reminder email 24 hours before showtime\n    \n    TRIGGERED BY:\n    - Celery Beat (scheduled task)\n    - Runs daily, checks which movies are tomorrow\n    """\n    from .models import Booking\n    \n    try:\n        booking = Booking.objects.get(id=booking_id)\n        \n        # Only send if booking is confirmed\n        if booking.status != 'CONFIRMED':\n            logger.warning(f"⚠️ Booking {booking.booking_number} not confirmed")\n            return "Booking not confirmed"\n        \n        logger.info(f"📧 Sending reminder for {booking.booking_number}")\n        \n        # Prepare context\n        context = {\n            'booking': booking,\n            'user': booking.user,\n            'movie': booking.showtime.movie,\n            'showtime': booking.showtime,\n            'theater': booking.showtime.screen.theater,\n        }\n        \n        # Render templates\n        text_content = render_to_string(\n            'email_templates/showtime_reminder.txt',\n            context\n        )\n        html_content = render_to_string(\n            'email_templates/showtime_reminder.html',\n            context\n        )\n        \n        # Send email\n        subject = f'⏰ Reminder: "{booking.showtime.movie.title}" starts soon!'\n        from_email = settings.DEFAULT_FROM_EMAIL\n        to_email = [booking.user.email]\n        \n        email = EmailMultiAlternatives(subject, text_content, from_email, to_email)\n        email.attach_alternative(html_content, "text/html")\n        email.send()\n        \n        logger.info(f"✅ Reminder sent for {booking.booking_number}")\n        return f"Reminder sent"\n        \n    except Exception as e:\n        logger.error(f"❌ Error: {str(e)}")\n        return f"Error: {str(e)}"\n\`\`\`\n\n---\n\n## 🧪 Testing & Debugging\n\n### Test 1: Check Email Configuration\n\n\`\`\`python\npython manage.py shell\n\nfrom django.conf import settings\nprint("Host:", settings.EMAIL_HOST)\nprint("Port:", settings.EMAIL_PORT)\nprint("User:", settings.EMAIL_HOST_USER)\nprint("Password set:", bool(settings.EMAIL_HOST_PASSWORD))\n\`\`\`\n\n### Test 2: Send Simple Test Email\n\n\`\`\`python\nfrom django.core.mail import send_mail\n\nresult = send_mail(\n    subject='Test Email',\n    message='If you receive this, SMTP works!',\n    from_email=settings.EMAIL_HOST_USER,\n    recipient_list=[settings.EMAIL_HOST_USER],\n    fail_silently=False,\n)\n\nprint(f"Sent: {result} email(s)")\n# Result = 1 means success\n\`\`\`\n\n### Test 3: Test Template Rendering\n\n\`\`\`python\nfrom django.template.loader import render_to_string\n\ncontext = {\n    'user': {'username': 'TestUser'},\n    'booking': {'booking_number': 'TEST123'},\n    'movie': {'title': 'Test Movie'},\n}\n\nhtml = render_to_string('email_templates/booking_confirmation.html', context)\nprint("Length:", len(html), "characters")\nprint("Contains booking number:", 'TEST123' in html)\n\`\`\`\n\n### Test 4: Generate QR Code\n\n\`\`\`python\nimport qrcode\nfrom io import BytesIO\nimport base64\n\nqr = qrcode.QRCode(version=1, box_size=10, border=5)\nqr.add_data("Test Data")\nqr.make(fit=True)\n\nimg = qr.make_image(fill_color="black", back_color="white")\nbuffer = BytesIO()\nimg.save(buffer, format="PNG")\n\nprint("QR code size:", len(buffer.getvalue()), "bytes")\n\`\`\`\n\n### Test 5: Send Full Email\n\n\`\`\`python\nfrom bookings.email_utils import send_booking_confirmation_email\n\n# For a real booking\nresult = send_booking_confirmation_email(1)\nprint(result)\n\n# Check your email inbox!\n\`\`\`\n\n### Common Issues & Solutions\n\n| Issue | Cause | Solution |\n|-------|-------|----------|\n| \`SMTPAuthenticationError\` | Wrong password | Check App Password (no spaces!) |\n| \`SMTPServerDisconnected\` | Network/firewall | Check internet, firewall rules |\n| \`Template not found\` | Wrong path | Verify \`TEMPLATES['DIRS']\` in settings |\n| \`QR code error\` | Missing package | \`pip install qrcode[pil]\` |\n| \`Celery not picking up\` | Worker not running | Start worker: \`celery -A moviebooking worker\` |\n| Email not received | Spam folder | Check spam, verify recipient email |\n\n---\n\n## 📊 Summary Diagram\n\n\`\`\`\n╔════════════════════════════════════════════════════════════════════╗\n║                   EMAIL SYSTEM ARCHITECTURE                        ║\n╚════════════════════════════════════════════════════════════════════╝\n\n┌──────────────────────────────────────────────────────────────────┐\n│                         TECHNOLOGY STACK                          │\n├──────────────────────────────────────────────────────────────────┤\n│                                                                   │\n│  ✅ Django (built-in email system)                               │\n│     └─ django.core.mail.EmailMultiAlternatives                   │\n│                                                                   │\n│  ✅ Python Standard Library (NO SDKs!)                           │\n│     ├─ smtplib (SMTP protocol)                                   │\n│     ├─ email (message formatting)                                │\n│     ├─ base64 (encoding)                                         │\n│     └─ io.BytesIO (in-memory files)                              │\n│                                                                   │\n│  ✅ Third-party Packages                                         │\n│     ├─ qrcode (QR generation)                                    │\n│     ├─ Pillow (image processing)                                 │\n│     └─ celery (async tasks)                                      │\n│                                                                   │\n│  ✅ Gmail SMTP Server                                            │\n│     └─ smtp.gmail.com:587 (TLS)                                  │\n│                                                                   │\n└──────────────────────────────────────────────────────────────────┘\n\n┌──────────────────────────────────────────────────────────────────┐\n│                           DATA FLOW                               │\n├──────────────────────────────────────────────────────────────────┤\n│                                                                   │\n│  1. USER ACTION                                                   │\n│     └─ Books ticket, completes payment                           │\n│                                                                   │\n│  2. DJANGO VIEW                                                   │\n│     └─ Triggers: send_booking_confirmation_email.delay(id)       │\n│                                                                   │\n│  3. CELERY QUEUE (Redis)                                         │\n│     └─ Stores task for background processing                     │\n│                                                                   │\n│  4. CELERY WORKER                                                 │\n│     └─ Picks up and executes task async                          │\n│                                                                   │\n│  5. EMAIL UTILS (bookings/email_utils.py)                        │\n│     ├─ Fetch booking data from database                          │\n│     ├─ Generate QR code (qrcode library)                         │\n│     ├─ Prepare context data (dictionary)                         │\n│     ├─ Render HTML template (Django template engine)             │\n│     ├─ Render text template (fallback)                           │\n│     └─ Create EmailMultiAlternatives object                      │\n│                                                                   │\n│  6. DJANGO EMAIL BACKEND                                          │\n│     ├─ Opens SMTP connection (smtplib)                           │\n│     ├─ Connects to smtp.gmail.com:587                            │\n│     ├─ Starts TLS encryption                                     │\n│     ├─ Authenticates with credentials                            │\n│     ├─ Sends email using SMTP protocol                           │\n│     └─ Closes connection                                         │\n│                                                                   │\n│  7. GMAIL SMTP SERVER                                             │\n│     ├─ Receives email                                            │\n│     ├─ Validates sender                                          │\n│     └─ Routes to recipient                                       │\n│                                                                   │\n│  8. USER'S INBOX                                                  │\n│     └─ Professional email with QR ticket                         │\n│                                                                   │\n└──────────────────────────────────────────────────────────────────┘\n\n┌──────────────────────────────────────────────────────────────────┐\n│                       KEY COMPONENTS                              │\n├──────────────────────────────────────────────────────────────────┤\n│                                                                   │\n│  📁 /email_templates/           → HTML/text templates            │\n│  📄 bookings/email_utils.py     → Email sending logic            │\n│  ⚙️  moviebooking/settings.py   → Email configuration            │\n│  🔐 .env                        → SMTP credentials               │\n│  📦 requirements.txt            → Dependencies                   │\n│                                                                   │\n└──────────────────────────────────────────────────────────────────┘\n\`\`\`\n\n---\n\n## 🎓 Key Takeaways\n\n### What We're Using:\n1. **Django's Built-in Email System** - No external SDKs\n2. **Python's Standard Library** - smtplib for SMTP\n3. **Gmail's SMTP Server** - Standard email protocol\n4. **Django Templates** - For HTML/text rendering\n5. **QRCode Library** - Simple Python package\n6. **Celery** - For async processing\n7. **Redis** - Task queue for Celery\n\n### What Makes It Work:\n- **SMTP Protocol** - Universal email standard (like HTTP for web)\n- **Template Rendering** - Django replaces {{ variables }} with real data\n- **Base64 Encoding** - Converts binary images to text for HTML\n- **Async Processing** - Celery runs email tasks in background\n- **Multi-part Emails** - Both HTML and plain text versions\n\n### No Magic, No SDKs:\n- ✅ Just Python standard library (smtplib)\n- ✅ Django's wrapper around smtplib\n- ✅ SMTP = same protocol Outlook/Thunderbird use\n- ✅ Works with any SMTP server (Gmail, Yahoo, custom)\n- ✅ No API keys, no quotas, no external dependencies\n\n---\n\n## 📚 Additional Resources\n\n### Learn More:\n- [Django Email Documentation](https://docs.djangoproject.com/en/stable/topics/email/)\n- [Python smtplib](https://docs.python.org/3/library/smtplib.html)\n- [SMTP Protocol (RFC 5321)](https://tools.ietf.org/html/rfc5321)\n- [Django Templates](https://docs.djangoproject.com/en/stable/topics/templates/)\n- [Celery Documentation](https://docs.celeryproject.org/)\n\n### Tools for Testing:\n- [MailHog](https://github.com/mailhog/MailHog) - Local email testing\n- [Mailtrap](https://mailtrap.io/) - Email sandbox\n- [Email Acid](https://www.emailonacid.com/) - Email client testing\n\n---\n\n**Last Updated:** January 4, 2026  \n**Author:** Movie Booking System Development Team  \n**Status:** ✅ Complete & Production Ready\n\n---\n\n`;
+            const blob = new Blob([markdownContent], { type: 'text/markdown' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'EMAIL_SYSTEM_COMPLETE_GUIDE.md';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        }
+        
+        // Keyboard shortcut for print
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+                e.preventDefault();
+                window.print();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -274,6 +274,8 @@ def create_booking(request, showtime_id):
 @login_required
 def payment_page(request, booking_id):
     """Show the payment landing page with a countdown timer and Razorpay integration."""
+    from .email_utils import send_payment_failed_email
+    
     booking = get_object_or_404(Booking, id=booking_id, user=request.user)
     
     # 🕵️ Cleanup: If user takes too long to pay, expire the booking.
@@ -282,6 +284,19 @@ def payment_page(request, booking_id):
         booking.save()
         # Free the seats so other users can book them.
         SeatManager.release_seats(booking.showtime.id, booking.seats)
+        
+        # Send payment failed/expired email
+        try:
+            send_payment_failed_email.delay(booking.id)
+            logger.info(f"📧 Booking expired email task queued for {booking.booking_number}")
+        except Exception as e:
+            logger.warning(f"⚠️ Celery not available, sending expired email synchronously: {e}")
+            try:
+                send_payment_failed_email(booking.id)
+                logger.info(f"📧 Booking expired email sent synchronously for {booking.booking_number}")
+            except Exception as email_error:
+                logger.error(f"❌ Failed to send expired email: {email_error}")
+        
         messages.error(request, 'Payment window expired. Please try again.')
         return redirect('select_seats', showtime_id=booking.showtime.id)
     
@@ -408,8 +423,18 @@ def payment_success(request, booking_id):
         # Queue email sending task with Celery
         # .delay() sends it to background worker - user doesn't wait
         # Email contains booking details + QR code
-        send_booking_confirmation_email.delay(booking.id)
-        logger.info(f"📧 Email task queued for booking {booking.booking_number}")
+        try:
+            # Try async with Celery (preferred)
+            send_booking_confirmation_email.delay(booking.id)
+            logger.info(f"📧 Email task queued for booking {booking.booking_number}")
+        except Exception as e:
+            # Fallback: Send synchronously if Celery is not running
+            logger.warning(f"⚠️ Celery not available, sending email synchronously: {e}")
+            try:
+                send_booking_confirmation_email(booking.id)
+                logger.info(f"📧 Email sent synchronously for booking {booking.booking_number}")
+            except Exception as email_error:
+                logger.error(f"❌ Failed to send email: {email_error}")
         
         # ========== STEP 4: SHOW SUCCESS MESSAGE ==========
         # Display green success message to user
@@ -437,11 +462,27 @@ def payment_failed(request, booking_id):
     WHEN: User cancels payment or payment fails
     WHAT: Mark booking as FAILED and release seats
     """
+    from .email_utils import send_payment_failed_email
+    
     booking = get_object_or_404(Booking, id=booking_id, user=request.user)
     
     # Update booking status to FAILED
     booking.status = 'FAILED'
     booking.save()  # Save to database
+    
+    # Send payment failed email
+    try:
+        # Try async with Celery (preferred)
+        send_payment_failed_email.delay(booking.id)
+        logger.info(f"📧 Payment failed email task queued for booking {booking.booking_number}")
+    except Exception as e:
+        # Fallback: Send synchronously if Celery is not running
+        logger.warning(f"⚠️ Celery not available, sending payment failed email synchronously: {e}")
+        try:
+            send_payment_failed_email(booking.id)
+            logger.info(f"📧 Payment failed email sent synchronously for booking {booking.booking_number}")
+        except Exception as email_error:
+            logger.error(f"❌ Failed to send payment failed email: {email_error}")
     
     # Inform user
     messages.error(request, 'Payment was unsuccessful. Your seats have been released.')
@@ -456,6 +497,8 @@ def razorpay_webhook(request):
     If the user closes their browser before returning to 'payment_success', 
     Razorpay tells the server directly via this webhook.
     """
+    from .email_utils import send_booking_confirmation_email
+    
     if request.method != 'POST':
         return HttpResponse(status=405)
     
@@ -479,6 +522,18 @@ def razorpay_webhook(request):
                     booking.confirmed_at = timezone.now()
                     booking.save()
                     SeatManager.confirm_seats(booking.showtime.id, booking.seats)
+                    
+                    # Send confirmation email via webhook
+                    try:
+                        send_booking_confirmation_email.delay(booking.id)
+                        logger.info(f"📧 Email task queued via webhook for booking {booking.booking_number}")
+                    except Exception as e:
+                        logger.warning(f"⚠️ Celery not available in webhook, sending email synchronously: {e}")
+                        try:
+                            send_booking_confirmation_email(booking.id)
+                            logger.info(f"📧 Email sent synchronously via webhook for booking {booking.booking_number}")
+                        except Exception as email_error:
+                            logger.error(f"❌ Failed to send email via webhook: {email_error}")
             except Booking.DoesNotExist:
                 pass
                 
@@ -527,6 +582,8 @@ def cancel_booking_api(request, booking_id):
     2. User closes Razorpay modal
     3. User explicitly cancels booking
     """
+    from .email_utils import send_payment_failed_email
+    
     if request.method != 'POST':
         return JsonResponse({'error': 'Invalid method'}, status=400)
     
@@ -558,6 +615,18 @@ def cancel_booking_api(request, booking_id):
             if str(showtime_id) in reservation:
                 del reservation[str(showtime_id)]
                 request.session['seat_reservation'] = reservation
+        
+        # Send cancellation email (using payment_failed template)
+        try:
+            send_payment_failed_email.delay(booking.id)
+            logger.info(f"📧 Booking cancelled email task queued for {booking.booking_number}")
+        except Exception as e:
+            logger.warning(f"⚠️ Celery not available, sending cancelled email synchronously: {e}")
+            try:
+                send_payment_failed_email(booking.id)
+                logger.info(f"📧 Booking cancelled email sent synchronously for {booking.booking_number}")
+            except Exception as email_error:
+                logger.error(f"❌ Failed to send cancelled email: {email_error}")
         
         logger.info(
             f"Booking {booking.booking_number} cancelled by user {request.user.id}. "

@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interview Questions - Movie Booking System</title>
+    <style>
+        /* Screen Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            line-height: 1.8;
+            color: #000;
+            background: #f5f5f5;
+            padding: 20px;
+            font-size: 12pt;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        
+        .header {
+            border-bottom: 3px solid #007bff;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #007bff;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+        
+        .meta {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .meta-info {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #0056b3;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .content {
+            margin-top: 30px;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+            color: #2c3e50;
+        }
+        
+        h1 { font-size: 2em; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
+        h2 { font-size: 1.75em; border-bottom: 1px solid #dee2e6; padding-bottom: 8px; }
+        h3 { font-size: 1.5em; }
+        h4 { font-size: 1.25em; }
+        
+        p {
+            margin-bottom: 1em;
+        }
+        
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 10pt;
+            color: #000;
+            font-weight: 500;
+        }
+        
+        pre {
+            background: #f8f8f8;
+            color: #000;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin: 15px 0;
+            line-height: 1.6;
+            font-size: 10pt;
+        }
+        
+        pre code {
+            background: none;
+            color: #000;
+            padding: 0;
+            border: none;
+            font-size: 10pt;
+            font-weight: normal;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        table th, table td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #dee2e6;
+        }
+        
+        table th {
+            background: #007bff;
+            color: white;
+            font-weight: 600;
+        }
+        
+        table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        blockquote {
+            border-left: 4px solid #007bff;
+            padding-left: 20px;
+            margin: 20px 0;
+            color: #666;
+            font-style: italic;
+        }
+        
+        ul, ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+        
+        li {
+            margin: 5px 0;
+        }
+        
+        a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        
+        a:hover {
+            text-decoration: underline;
+        }
+        
+        hr {
+            border: none;
+            border-top: 2px solid #dee2e6;
+            margin: 30px 0;
+        }
+        
+        /* Print Styles - Optimized for Black & White */
+        @media print {
+            @page {
+                margin: 0.75in;
+                size: A4;
+            }
+            
+            body {
+                background: white;
+                padding: 0;
+                color: #000;
+                font-size: 11pt;
+                line-height: 1.6;
+            }
+            
+            .container {
+                box-shadow: none;
+                padding: 0;
+                max-width: 100%;
+            }
+            
+            .actions, .no-print {
+                display: none !important;
+            }
+            
+            .header {
+                border-bottom: 2px solid #000;
+                padding-bottom: 10pt;
+                margin-bottom: 15pt;
+            }
+            
+            .header h1 {
+                color: #000;
+                font-size: 18pt;
+            }
+            
+            .header p {
+                color: #333;
+                font-size: 11pt;
+            }
+            
+            .meta {
+                background: #f9f9f9;
+                border: 1px solid #ddd;
+                padding: 10pt;
+                margin-bottom: 15pt;
+            }
+            
+            h1 {
+                font-size: 16pt;
+                border-bottom: 2px solid #000;
+                padding-bottom: 5pt;
+                margin-top: 20pt;
+                margin-bottom: 10pt;
+                page-break-after: avoid;
+            }
+            
+            h2 {
+                font-size: 14pt;
+                border-bottom: 1px solid #666;
+                padding-bottom: 4pt;
+                margin-top: 15pt;
+                margin-bottom: 8pt;
+                page-break-after: avoid;
+            }
+            
+            h3 {
+                font-size: 13pt;
+                margin-top: 12pt;
+                margin-bottom: 6pt;
+                page-break-after: avoid;
+            }
+            
+            h4 {
+                font-size: 12pt;
+                margin-top: 10pt;
+                margin-bottom: 5pt;
+                page-break-after: avoid;
+            }
+            
+            p {
+                margin-bottom: 8pt;
+                orphans: 3;
+                widows: 3;
+            }
+            
+            /* Code blocks - BLACK & WHITE optimized */
+            code {
+                background: #f0f0f0;
+                border: 1px solid #999;
+                padding: 2pt 4pt;
+                font-family: 'Courier New', 'Consolas', monospace;
+                font-size: 9pt;
+                color: #000;
+                font-weight: 600;
+            }
+            
+            pre {
+                background: #f8f8f8;
+                border: 2px solid #666;
+                padding: 10pt;
+                margin: 10pt 0;
+                page-break-inside: avoid;
+                font-size: 9pt;
+                line-height: 1.4;
+                overflow: visible;
+                white-space: pre-wrap;
+                word-wrap: break-word;
+            }
+            
+            pre code {
+                background: none;
+                border: none;
+                padding: 0;
+                font-size: 9pt;
+                font-weight: normal;
+                color: #000;
+            }
+            
+            /* Tables - BLACK & WHITE optimized */
+            table {
+                page-break-inside: avoid;
+                border-collapse: collapse;
+                width: 100%;
+                margin: 10pt 0;
+                border: 2px solid #000;
+            }
+            
+            table th {
+                background: #e0e0e0;
+                color: #000;
+                border: 1px solid #666;
+                padding: 6pt;
+                font-weight: bold;
+                text-align: left;
+            }
+            
+            table td {
+                border: 1px solid #999;
+                padding: 6pt;
+                color: #000;
+            }
+            
+            table tr:nth-child(even) {
+                background: #f5f5f5;
+            }
+            
+            /* Blockquotes */
+            blockquote {
+                border-left: 3px solid #000;
+                padding-left: 10pt;
+                margin: 10pt 0;
+                font-style: italic;
+                color: #333;
+                page-break-inside: avoid;
+            }
+            
+            /* Links */
+            a {
+                color: #000;
+                text-decoration: underline;
+            }
+            
+            a[href]:after {
+                content: " (" attr(href) ")";
+                font-size: 9pt;
+                color: #666;
+            }
+            
+            /* Lists */
+            ul, ol {
+                margin: 8pt 0;
+                padding-left: 20pt;
+            }
+            
+            li {
+                margin: 4pt 0;
+            }
+            
+            /* Horizontal rules */
+            hr {
+                border: none;
+                border-top: 1px solid #000;
+                margin: 15pt 0;
+            }
+            
+            /* Image handling */
+            img {
+                max-width: 100%;
+                page-break-inside: avoid;
+            }
+            
+            /* Page breaks */
+            .page-break {
+                page-break-before: always;
+            }
+            
+            /* Ensure visibility of all content */
+            * {
+                color: #000 !important;
+                background: white !important;
+            }
+            
+            code, pre {
+                background: #f5f5f5 !important;
+                border-color: #666 !important;
+            }
+            
+            table th {
+                background: #e0e0e0 !important;
+            }
+            
+            table tr:nth-child(even) {
+                background: #f8f8f8 !important;
+            }
+        }
+        
+        /* Code syntax highlighting */
+        .codehilite .hll { background-color: #49483e }
+        .codehilite .c { color: #75715e }
+        .codehilite .k { color: #66d9ef }
+        .codehilite .l { color: #ae81ff }
+        .codehilite .n { color: #f8f8f2 }
+        .codehilite .o { color: #f92672 }
+        .codehilite .p { color: #f8f8f2 }
+        .codehilite .cm { color: #75715e }
+        .codehilite .cp { color: #75715e }
+        .codehilite .c1 { color: #75715e }
+        .codehilite .cs { color: #75715e }
+        .codehilite .kc { color: #66d9ef }
+        .codehilite .kd { color: #66d9ef }
+        .codehilite .kn { color: #f92672 }
+        .codehilite .kp { color: #66d9ef }
+        .codehilite .kr { color: #66d9ef }
+        .codehilite .kt { color: #66d9ef }
+        .codehilite .ld { color: #e6db74 }
+        .codehilite .m { color: #ae81ff }
+        .codehilite .s { color: #e6db74 }
+        .codehilite .na { color: #a6e22e }
+        .codehilite .nb { color: #f8f8f2 }
+        .codehilite .nc { color: #a6e22e }
+        .codehilite .no { color: #66d9ef }
+        .codehilite .nd { color: #a6e22e }
+        .codehilite .ni { color: #f8f8f2 }
+        .codehilite .ne { color: #a6e22e }
+        .codehilite .nf { color: #a6e22e }
+        .codehilite .nl { color: #f8f8f2 }
+        .codehilite .nn { color: #f8f8f2 }
+        .codehilite .nx { color: #a6e22e }
+        .codehilite .py { color: #f8f8f2 }
+        .codehilite .nt { color: #f92672 }
+        .codehilite .nv { color: #f8f8f2 }
+        .codehilite .ow { color: #f92672 }
+        .codehilite .w { color: #f8f8f2 }
+        .codehilite .mf { color: #ae81ff }
+        .codehilite .mh { color: #ae81ff }
+        .codehilite .mi { color: #ae81ff }
+        .codehilite .mo { color: #ae81ff }
+        .codehilite .sb { color: #e6db74 }
+        .codehilite .sc { color: #e6db74 }
+        .codehilite .sd { color: #e6db74 }
+        .codehilite .s2 { color: #e6db74 }
+        .codehilite .se { color: #ae81ff }
+        .codehilite .sh { color: #e6db74 }
+        .codehilite .si { color: #e6db74 }
+        .codehilite .sx { color: #e6db74 }
+        .codehilite .sr { color: #e6db74 }
+        .codehilite .s1 { color: #e6db74 }
+        .codehilite .ss { color: #e6db74 }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Interview Questions</h1>
+            <p>Comprehensive interview questions for the project</p>
+        </div>
+        
+        <div class="meta">
+            <div class="meta-info">
+                <strong>Generated:</strong> January 04, 2026<br>
+                <strong>Source:</strong> interview/interview_questions.md<br>
+                <strong>Project:</strong> Movie Booking System
+            </div>
+            <div class="actions no-print">
+                <button class="btn btn-primary" onclick="window.print()">
+                    <span>🖨️</span> Print / Save as PDF
+                </button>
+                <button class="btn btn-success" onclick="downloadMarkdown()">
+                    <span>📥</span> Download Markdown
+                </button>
+                <a href="index.html" class="btn btn-secondary">
+                    <span>🏠</span> Back to Index
+                </a>
+            </div>
+        </div>
+        
+        <div class="content">
+            <h1 id="interview-preparation-moviebooking-system">Interview Preparation – MovieBooking System</h1>
+<blockquote>
+<p>[!TIP] &gt; <strong>New to Django?</strong> Start with our <a href="file:///Users/bishalkumarshah/.gemini/antigravity/scratch/movie-booking-system/interview/beginner_questions.md">Beginner Interview Questions</a> for foundational concepts.</p>
+</blockquote>
+<h2 id="django-authentication">Django &amp; Authentication</h2>
+<ol>
+<li><strong>Explain the Django authentication workflow</strong> – how <code>register</code>, <code>login</code>, <code>logout</code>, and <code>profile</code> views interact with the auth system.</li>
+</ol>
+<ul>
+<li><strong>Answer:</strong> Django provides a built‑in authentication system. The <strong>register</strong> view creates a new <code>User</code> object, hashes the password and saves it. After registration we usually log the user in with <code>login(request, user)</code>. The <strong>login</strong> view checks the submitted username/password against the database using <code>authenticate()</code>. If valid, <code>login()</code> creates a session cookie so the browser knows the user is authenticated. The <strong>logout</strong> view simply calls <code>logout(request)</code>, which clears the session. The <strong>profile</strong> view is protected with <code>@login_required</code>; it reads the current <code>request.user</code> (the logged‑in user) and displays their details.</li>
+</ul>
+<ol start="2">
+<li><strong>What is the purpose of <code>@login_required</code> and how is it used in the <code>profile</code> view?</strong></li>
+</ol>
+<ul>
+<li><strong>Answer:</strong> <code>@login_required</code> is a decorator that forces a view to be accessed only by authenticated users. If an anonymous visitor tries to open the view, Django redirects them to the URL defined by <code>LOGIN_URL</code> (usually the login page). In <code>profile</code>, we add <code>@login_required</code> above the function so only logged‑in users can see their personal information.</li>
+</ul>
+<ol start="3">
+<li><strong>How does Django store passwords securely? Mention the hashing algorithm.</strong></li>
+</ol>
+<ul>
+<li><strong>Answer:</strong> Django never stores plain‑text passwords. When a password is set, Django runs it through a <strong>PBKDF2</strong> hash (by default) with a random salt and stores the resulting string in the <code>password</code> field. The format looks like <code>pbkdf2_sha256$260000$&lt;salt&gt;$&lt;hash&gt;</code>. This makes it computationally expensive to crack.</li>
+</ul>
+<ol start="4">
+<li><strong>How would you add email verification to the registration flow?</strong></li>
+</ol>
+<ul>
+<li><strong>Answer:</strong> After creating the user, generate a signed token (e.g., using <code>itsdangerous</code> or Django&rsquo;s <code>PasswordResetTokenGenerator</code>). Send an email containing a link like <code>http://example.com/activate/&lt;uid&gt;/&lt;token&gt;/</code>. Create a view that validates the token, activates the user (<code>is_active = True</code>), and logs them in. Use Django&rsquo;s <code>EmailMessage</code> or the console backend during development.</li>
+</ul>
+<ol start="5">
+<li><strong>Describe how you would implement password reset functionality.</strong><br />
+   - <strong>Answer:</strong> Django already ships with a password‑reset system. You would:</li>
+<li>Add URLs for <code>PasswordResetView</code>, <code>PasswordResetConfirmView</code>, etc.</li>
+<li>Configure <code>EMAIL_BACKEND</code> (console for dev, SMTP for prod).</li>
+<li>Provide templates for the email and the reset forms.</li>
+<li>When a user submits their email, Django sends a link with a token; the user follows the link to set a new password.</li>
+</ol>
+<h2 id="project-structure-apps">Project Structure &amp; Apps</h2>
+<ol start="6">
+<li><strong>Why did we separate the <code>accounts</code> app from the main project? What are the benefits of a modular app design?</strong></li>
+</ol>
+<ul>
+<li><strong>Answer:</strong> Splitting functionality into separate apps keeps code organized, reusable, and easier to test. The <code>accounts</code> app handles authentication only, while the main project can focus on other domains (movies, theaters, etc.). This modularity allows you to plug the app into another project or share it as a reusable package.</li>
+</ul>
+<ol start="7">
+<li><strong>How does Django discover templates in the <code>templates</code> directory? Explain the <code>DIRS</code> setting.</strong></li>
+</ol>
+<ul>
+<li><strong>Answer:</strong> In <code>settings.py</code>, the <code>TEMPLATES</code> configuration contains a <code>DIRS</code> list. By adding <code>BASE_DIR / "templates"</code> we tell Django to look for a top‑level <code>templates/</code> folder (outside any app). Django also automatically searches each app’s <code>templates/</code> subfolder when <code>APP_DIRS</code> is <code>True</code>. This lets us keep shared base templates in one place.</li>
+</ul>
+<ol start="8">
+<li><strong>What is the role of <code>BASE_DIR</code> and why do we use <code>pathlib.Path</code> for paths?</strong><br />
+   - <strong>Answer:</strong> <code>BASE_DIR</code> points to the project’s root directory. Using <code>pathlib.Path</code> gives us an object‑oriented way to build file system paths that work on Windows, macOS, and Linux without worrying about forward/backward slashes. For example, <code>BASE_DIR / "static"</code> creates a cross‑platform path to the <code>static</code> folder.</li>
+</ol>
+<h2 id="urls-routing">URLs &amp; Routing</h2>
+<ol start="9">
+<li><strong>Explain the purpose of <code>include('accounts.urls')</code> in the project <code>urls.py</code>.</strong></li>
+</ol>
+<ul>
+<li><strong>Answer:</strong> <code>include()</code> tells Django to delegate any URL that starts with <code>accounts/</code> to the URL patterns defined in <code>accounts/urls.py</code>. This keeps the main <code>urls.py</code> tidy and lets each app manage its own routes.</li>
+</ul>
+<ol start="10">
+<li><strong>How would you add a namespace to the <code>accounts</code> URLs and why might that be useful?</strong><ul>
+<li><strong>Answer:</strong> In <code>accounts/urls.py</code> add <code>app_name = 'accounts'</code> at the top and then use <code>path('accounts/', include('accounts.urls', namespace='accounts'))</code> in the project <code>urls.py</code>. Namespaces avoid name clashes when multiple apps have URL names like <code>login</code> or <code>register</code>. You can then reverse URLs with <code>reverse('accounts:login')</code>.</li>
+</ul>
+</li>
+</ol>
+<h2 id="static-media-files">Static &amp; Media Files</h2>
+<ol start="11">
+<li>
+<p><strong>How are static files served during development vs production? Mention <code>STATIC_URL</code>, <code>STATIC_ROOT</code>, and <code>STATICFILES_DIRS</code>.</strong></p>
+<ul>
+<li><strong>Answer:</strong> During development, Django’s built‑in server serves static files automatically when <code>DEBUG=True</code>. <code>STATIC_URL</code> (e.g., <code>/static/</code>) is the URL prefix, <code>STATICFILES_DIRS</code> lists extra directories (like a global <code>static/</code> folder). For production, you run <code>python manage.py collectstatic</code> which copies all static files into <code>STATIC_ROOT</code>. A real web server (Nginx, Apache, or a CDN) then serves files from that directory.</li>
+</ul>
+</li>
+<li>
+<p><strong>How would you configure media file handling for user‑uploaded content?</strong></p>
+<ul>
+<li><strong>Answer:</strong> Add <code>MEDIA_URL = '/media/'</code> and <code>MEDIA_ROOT = BASE_DIR / 'media'</code> in <code>settings.py</code>. In <code>urls.py</code> during development, append <code>+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)</code> when <code>settings.DEBUG</code> is <code>True</code>. In production, configure the web server to serve files from <code>MEDIA_ROOT</code>.</li>
+</ul>
+</li>
+</ol>
+<h2 id="settings-environment">Settings &amp; Environment</h2>
+<ol start="13">
+<li>
+<p><strong>What are the security considerations for <code>SECRET_KEY</code> and <code>DEBUG</code> in production?</strong></p>
+<ul>
+<li><strong>Answer:</strong> <code>SECRET_KEY</code> must never be exposed publicly; it signs cookies and tokens. In production, keep it secret (e.g., via environment variable). <code>DEBUG</code> must be set to <code>False</code> in production; otherwise detailed error pages can leak sensitive information and the static file handling changes.</li>
+</ul>
+</li>
+<li>
+<p><strong>How can you use environment variables to keep sensitive settings out of source control?</strong></p>
+<ul>
+<li><strong>Answer:</strong> Store values like <code>SECRET_KEY</code>, database passwords, and email credentials in environment variables (e.g., using a <code>.env</code> file with <code>python-decouple</code> or <code>django-environ</code>). In <code>settings.py</code> read them with <code>os.getenv('SECRET_KEY')</code>. This way the actual secrets never appear in the repo.</li>
+</ul>
+</li>
+</ol>
+<h2 id="testing-deployment">Testing &amp; Deployment</h2>
+<ol start="15">
+<li>
+<p><strong>How would you write a unit test for the registration view?</strong></p>
+<ul>
+<li><strong>Answer:</strong> Use Django’s <code>TestCase</code>. Create a <code>client</code> POST request to <code>/accounts/register/</code> with a username and password. Assert that the response redirects (or renders success), that a <code>User</code> object now exists, and that the password is correctly hashed. Example:</li>
+</ul>
+<p><code>python
+class RegisterViewTests(TestCase):
+    def test_register_creates_user(self):
+        response = self.client.post('/accounts/register/', {
+            'username': 'testuser',
+            'password1': 'StrongPass123',
+            'password2': 'StrongPass123',
+        })
+        self.assertEqual(User.objects.count(), 1)
+        user = User.objects.first()
+        self.assertTrue(user.check_password('StrongPass123'))</code></p>
+</li>
+<li>
+<p><strong>What steps are required to deploy this Django app to a cloud provider (e.g., Heroku, Render, or Docker)?</strong></p>
+<ul>
+<li><strong>Answer:</strong></li>
+</ul>
+<ol>
+<li>Add a <code>Procfile</code> (e.g., <code>web: gunicorn moviebooking.wsgi</code>) for Heroku.</li>
+<li>Set <code>DEBUG=False</code> and configure allowed hosts.</li>
+<li>Use a production‑ready database (PostgreSQL) and configure <code>DATABASE_URL</code>.</li>
+<li>Collect static files (<code>python manage.py collectstatic</code>).</li>
+<li>Set environment variables for secret key, DB credentials, email, etc.</li>
+<li>Push code to the platform and run migrations.</li>
+<li>Optionally configure a CDN for static/media.</li>
+</ol>
+</li>
+<li>
+<p><strong>Explain how you would set up a CI/CD pipeline for this project.</strong></p>
+<ul>
+<li><strong>Answer:</strong> Use GitHub Actions (or GitLab CI). Workflow steps:<br />
+1. Checkout code.<br />
+2. Set up Python, install dependencies (<code>pip install -r requirements.txt</code>).<br />
+3. Run linting (<code>flake8</code>) and tests (<code>python manage.py test</code>).<br />
+4. On merge to <code>main</code>, trigger a deployment step that pushes the new image to Docker Hub or runs <code>heroku container:push</code>.<br />
+5. Use secret storage for environment variables.</li>
+</ul>
+</li>
+</ol>
+<h2 id="performance-scaling">Performance &amp; Scaling</h2>
+<ol start="18">
+<li>
+<p><strong>How can you improve the performance of static file delivery?</strong></p>
+<ul>
+<li><strong>Answer:</strong> Serve static files via a CDN or a dedicated web server (Nginx) with caching headers. Enable gzip compression, set far‑future <code>Cache‑Control</code> headers, and use <code>django-compressor</code> to minify CSS/JS.</li>
+</ul>
+</li>
+<li>
+<p><strong>What caching strategies would you employ for a high‑traffic movie‑booking site?</strong></p>
+<ul>
+<li><strong>Answer:</strong></li>
+<li><strong>Database query caching</strong> with Django’s <code>cache_page</code> decorator for views that don’t change often (e.g., movie listings).</li>
+<li><strong>Template fragment caching</strong> for parts of pages.</li>
+<li><strong>Redis or Memcached</strong> as the cache backend.</li>
+<li><strong>Cache per‑user data</strong> (like a user’s profile) with appropriate timeout.</li>
+</ul>
+</li>
+</ol>
+<h2 id="extensibility">Extensibility</h2>
+<ol start="20">
+<li>
+<p><strong>If you were to add a <code>movies</code> app, what models and relationships would you define?</strong></p>
+<ul>
+<li><strong>Answer:</strong></li>
+</ul>
+<p>```python<br />
+class Movie(models.Model):<br />
+    title = models.CharField(max_length=200)<br />
+    description = models.TextField()<br />
+    duration = models.PositiveIntegerField(help_text=&rsquo;Minutes&rsquo;)<br />
+    release_date = models.DateField()<br />
+    poster = models.ImageField(upload_to=&rsquo;posters/&rsquo;)</p>
+<p>class Theater(models.Model):<br />
+    name = models.CharField(max_length=100)<br />
+    location = models.CharField(max_length=200)</p>
+<p>class Show(models.Model):<br />
+    movie = models.ForeignKey(Movie, on_delete=models.CASCADE)<br />
+    theater = models.ForeignKey(Theater, on_delete=models.CASCADE)<br />
+    start_time = models.DateTimeField()<br />
+    available_seats = models.PositiveIntegerField()<br />
+```</p>
+<p>Relationships: <code>Show</code> links a <code>Movie</code> to a <code>Theater</code> at a specific time.</p>
+</li>
+<li>
+<p><strong>How would you integrate a third‑party payment gateway for ticket purchases?</strong></p>
+<ul>
+<li><strong>Answer:</strong> Choose a provider (Stripe, PayPal). Install its SDK (<code>stripe</code>). Create a view that creates a payment intent on the server, returns a client secret to the frontend, and uses Stripe.js to collect card details securely. After successful payment, mark the ticket as paid and send a confirmation email.</li>
+</ul>
+</li>
+</ol>
+<h2 id="models-databases-movies-app">Models &amp; Databases (Movies App)</h2>
+<ol start="22">
+<li>
+<p><strong>What is a <code>SlugField</code> and why do we use <code>slugify</code> in the <code>save()</code> method?</strong></p>
+<ul>
+<li><strong>Answer:</strong> A <code>SlugField</code> stores a URL-friendly version of a string (e.g., &ldquo;The Dark Knight&rdquo; -&gt; &ldquo;the-dark-knight&rdquo;). We override the <code>save()</code> method to automatically generate this slug from the <code>title</code> or <code>name</code> field using Django&rsquo;s <code>slugify</code> utility. This ensures every object has a valid URL identifier without manual input.</li>
+</ul>
+</li>
+<li>
+<p><strong>Explain <code>ManyToManyField</code> vs <code>ForeignKey</code>. Why do we use M2M for Genres but ForeignKey for Language?</strong></p>
+<ul>
+<li><strong>Answer:</strong></li>
+<li><strong>ForeignKey (One-to-Many):</strong> Used when an object belongs to primarily <em>one</em> other entity. A movie typically has <em>one</em> primary language, so we use <code>ForeignKey</code>.</li>
+<li><strong>ManyToManyField (Many-to-Many):</strong> Used when an object can belong to multiple categories, and those categories can contain multiple objects. A movie can be both &ldquo;Action&rdquo; and &ldquo;Thriller&rdquo;, and the &ldquo;Action&rdquo; genre contains many movies. Thus, <code>ManyToManyField</code> is correct for genres.</li>
+</ul>
+</li>
+<li>
+<p><strong>What does <code>on_delete=models.SET_NULL</code> do?</strong></p>
+<ul>
+<li><strong>Answer:</strong> It defines what happens when the referenced object (e.g., a Language) is deleted. <code>SET_NULL</code> keeps the Movie record but sets its <code>language</code> field to <code>NULL</code>. This is safer than <code>CASCADE</code> (which would delete the movie) because we don&rsquo;t want to wipe out our movie database just because we removed a language from the system.</li>
+</ul>
+</li>
+<li>
+<p><strong>Why do we need <code>Pillow</code> for <code>ImageField</code>?</strong></p>
+<ul>
+<li><strong>Answer:</strong> <code>ImageField</code> in Django is a wrapper around <code>FileField</code> that adds validation to ensure the uploaded file is a valid image. It relies on the <strong>Pillow</strong> library (Python Imaging Library fork) to open, verify, and process image files. Without Pillow installed, <code>ImageField</code> will throw an error.</li>
+</ul>
+</li>
+<li>
+<p><strong>What is the purpose of <code>related_name</code> in model relationships?</strong></p>
+<ul>
+<li><strong>Answer:</strong> <code>related_name</code> allows you to define the name of the reverse relation from the related object back to this one. For example, <code>language = ForeignKey(Language, related_name='movies')</code> allows us to access <code>english_language_obj.movies.all()</code> to get all movies in English. If not set, Django defaults to <code>movie_set</code>.</li>
+</ul>
+</li>
+</ol>
+<h2 id="theater-booking-logic-advanced-models">Theater &amp; Booking Logic (Advanced Models)</h2>
+<ol start="27">
+<li>
+<p><strong>Why do we define <code>verbose_name_plural</code> in the <code>City</code> model&rsquo;s Meta class?</strong></p>
+<ul>
+<li><strong>Answer:</strong> Django automatically pluralizes model names by adding an &ldquo;s&rdquo; (e.g., &ldquo;Movie&rdquo; -&gt; &ldquo;Movies&rdquo;). For words like &ldquo;City&rdquo;, the default would contain a spelling error (&ldquo;Citys&rdquo;). Setting <code>verbose_name_plural = 'cities'</code> tells Django explicitly what the correct plural form is for the Admin panel.</li>
+</ul>
+</li>
+<li>
+<p><strong>Explain the implication of <code>on_delete=models.CASCADE</code> in the <code>Showtime</code> model.</strong></p>
+<ul>
+<li><strong>Answer:</strong> It maintains data integrity. Since a <code>Showtime</code> cannot strictly exist without a <code>Movie</code> or a <code>Screen</code>, <code>CASCADE</code> ensures that if a Movie is deleted from the database, all its scheduled showtimes are automatically deleted too. This prevents &ldquo;orphan&rdquo; records.</li>
+</ul>
+</li>
+<li>
+<p><strong>Why use <code>DecimalField</code> for <code>price</code> instead of <code>FloatField</code>?</strong></p>
+<ul>
+<li><strong>Answer:</strong> <code>FloatField</code> uses binary floating-point representation which can introduce tiny precision errors (e.g., <code>0.1 + 0.2</code> might equal <code>0.30000000000000004</code>). In financial calculations, even small errors are unacceptable. <code>DecimalField</code> stores numbers as Python <code>Decimal</code> objects, guaranteeing exact precision for currency.</li>
+</ul>
+</li>
+<li>
+<p><strong>(Scenario) Two users try to book the last seat at the exact same millisecond. How do you prevent double-booking?</strong></p>
+<ul>
+<li><strong>Answer:</strong> This is a classic concurrency race condition. You cannot just read <code>available_seats</code>, check if <code>&gt; 0</code>, and then decrement.</li>
+<li><strong>Solution:</strong> Use <strong>Database Transactions</strong> with <strong>Row Locking</strong>.</li>
+</ul>
+<p>```python<br />
+from django.db import transaction</p>
+<p>with transaction.atomic():<br />
+    # select_for_update() locks this specific row until the transaction finishes<br />
+    show = Showtime.objects.select_for_update().get(id=show_id)<br />
+    if show.available_seats &gt; 0:<br />
+        show.available_seats -= 1<br />
+        show.save()<br />
+        # &hellip; process booking &hellip;<br />
+    else:<br />
+        raise Exception(&ldquo;Housefull!&rdquo;)<br />
+```</p>
+</li>
+</ol>
+<h2 id="views-query-logic">Views &amp; Query Logic</h2>
+<ol start="31">
+<li>
+<p><strong>What is the difference between <code>filter()</code> and <code>get()</code> in Django ORM?</strong></p>
+<ul>
+<li><strong>Answer:</strong></li>
+<li><code>filter(**kwargs)</code>: Returns a <strong>QuerySet</strong> (a list of objects). returns an empty list <code>[]</code> if no matches found. Used when you expect multiple or zero items.</li>
+<li><code>get(**kwargs)</code>: Returns a <strong>single object</strong> instance. Raises <code>DoesNotExist</code> error if 0 items found, and <code>MultipleObjectsReturned</code> error if &gt;1 items found. Used when you need exactly one item (like a specific movie profile).</li>
+</ul>
+</li>
+<li>
+<p><strong>Why do we use <code>get_object_or_404()</code> instead of just <code>Movie.objects.get()</code>?</strong></p>
+<ul>
+<li><strong>Answer:</strong> If <code>Movie.objects.get()</code> fails to find an object, it raises a <code>DoesNotExist</code> exception, which causes a &ldquo;500 Internal Server Error&rdquo; (a crash). <code>get_object_or_404()</code> catches this and handles it gracefully by returning a standard &ldquo;404 Not Found&rdquo; response, which is the correct HTTP behavior for missing pages.</li>
+</ul>
+</li>
+<li>
+<p><strong>What are <code>Q</code> objects used for?</strong></p>
+<ul>
+<li><strong>Answer:</strong> By default, chaining arguments in <code>.filter(name="A", age=20)</code> works like an <strong>AND</strong> operator (name is A AND age is 20). <code>Q</code> objects allow complex lookups like <strong>OR</strong> logic.</li>
+</ul>
+<p>```python<br />
+from django.db.models import Q</p>
+<h1 id="find-movies-with-title-love-or-description-containing-romance">Find movies with title &ldquo;Love&rdquo; OR description containing &ldquo;Romance&rdquo;</h1>
+<p>Movie.objects.filter(Q(title=&rdquo;Love&rdquo;) | Q(description__icontains=&rdquo;Romance&rdquo;))<br />
+```</p>
+</li>
+<li>
+<p><strong>What is the <code>context</code> dictionary in a View function?</strong></p>
+<ul>
+<li><strong>Answer:</strong> It&rsquo;s the mechanism to pass data from Python (the backend) to HTML (the frontend). The keys in the dictionary become the variable names available in the Django Template. For example, <code>context = {'user_name': 'Alice'}</code> allows you to use <code>{{ user_name }}</code> in the HTML file.</li>
+</ul>
+</li>
+</ol>
+<h2 id="system-design-bookings">System Design &amp; Bookings</h2>
+<ol start="35">
+<li>
+<p><strong>The &ldquo;Double Booking&rdquo; Problem (Race Condition):</strong></p>
+<ul>
+<li><strong>Scenario:</strong> Two users try to book Seat A1 at the exact same millisecond. Both see it as &ldquo;Available&rdquo;.</li>
+<li><strong>Question:</strong> How do you prevent both from booking it?</li>
+<li><strong>Answer:</strong><br />
+  1. <strong>Database Transactions:</strong> Use <code>transaction.atomic()</code> and <code>select_for_update()</code> to lock the row in the DB until the booking is done.<br />
+  2. <strong>Optimistic Locking:</strong> Add a <code>version</code> field. If the version changes before you save, fail the request.<br />
+  3. <strong>Redis Locks (Our Approach):</strong> Use an in-memory lock (Redis) to &ldquo;hold&rdquo; the seat for 10 minutes while payment is pending. If User A holds the lock, User B instantly sees &ldquo;Unavailable&rdquo;.</li>
+</ul>
+</li>
+<li>
+<p><strong>Why use <code>JSONField</code> for storing seats <code>['A1', 'B2']</code> instead of a separate Table?</strong></p>
+<ul>
+<li><strong>Answer:</strong></li>
+<li><strong>Pros:</strong> Faster reads (no complex JOINs needed to get just seat numbers), simpler schema for non-queryable data.</li>
+<li><strong>Cons:</strong> Harder to query (e.g. &ldquo;Find all bookings with seat A1&rdquo; is slow in SQL).</li>
+<li><strong>Verdict:</strong> For a booking history where we just need to <em>show</em> the seats (read-only), JSON is perfect. For checking availability, we use a more robust system (Redis/Showtime model).</li>
+</ul>
+</li>
+<li>
+<p><strong>Why do we calculate Price/Tax on the Backend vs Frontend?</strong></p>
+<ul>
+<li><strong>Answer:</strong> <strong>Security.</strong> Never trust data sent from the client. A malicious user could use Postman/Curl to send <code>{"total_amount": 1.00}</code> for a 500 rupee ticket. Always recalculate the final price on the server before talking to the Payment Gateway.</li>
+</ul>
+</li>
+<li>
+<p><strong>Source of Truth: Is seat info stored in Redis or the Database?</strong></p>
+<ul>
+<li><strong>Answer:</strong> Both, but for different purposes:</li>
+<li><strong>Redis (Transient State):</strong> Stores the &ldquo;Live Status&rdquo;. It&rsquo;s the source of truth for <strong>Availability</strong> and <strong>Temporary Locks</strong>. If Redis clears, we just re-generate the map from the DB.</li>
+<li><strong>Database (Persistent Records):</strong> Stores the &ldquo;Final Truth&rdquo;. It&rsquo;s the source of truth for <strong>Successful Bookings</strong>. You cannot &ldquo;lose&rdquo; a ticket if Redis crashes because it&rsquo;s safely in the SQL Database.</li>
+</ul>
+</li>
+</ol>
+<h2 id="booking-workflow-security">Booking Workflow &amp; Security</h2>
+<ol start="39">
+<li>
+<p><strong>What is the lifecycle of a <code>Booking</code> status?</strong></p>
+<ul>
+<li><strong>Answer:</strong></li>
+<li><strong>PENDING</strong>: Record created, waiting for payment. Seats are &ldquo;Temporarily Locked&rdquo; in Redis.</li>
+<li><strong>CONFIRMED</strong>: Payment successful. Record updated. Seats marked &ldquo;Booked&rdquo; permanently.</li>
+<li><strong>EXPIRED</strong>: User didn&rsquo;t pay in time (e.g., 10 mins). Record updated, seats released for others.</li>
+<li><strong>FAILED</strong>: Payment failed. Seats released.</li>
+</ul>
+</li>
+<li>
+<p><strong>Why do we use <code>@login_required</code> on almost every booking view?</strong></p>
+<ul>
+<li><strong>Answer:</strong></li>
+<li><strong>Identity</strong>: We need to know <em>who</em> is buying the ticket to link the <code>user_id</code> to the <code>Booking</code> record.</li>
+<li><strong>Security</strong>: Prevents bots or unauthenticated users from bulk-locking seats in Redis and &ldquo;denying service&rdquo; to real customers.</li>
+</ul>
+</li>
+<li>
+<p><strong>How do we prevent a user from booking seats they never actually selected?</strong></p>
+<ul>
+<li><strong>Answer:</strong> <strong>Double Verification.</strong><br />
+  1. When seats are selected, we store them in the user&rsquo;s <strong>Session</strong> (server-side).<br />
+  2. In the <code>create_booking</code> view, we check if the requested <code>seat_ids</code> match what is in the session <em>and</em> what is currently locked in Redis. We never trust the IDs sent directly from the browser without checking our own server records first.</li>
+</ul>
+</li>
+</ol>
+<hr />
+<h2 id="redis-celery-system-design-sd-level">Redis &amp; Celery (System Design &amp; SD level)</h2>
+<ol start="35">
+<li>
+<p><strong>What is Celery, and why do we use it in a movie booking system?</strong></p>
+<ul>
+<li><strong>Answer:</strong> Celery is an asynchronous task queue. We use it to offload long-running or non-critical tasks from the main request-response cycle. In our system, we use it for sending confirmation emails (which take 2-5 seconds via SMTP) and for scheduled maintenance like releasing expired seats. This keeps the user interface responsive.</li>
+</ul>
+</li>
+<li>
+<p><strong>Explain the role of a &lsquo;Broker&rsquo; vs. a &lsquo;Result Backend&rsquo; in the context of Celery.</strong></p>
+<ul>
+<li><strong>Answer:</strong></li>
+<li><strong>Broker (Redis):</strong> Acts as a mediator (post office) between the Django app and the Celery worker. When a task is called with <code>.delay()</code>, Django puts a message into Redis. The Celery worker then picks it up.</li>
+<li><strong>Result Backend:</strong> Stores the result of the task execution (Success/Failure/Return Value). We can use Redis or the Django Database for this. It&rsquo;s useful if you need to check if a specific task finished successfully later.</li>
+</ul>
+</li>
+<li>
+<p><strong>Why is &lsquo;Idempotency&rsquo; critical in Celery tasks? Give an example from our project.</strong></p>
+<ul>
+<li><strong>Answer:</strong> Idempotency means that running the same task multiple times has the same effect as running it once. This is critical because tasks can be retried if a worker crashes or a network error occurs.</li>
+<li><strong>Example:</strong> The <code>confirm_booking</code> task should check if the booking is already <code>CONFIRMED</code> before processing. If it&rsquo;s already confirmed, it should do nothing. Without this, a retry might result in sending two emails or double-counting revenue.</li>
+</ul>
+</li>
+<li>
+<p><strong>How would you handle a task failure in Celery? Mention retries and dead-letter queues.</strong></p>
+<ul>
+<li><strong>Answer:</strong> Use the <code>bind=True</code> argument and the <code>self.retry()</code> method. You should implement <strong>Exponential Backoff</strong> (e.g., wait 2s, then 4s, then 8s) to avoid overwhelming a failing service (like an Email API). For tasks that fail after all retries, they can be moved to a &ldquo;Dead-Letter Queue&rdquo; for manual investigation.</li>
+</ul>
+</li>
+<li>
+<p><strong>What is the difference between Redis as a &lsquo;Cache&rsquo; and Redis as a &lsquo;Broker&rsquo;?</strong></p>
+<ul>
+<li><strong>Answer:</strong></li>
+<li><strong>As a Cache:</strong> We use Redis to store seat layouts and temporary reservation status for speed. Data here can be lost (it&rsquo;s &ldquo;volatile&rdquo;) without breaking the system; we just fetch it from SQL again.</li>
+<li><strong>As a Broker:</strong> We use it as a robust queue. If the Broker fails, the messages (tasks) could be lost if not configured for persistence. For a production system, we&rsquo;d enable Redis AOF (Append Only File) to ensure tasks aren&rsquo;t lost on restart.</li>
+</ul>
+</li>
+<li>
+<p><strong>How do you prevent a &lsquo;Race Condition&rsquo; when two users try to book the same seat using Redis?</strong></p>
+<ul>
+<li><strong>Answer:</strong> We implementation <strong>Optimistic Locking</strong> or <strong>Distributed Locking</strong>.</li>
+<li><strong>Distributed Lock:</strong> We attempt to set a key in Redis like <code>lock:seat_A1:show_101</code> with a short TTL (Time To Live). If the key already exists, the second user is told the seat is unavailable. This ensures unique access at the millisecond level.</li>
+</ul>
+</li>
+<li>
+<p><strong>Explain the difference between &lsquo;Task Queues&rsquo; and &lsquo;Message Brokers&rsquo;.</strong></p>
+<ul>
+<li><strong>Answer:</strong> A <strong>Message Broker</strong> (Redis/RabbitMQ) is the infrastructure that carries messages. A <strong>Task Queue</strong> (Celery) is the framework built on top of the broker that manages how those messages are distributed to workers, retried, and monitored.</li>
+</ul>
+</li>
+<li>
+<p><strong>What is &lsquo;Celery Beat&rsquo; and how does it differ from a standard Linux &lsquo;cron&rsquo;?</strong></p>
+<ul>
+<li><strong>Answer:</strong> Celery Beat is a scheduler that lives inside the Celery ecosystem.</li>
+<li><strong>Vs Cron:</strong> Cron is system-wide and hard to manage within code. Celery Beat configurations (schedules) are part of your Django settings/codebase, making them version-controlled and easier to deploy alongside your app. It also understands Python data structures.</li>
+</ul>
+</li>
+<li>
+<p><strong>How would you scale a movie booking system experiencing a massive spike (e.g., Marvel movie launch)?</strong></p>
+<ul>
+<li><strong>Answer:</strong><br />
+  1. <strong>Horizontal Scaling:</strong> Run more instances of the Celery Worker process.<br />
+  2. <strong>Priority Queues:</strong> Create separate queues for <code>high-priority</code> tasks (Payments/Bookings) and <code>low-priority</code> tasks (Emails/Reminders) so that delays in emails don&rsquo;t slow down ticket sales.<br />
+  3. <strong>Redis Sharding:</strong> If Redis becomes the bottleneck, use Redis Cluster to distribute the load.</li>
+</ul>
+</li>
+</ol>
+<hr />
+<p><em>Feel free to ask for deeper explanations on any of these system design topics!</em></p>
+        </div>
+        
+        <hr class="no-print">
+        <div class="meta no-print" style="margin-top: 30px;">
+            <p style="color: #666; font-size: 0.9em;">
+                💡 <strong>Tip:</strong> Use <kbd>Ctrl+P</kbd> (Windows/Linux) or <kbd>Cmd+P</kbd> (Mac) to print or save as PDF.
+                Select "Save as PDF" as your destination.
+            </p>
+        </div>
+    </div>
+    
+    <script>
+        // Download markdown function
+        function downloadMarkdown() {
+            const markdownContent = `# Interview Preparation – MovieBooking System\n\n> [!TIP] > **New to Django?** Start with our [Beginner Interview Questions](file:///Users/bishalkumarshah/.gemini/antigravity/scratch/movie-booking-system/interview/beginner_questions.md) for foundational concepts.\n\n## Django & Authentication\n\n1. **Explain the Django authentication workflow** – how \`register\`, \`login\`, \`logout\`, and \`profile\` views interact with the auth system.\n\n   - **Answer:** Django provides a built‑in authentication system. The **register** view creates a new \`User\` object, hashes the password and saves it. After registration we usually log the user in with \`login(request, user)\`. The **login** view checks the submitted username/password against the database using \`authenticate()\`. If valid, \`login()\` creates a session cookie so the browser knows the user is authenticated. The **logout** view simply calls \`logout(request)\`, which clears the session. The **profile** view is protected with \`@login_required\`; it reads the current \`request.user\` (the logged‑in user) and displays their details.\n\n2. **What is the purpose of \`@login_required\` and how is it used in the \`profile\` view?**\n\n   - **Answer:** \`@login_required\` is a decorator that forces a view to be accessed only by authenticated users. If an anonymous visitor tries to open the view, Django redirects them to the URL defined by \`LOGIN_URL\` (usually the login page). In \`profile\`, we add \`@login_required\` above the function so only logged‑in users can see their personal information.\n\n3. **How does Django store passwords securely? Mention the hashing algorithm.**\n\n   - **Answer:** Django never stores plain‑text passwords. When a password is set, Django runs it through a **PBKDF2** hash (by default) with a random salt and stores the resulting string in the \`password\` field. The format looks like \`pbkdf2_sha256\$260000\$<salt>\$<hash>\`. This makes it computationally expensive to crack.\n\n4. **How would you add email verification to the registration flow?**\n\n   - **Answer:** After creating the user, generate a signed token (e.g., using \`itsdangerous\` or Django's \`PasswordResetTokenGenerator\`). Send an email containing a link like \`http://example.com/activate/<uid>/<token>/\`. Create a view that validates the token, activates the user (\`is_active = True\`), and logs them in. Use Django's \`EmailMessage\` or the console backend during development.\n\n5. **Describe how you would implement password reset functionality.**\n   - **Answer:** Django already ships with a password‑reset system. You would:\n   1. Add URLs for \`PasswordResetView\`, \`PasswordResetConfirmView\`, etc.\n   2. Configure \`EMAIL_BACKEND\` (console for dev, SMTP for prod).\n   3. Provide templates for the email and the reset forms.\n   4. When a user submits their email, Django sends a link with a token; the user follows the link to set a new password.\n\n## Project Structure & Apps\n\n6. **Why did we separate the \`accounts\` app from the main project? What are the benefits of a modular app design?**\n\n   - **Answer:** Splitting functionality into separate apps keeps code organized, reusable, and easier to test. The \`accounts\` app handles authentication only, while the main project can focus on other domains (movies, theaters, etc.). This modularity allows you to plug the app into another project or share it as a reusable package.\n\n7. **How does Django discover templates in the \`templates\` directory? Explain the \`DIRS\` setting.**\n\n   - **Answer:** In \`settings.py\`, the \`TEMPLATES\` configuration contains a \`DIRS\` list. By adding \`BASE_DIR / "templates"\` we tell Django to look for a top‑level \`templates/\` folder (outside any app). Django also automatically searches each app’s \`templates/\` subfolder when \`APP_DIRS\` is \`True\`. This lets us keep shared base templates in one place.\n\n8. **What is the role of \`BASE_DIR\` and why do we use \`pathlib.Path\` for paths?**\n   - **Answer:** \`BASE_DIR\` points to the project’s root directory. Using \`pathlib.Path\` gives us an object‑oriented way to build file system paths that work on Windows, macOS, and Linux without worrying about forward/backward slashes. For example, \`BASE_DIR / "static"\` creates a cross‑platform path to the \`static\` folder.\n\n## URLs & Routing\n\n9. **Explain the purpose of \`include('accounts.urls')\` in the project \`urls.py\`.**\n\n   - **Answer:** \`include()\` tells Django to delegate any URL that starts with \`accounts/\` to the URL patterns defined in \`accounts/urls.py\`. This keeps the main \`urls.py\` tidy and lets each app manage its own routes.\n\n10. **How would you add a namespace to the \`accounts\` URLs and why might that be useful?**\n    - **Answer:** In \`accounts/urls.py\` add \`app_name = 'accounts'\` at the top and then use \`path('accounts/', include('accounts.urls', namespace='accounts'))\` in the project \`urls.py\`. Namespaces avoid name clashes when multiple apps have URL names like \`login\` or \`register\`. You can then reverse URLs with \`reverse('accounts:login')\`.\n\n## Static & Media Files\n\n11. **How are static files served during development vs production? Mention \`STATIC_URL\`, \`STATIC_ROOT\`, and \`STATICFILES_DIRS\`.**\n\n    - **Answer:** During development, Django’s built‑in server serves static files automatically when \`DEBUG=True\`. \`STATIC_URL\` (e.g., \`/static/\`) is the URL prefix, \`STATICFILES_DIRS\` lists extra directories (like a global \`static/\` folder). For production, you run \`python manage.py collectstatic\` which copies all static files into \`STATIC_ROOT\`. A real web server (Nginx, Apache, or a CDN) then serves files from that directory.\n\n12. **How would you configure media file handling for user‑uploaded content?**\n    - **Answer:** Add \`MEDIA_URL = '/media/'\` and \`MEDIA_ROOT = BASE_DIR / 'media'\` in \`settings.py\`. In \`urls.py\` during development, append \`+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)\` when \`settings.DEBUG\` is \`True\`. In production, configure the web server to serve files from \`MEDIA_ROOT\`.\n\n## Settings & Environment\n\n13. **What are the security considerations for \`SECRET_KEY\` and \`DEBUG\` in production?**\n\n    - **Answer:** \`SECRET_KEY\` must never be exposed publicly; it signs cookies and tokens. In production, keep it secret (e.g., via environment variable). \`DEBUG\` must be set to \`False\` in production; otherwise detailed error pages can leak sensitive information and the static file handling changes.\n\n14. **How can you use environment variables to keep sensitive settings out of source control?**\n    - **Answer:** Store values like \`SECRET_KEY\`, database passwords, and email credentials in environment variables (e.g., using a \`.env\` file with \`python-decouple\` or \`django-environ\`). In \`settings.py\` read them with \`os.getenv('SECRET_KEY')\`. This way the actual secrets never appear in the repo.\n\n## Testing & Deployment\n\n15. **How would you write a unit test for the registration view?**\n\n    - **Answer:** Use Django’s \`TestCase\`. Create a \`client\` POST request to \`/accounts/register/\` with a username and password. Assert that the response redirects (or renders success), that a \`User\` object now exists, and that the password is correctly hashed. Example:\n\n    \`\`\`python\n    class RegisterViewTests(TestCase):\n        def test_register_creates_user(self):\n            response = self.client.post('/accounts/register/', {\n                'username': 'testuser',\n                'password1': 'StrongPass123',\n                'password2': 'StrongPass123',\n            })\n            self.assertEqual(User.objects.count(), 1)\n            user = User.objects.first()\n            self.assertTrue(user.check_password('StrongPass123'))\n    \`\`\`\n\n16. **What steps are required to deploy this Django app to a cloud provider (e.g., Heroku, Render, or Docker)?**\n\n    - **Answer:**\n\n    1. Add a \`Procfile\` (e.g., \`web: gunicorn moviebooking.wsgi\`) for Heroku.\n    2. Set \`DEBUG=False\` and configure allowed hosts.\n    3. Use a production‑ready database (PostgreSQL) and configure \`DATABASE_URL\`.\n    4. Collect static files (\`python manage.py collectstatic\`).\n    5. Set environment variables for secret key, DB credentials, email, etc.\n    6. Push code to the platform and run migrations.\n    7. Optionally configure a CDN for static/media.\n\n17. **Explain how you would set up a CI/CD pipeline for this project.**\n    - **Answer:** Use GitHub Actions (or GitLab CI). Workflow steps:\n    1. Checkout code.\n    2. Set up Python, install dependencies (\`pip install -r requirements.txt\`).\n    3. Run linting (\`flake8\`) and tests (\`python manage.py test\`).\n    4. On merge to \`main\`, trigger a deployment step that pushes the new image to Docker Hub or runs \`heroku container:push\`.\n    5. Use secret storage for environment variables.\n\n## Performance & Scaling\n\n18. **How can you improve the performance of static file delivery?**\n\n    - **Answer:** Serve static files via a CDN or a dedicated web server (Nginx) with caching headers. Enable gzip compression, set far‑future \`Cache‑Control\` headers, and use \`django-compressor\` to minify CSS/JS.\n\n19. **What caching strategies would you employ for a high‑traffic movie‑booking site?**\n    - **Answer:**\n    - **Database query caching** with Django’s \`cache_page\` decorator for views that don’t change often (e.g., movie listings).\n    - **Template fragment caching** for parts of pages.\n    - **Redis or Memcached** as the cache backend.\n    - **Cache per‑user data** (like a user’s profile) with appropriate timeout.\n\n## Extensibility\n\n20. **If you were to add a \`movies\` app, what models and relationships would you define?**\n\n    - **Answer:**\n\n    \`\`\`python\n    class Movie(models.Model):\n        title = models.CharField(max_length=200)\n        description = models.TextField()\n        duration = models.PositiveIntegerField(help_text='Minutes')\n        release_date = models.DateField()\n        poster = models.ImageField(upload_to='posters/')\n\n    class Theater(models.Model):\n        name = models.CharField(max_length=100)\n        location = models.CharField(max_length=200)\n\n    class Show(models.Model):\n        movie = models.ForeignKey(Movie, on_delete=models.CASCADE)\n        theater = models.ForeignKey(Theater, on_delete=models.CASCADE)\n        start_time = models.DateTimeField()\n        available_seats = models.PositiveIntegerField()\n    \`\`\`\n\n    Relationships: \`Show\` links a \`Movie\` to a \`Theater\` at a specific time.\n\n21. **How would you integrate a third‑party payment gateway for ticket purchases?**\n    - **Answer:** Choose a provider (Stripe, PayPal). Install its SDK (\`stripe\`). Create a view that creates a payment intent on the server, returns a client secret to the frontend, and uses Stripe.js to collect card details securely. After successful payment, mark the ticket as paid and send a confirmation email.\n\n## Models & Databases (Movies App)\n\n22. **What is a \`SlugField\` and why do we use \`slugify\` in the \`save()\` method?**\n\n    - **Answer:** A \`SlugField\` stores a URL-friendly version of a string (e.g., "The Dark Knight" -> "the-dark-knight"). We override the \`save()\` method to automatically generate this slug from the \`title\` or \`name\` field using Django's \`slugify\` utility. This ensures every object has a valid URL identifier without manual input.\n\n23. **Explain \`ManyToManyField\` vs \`ForeignKey\`. Why do we use M2M for Genres but ForeignKey for Language?**\n\n    - **Answer:**\n      - **ForeignKey (One-to-Many):** Used when an object belongs to primarily _one_ other entity. A movie typically has _one_ primary language, so we use \`ForeignKey\`.\n      - **ManyToManyField (Many-to-Many):** Used when an object can belong to multiple categories, and those categories can contain multiple objects. A movie can be both "Action" and "Thriller", and the "Action" genre contains many movies. Thus, \`ManyToManyField\` is correct for genres.\n\n24. **What does \`on_delete=models.SET_NULL\` do?**\n\n    - **Answer:** It defines what happens when the referenced object (e.g., a Language) is deleted. \`SET_NULL\` keeps the Movie record but sets its \`language\` field to \`NULL\`. This is safer than \`CASCADE\` (which would delete the movie) because we don't want to wipe out our movie database just because we removed a language from the system.\n\n25. **Why do we need \`Pillow\` for \`ImageField\`?**\n\n    - **Answer:** \`ImageField\` in Django is a wrapper around \`FileField\` that adds validation to ensure the uploaded file is a valid image. It relies on the **Pillow** library (Python Imaging Library fork) to open, verify, and process image files. Without Pillow installed, \`ImageField\` will throw an error.\n\n26. **What is the purpose of \`related_name\` in model relationships?**\n    - **Answer:** \`related_name\` allows you to define the name of the reverse relation from the related object back to this one. For example, \`language = ForeignKey(Language, related_name='movies')\` allows us to access \`english_language_obj.movies.all()\` to get all movies in English. If not set, Django defaults to \`movie_set\`.\n\n## Theater & Booking Logic (Advanced Models)\n\n27. **Why do we define \`verbose_name_plural\` in the \`City\` model's Meta class?**\n\n    - **Answer:** Django automatically pluralizes model names by adding an "s" (e.g., "Movie" -> "Movies"). For words like "City", the default would contain a spelling error ("Citys"). Setting \`verbose_name_plural = 'cities'\` tells Django explicitly what the correct plural form is for the Admin panel.\n\n28. **Explain the implication of \`on_delete=models.CASCADE\` in the \`Showtime\` model.**\n\n    - **Answer:** It maintains data integrity. Since a \`Showtime\` cannot strictly exist without a \`Movie\` or a \`Screen\`, \`CASCADE\` ensures that if a Movie is deleted from the database, all its scheduled showtimes are automatically deleted too. This prevents "orphan" records.\n\n29. **Why use \`DecimalField\` for \`price\` instead of \`FloatField\`?**\n\n    - **Answer:** \`FloatField\` uses binary floating-point representation which can introduce tiny precision errors (e.g., \`0.1 + 0.2\` might equal \`0.30000000000000004\`). In financial calculations, even small errors are unacceptable. \`DecimalField\` stores numbers as Python \`Decimal\` objects, guaranteeing exact precision for currency.\n\n30. **(Scenario) Two users try to book the last seat at the exact same millisecond. How do you prevent double-booking?**\n\n    - **Answer:** This is a classic concurrency race condition. You cannot just read \`available_seats\`, check if \`> 0\`, and then decrement.\n    - **Solution:** Use **Database Transactions** with **Row Locking**.\n\n    \`\`\`python\n    from django.db import transaction\n\n    with transaction.atomic():\n        # select_for_update() locks this specific row until the transaction finishes\n        show = Showtime.objects.select_for_update().get(id=show_id)\n        if show.available_seats > 0:\n            show.available_seats -= 1\n            show.save()\n            # ... process booking ...\n        else:\n            raise Exception("Housefull!")\n    \`\`\`\n\n## Views & Query Logic\n\n31. **What is the difference between \`filter()\` and \`get()\` in Django ORM?**\n\n    - **Answer:**\n      - \`filter(**kwargs)\`: Returns a **QuerySet** (a list of objects). returns an empty list \`[]\` if no matches found. Used when you expect multiple or zero items.\n      - \`get(**kwargs)\`: Returns a **single object** instance. Raises \`DoesNotExist\` error if 0 items found, and \`MultipleObjectsReturned\` error if >1 items found. Used when you need exactly one item (like a specific movie profile).\n\n32. **Why do we use \`get_object_or_404()\` instead of just \`Movie.objects.get()\`?**\n\n    - **Answer:** If \`Movie.objects.get()\` fails to find an object, it raises a \`DoesNotExist\` exception, which causes a "500 Internal Server Error" (a crash). \`get_object_or_404()\` catches this and handles it gracefully by returning a standard "404 Not Found" response, which is the correct HTTP behavior for missing pages.\n\n33. **What are \`Q\` objects used for?**\n\n    - **Answer:** By default, chaining arguments in \`.filter(name="A", age=20)\` works like an **AND** operator (name is A AND age is 20). \`Q\` objects allow complex lookups like **OR** logic.\n\n    \`\`\`python\n    from django.db.models import Q\n    # Find movies with title "Love" OR description containing "Romance"\n    Movie.objects.filter(Q(title="Love") | Q(description__icontains="Romance"))\n    \`\`\`\n\n34. **What is the \`context\` dictionary in a View function?**\n    - **Answer:** It's the mechanism to pass data from Python (the backend) to HTML (the frontend). The keys in the dictionary become the variable names available in the Django Template. For example, \`context = {'user_name': 'Alice'}\` allows you to use \`{{ user_name }}\` in the HTML file.\n\n## System Design & Bookings\n\n35. **The "Double Booking" Problem (Race Condition):**\n\n    - **Scenario:** Two users try to book Seat A1 at the exact same millisecond. Both see it as "Available".\n    - **Question:** How do you prevent both from booking it?\n    - **Answer:**\n      1. **Database Transactions:** Use \`transaction.atomic()\` and \`select_for_update()\` to lock the row in the DB until the booking is done.\n      2. **Optimistic Locking:** Add a \`version\` field. If the version changes before you save, fail the request.\n      3. **Redis Locks (Our Approach):** Use an in-memory lock (Redis) to "hold" the seat for 10 minutes while payment is pending. If User A holds the lock, User B instantly sees "Unavailable".\n\n36. **Why use \`JSONField\` for storing seats \`['A1', 'B2']\` instead of a separate Table?**\n\n    - **Answer:**\n      - **Pros:** Faster reads (no complex JOINs needed to get just seat numbers), simpler schema for non-queryable data.\n      - **Cons:** Harder to query (e.g. "Find all bookings with seat A1" is slow in SQL).\n      - **Verdict:** For a booking history where we just need to _show_ the seats (read-only), JSON is perfect. For checking availability, we use a more robust system (Redis/Showtime model).\n\n37. **Why do we calculate Price/Tax on the Backend vs Frontend?**\n\n    - **Answer:** **Security.** Never trust data sent from the client. A malicious user could use Postman/Curl to send \`{"total_amount": 1.00}\` for a 500 rupee ticket. Always recalculate the final price on the server before talking to the Payment Gateway.\n\n38. **Source of Truth: Is seat info stored in Redis or the Database?**\n    - **Answer:** Both, but for different purposes:\n      - **Redis (Transient State):** Stores the "Live Status". It's the source of truth for **Availability** and **Temporary Locks**. If Redis clears, we just re-generate the map from the DB.\n      - **Database (Persistent Records):** Stores the "Final Truth". It's the source of truth for **Successful Bookings**. You cannot "lose" a ticket if Redis crashes because it's safely in the SQL Database.\n\n## Booking Workflow & Security\n\n39. **What is the lifecycle of a \`Booking\` status?**\n\n    - **Answer:**\n      - **PENDING**: Record created, waiting for payment. Seats are "Temporarily Locked" in Redis.\n      - **CONFIRMED**: Payment successful. Record updated. Seats marked "Booked" permanently.\n      - **EXPIRED**: User didn't pay in time (e.g., 10 mins). Record updated, seats released for others.\n      - **FAILED**: Payment failed. Seats released.\n\n40. **Why do we use \`@login_required\` on almost every booking view?**\n\n    - **Answer:**\n      - **Identity**: We need to know _who_ is buying the ticket to link the \`user_id\` to the \`Booking\` record.\n      - **Security**: Prevents bots or unauthenticated users from bulk-locking seats in Redis and "denying service" to real customers.\n\n41. **How do we prevent a user from booking seats they never actually selected?**\n    - **Answer:** **Double Verification.**\n      1. When seats are selected, we store them in the user's **Session** (server-side).\n      2. In the \`create_booking\` view, we check if the requested \`seat_ids\` match what is in the session _and_ what is currently locked in Redis. We never trust the IDs sent directly from the browser without checking our own server records first.\n\n---\n\n## Redis & Celery (System Design & SD level)\n\n35. **What is Celery, and why do we use it in a movie booking system?**\n\n    - **Answer:** Celery is an asynchronous task queue. We use it to offload long-running or non-critical tasks from the main request-response cycle. In our system, we use it for sending confirmation emails (which take 2-5 seconds via SMTP) and for scheduled maintenance like releasing expired seats. This keeps the user interface responsive.\n\n36. **Explain the role of a 'Broker' vs. a 'Result Backend' in the context of Celery.**\n\n    - **Answer:**\n      - **Broker (Redis):** Acts as a mediator (post office) between the Django app and the Celery worker. When a task is called with \`.delay()\`, Django puts a message into Redis. The Celery worker then picks it up.\n      - **Result Backend:** Stores the result of the task execution (Success/Failure/Return Value). We can use Redis or the Django Database for this. It's useful if you need to check if a specific task finished successfully later.\n\n37. **Why is 'Idempotency' critical in Celery tasks? Give an example from our project.**\n\n    - **Answer:** Idempotency means that running the same task multiple times has the same effect as running it once. This is critical because tasks can be retried if a worker crashes or a network error occurs.\n    - **Example:** The \`confirm_booking\` task should check if the booking is already \`CONFIRMED\` before processing. If it's already confirmed, it should do nothing. Without this, a retry might result in sending two emails or double-counting revenue.\n\n38. **How would you handle a task failure in Celery? Mention retries and dead-letter queues.**\n\n    - **Answer:** Use the \`bind=True\` argument and the \`self.retry()\` method. You should implement **Exponential Backoff** (e.g., wait 2s, then 4s, then 8s) to avoid overwhelming a failing service (like an Email API). For tasks that fail after all retries, they can be moved to a "Dead-Letter Queue" for manual investigation.\n\n39. **What is the difference between Redis as a 'Cache' and Redis as a 'Broker'?**\n\n    - **Answer:**\n      - **As a Cache:** We use Redis to store seat layouts and temporary reservation status for speed. Data here can be lost (it's "volatile") without breaking the system; we just fetch it from SQL again.\n      - **As a Broker:** We use it as a robust queue. If the Broker fails, the messages (tasks) could be lost if not configured for persistence. For a production system, we'd enable Redis AOF (Append Only File) to ensure tasks aren't lost on restart.\n\n40. **How do you prevent a 'Race Condition' when two users try to book the same seat using Redis?**\n\n    - **Answer:** We implementation **Optimistic Locking** or **Distributed Locking**.\n      - **Distributed Lock:** We attempt to set a key in Redis like \`lock:seat_A1:show_101\` with a short TTL (Time To Live). If the key already exists, the second user is told the seat is unavailable. This ensures unique access at the millisecond level.\n\n41. **Explain the difference between 'Task Queues' and 'Message Brokers'.**\n\n    - **Answer:** A **Message Broker** (Redis/RabbitMQ) is the infrastructure that carries messages. A **Task Queue** (Celery) is the framework built on top of the broker that manages how those messages are distributed to workers, retried, and monitored.\n\n42. **What is 'Celery Beat' and how does it differ from a standard Linux 'cron'?**\n\n    - **Answer:** Celery Beat is a scheduler that lives inside the Celery ecosystem.\n      - **Vs Cron:** Cron is system-wide and hard to manage within code. Celery Beat configurations (schedules) are part of your Django settings/codebase, making them version-controlled and easier to deploy alongside your app. It also understands Python data structures.\n\n43. **How would you scale a movie booking system experiencing a massive spike (e.g., Marvel movie launch)?**\n    - **Answer:**\n      1. **Horizontal Scaling:** Run more instances of the Celery Worker process.\n      2. **Priority Queues:** Create separate queues for \`high-priority\` tasks (Payments/Bookings) and \`low-priority\` tasks (Emails/Reminders) so that delays in emails don't slow down ticket sales.\n      3. **Redis Sharding:** If Redis becomes the bottleneck, use Redis Cluster to distribute the load.\n\n---\n\n_Feel free to ask for deeper explanations on any of these system design topics!_\n`;
+            const blob = new Blob([markdownContent], { type: 'text/markdown' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'interview/interview_questions.md';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        }
+        
+        // Keyboard shortcut for print
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+                e.preventDefault();
+                window.print();
+            }
+        });
+    </script>
+</body>
+</html>

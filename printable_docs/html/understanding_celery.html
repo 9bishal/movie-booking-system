@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Understanding Celery - Movie Booking System</title>
+    <style>
+        /* Screen Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            line-height: 1.8;
+            color: #000;
+            background: #f5f5f5;
+            padding: 20px;
+            font-size: 12pt;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        
+        .header {
+            border-bottom: 3px solid #007bff;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #007bff;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+        
+        .meta {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .meta-info {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #0056b3;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .content {
+            margin-top: 30px;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+            color: #2c3e50;
+        }
+        
+        h1 { font-size: 2em; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
+        h2 { font-size: 1.75em; border-bottom: 1px solid #dee2e6; padding-bottom: 8px; }
+        h3 { font-size: 1.5em; }
+        h4 { font-size: 1.25em; }
+        
+        p {
+            margin-bottom: 1em;
+        }
+        
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 10pt;
+            color: #000;
+            font-weight: 500;
+        }
+        
+        pre {
+            background: #f8f8f8;
+            color: #000;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin: 15px 0;
+            line-height: 1.6;
+            font-size: 10pt;
+        }
+        
+        pre code {
+            background: none;
+            color: #000;
+            padding: 0;
+            border: none;
+            font-size: 10pt;
+            font-weight: normal;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        table th, table td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #dee2e6;
+        }
+        
+        table th {
+            background: #007bff;
+            color: white;
+            font-weight: 600;
+        }
+        
+        table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        blockquote {
+            border-left: 4px solid #007bff;
+            padding-left: 20px;
+            margin: 20px 0;
+            color: #666;
+            font-style: italic;
+        }
+        
+        ul, ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+        
+        li {
+            margin: 5px 0;
+        }
+        
+        a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        
+        a:hover {
+            text-decoration: underline;
+        }
+        
+        hr {
+            border: none;
+            border-top: 2px solid #dee2e6;
+            margin: 30px 0;
+        }
+        
+        /* Print Styles - Optimized for Black & White */
+        @media print {
+            @page {
+                margin: 0.75in;
+                size: A4;
+            }
+            
+            body {
+                background: white;
+                padding: 0;
+                color: #000;
+                font-size: 11pt;
+                line-height: 1.6;
+            }
+            
+            .container {
+                box-shadow: none;
+                padding: 0;
+                max-width: 100%;
+            }
+            
+            .actions, .no-print {
+                display: none !important;
+            }
+            
+            .header {
+                border-bottom: 2px solid #000;
+                padding-bottom: 10pt;
+                margin-bottom: 15pt;
+            }
+            
+            .header h1 {
+                color: #000;
+                font-size: 18pt;
+            }
+            
+            .header p {
+                color: #333;
+                font-size: 11pt;
+            }
+            
+            .meta {
+                background: #f9f9f9;
+                border: 1px solid #ddd;
+                padding: 10pt;
+                margin-bottom: 15pt;
+            }
+            
+            h1 {
+                font-size: 16pt;
+                border-bottom: 2px solid #000;
+                padding-bottom: 5pt;
+                margin-top: 20pt;
+                margin-bottom: 10pt;
+                page-break-after: avoid;
+            }
+            
+            h2 {
+                font-size: 14pt;
+                border-bottom: 1px solid #666;
+                padding-bottom: 4pt;
+                margin-top: 15pt;
+                margin-bottom: 8pt;
+                page-break-after: avoid;
+            }
+            
+            h3 {
+                font-size: 13pt;
+                margin-top: 12pt;
+                margin-bottom: 6pt;
+                page-break-after: avoid;
+            }
+            
+            h4 {
+                font-size: 12pt;
+                margin-top: 10pt;
+                margin-bottom: 5pt;
+                page-break-after: avoid;
+            }
+            
+            p {
+                margin-bottom: 8pt;
+                orphans: 3;
+                widows: 3;
+            }
+            
+            /* Code blocks - BLACK & WHITE optimized */
+            code {
+                background: #f0f0f0;
+                border: 1px solid #999;
+                padding: 2pt 4pt;
+                font-family: 'Courier New', 'Consolas', monospace;
+                font-size: 9pt;
+                color: #000;
+                font-weight: 600;
+            }
+            
+            pre {
+                background: #f8f8f8;
+                border: 2px solid #666;
+                padding: 10pt;
+                margin: 10pt 0;
+                page-break-inside: avoid;
+                font-size: 9pt;
+                line-height: 1.4;
+                overflow: visible;
+                white-space: pre-wrap;
+                word-wrap: break-word;
+            }
+            
+            pre code {
+                background: none;
+                border: none;
+                padding: 0;
+                font-size: 9pt;
+                font-weight: normal;
+                color: #000;
+            }
+            
+            /* Tables - BLACK & WHITE optimized */
+            table {
+                page-break-inside: avoid;
+                border-collapse: collapse;
+                width: 100%;
+                margin: 10pt 0;
+                border: 2px solid #000;
+            }
+            
+            table th {
+                background: #e0e0e0;
+                color: #000;
+                border: 1px solid #666;
+                padding: 6pt;
+                font-weight: bold;
+                text-align: left;
+            }
+            
+            table td {
+                border: 1px solid #999;
+                padding: 6pt;
+                color: #000;
+            }
+            
+            table tr:nth-child(even) {
+                background: #f5f5f5;
+            }
+            
+            /* Blockquotes */
+            blockquote {
+                border-left: 3px solid #000;
+                padding-left: 10pt;
+                margin: 10pt 0;
+                font-style: italic;
+                color: #333;
+                page-break-inside: avoid;
+            }
+            
+            /* Links */
+            a {
+                color: #000;
+                text-decoration: underline;
+            }
+            
+            a[href]:after {
+                content: " (" attr(href) ")";
+                font-size: 9pt;
+                color: #666;
+            }
+            
+            /* Lists */
+            ul, ol {
+                margin: 8pt 0;
+                padding-left: 20pt;
+            }
+            
+            li {
+                margin: 4pt 0;
+            }
+            
+            /* Horizontal rules */
+            hr {
+                border: none;
+                border-top: 1px solid #000;
+                margin: 15pt 0;
+            }
+            
+            /* Image handling */
+            img {
+                max-width: 100%;
+                page-break-inside: avoid;
+            }
+            
+            /* Page breaks */
+            .page-break {
+                page-break-before: always;
+            }
+            
+            /* Ensure visibility of all content */
+            * {
+                color: #000 !important;
+                background: white !important;
+            }
+            
+            code, pre {
+                background: #f5f5f5 !important;
+                border-color: #666 !important;
+            }
+            
+            table th {
+                background: #e0e0e0 !important;
+            }
+            
+            table tr:nth-child(even) {
+                background: #f8f8f8 !important;
+            }
+        }
+        
+        /* Code syntax highlighting */
+        .codehilite .hll { background-color: #49483e }
+        .codehilite .c { color: #75715e }
+        .codehilite .k { color: #66d9ef }
+        .codehilite .l { color: #ae81ff }
+        .codehilite .n { color: #f8f8f2 }
+        .codehilite .o { color: #f92672 }
+        .codehilite .p { color: #f8f8f2 }
+        .codehilite .cm { color: #75715e }
+        .codehilite .cp { color: #75715e }
+        .codehilite .c1 { color: #75715e }
+        .codehilite .cs { color: #75715e }
+        .codehilite .kc { color: #66d9ef }
+        .codehilite .kd { color: #66d9ef }
+        .codehilite .kn { color: #f92672 }
+        .codehilite .kp { color: #66d9ef }
+        .codehilite .kr { color: #66d9ef }
+        .codehilite .kt { color: #66d9ef }
+        .codehilite .ld { color: #e6db74 }
+        .codehilite .m { color: #ae81ff }
+        .codehilite .s { color: #e6db74 }
+        .codehilite .na { color: #a6e22e }
+        .codehilite .nb { color: #f8f8f2 }
+        .codehilite .nc { color: #a6e22e }
+        .codehilite .no { color: #66d9ef }
+        .codehilite .nd { color: #a6e22e }
+        .codehilite .ni { color: #f8f8f2 }
+        .codehilite .ne { color: #a6e22e }
+        .codehilite .nf { color: #a6e22e }
+        .codehilite .nl { color: #f8f8f2 }
+        .codehilite .nn { color: #f8f8f2 }
+        .codehilite .nx { color: #a6e22e }
+        .codehilite .py { color: #f8f8f2 }
+        .codehilite .nt { color: #f92672 }
+        .codehilite .nv { color: #f8f8f2 }
+        .codehilite .ow { color: #f92672 }
+        .codehilite .w { color: #f8f8f2 }
+        .codehilite .mf { color: #ae81ff }
+        .codehilite .mh { color: #ae81ff }
+        .codehilite .mi { color: #ae81ff }
+        .codehilite .mo { color: #ae81ff }
+        .codehilite .sb { color: #e6db74 }
+        .codehilite .sc { color: #e6db74 }
+        .codehilite .sd { color: #e6db74 }
+        .codehilite .s2 { color: #e6db74 }
+        .codehilite .se { color: #ae81ff }
+        .codehilite .sh { color: #e6db74 }
+        .codehilite .si { color: #e6db74 }
+        .codehilite .sx { color: #e6db74 }
+        .codehilite .sr { color: #e6db74 }
+        .codehilite .s1 { color: #e6db74 }
+        .codehilite .ss { color: #e6db74 }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Understanding Celery</h1>
+            <p>Celery task queue and async processing guide</p>
+        </div>
+        
+        <div class="meta">
+            <div class="meta-info">
+                <strong>Generated:</strong> January 04, 2026<br>
+                <strong>Source:</strong> UNDERSTANDING_CELERY.md<br>
+                <strong>Project:</strong> Movie Booking System
+            </div>
+            <div class="actions no-print">
+                <button class="btn btn-primary" onclick="window.print()">
+                    <span>🖨️</span> Print / Save as PDF
+                </button>
+                <button class="btn btn-success" onclick="downloadMarkdown()">
+                    <span>📥</span> Download Markdown
+                </button>
+                <a href="index.html" class="btn btn-secondary">
+                    <span>🏠</span> Back to Index
+                </a>
+            </div>
+        </div>
+        
+        <div class="content">
+            <h1 id="understanding-celery-in-movie-booking-system">⚙️ Understanding Celery in Movie Booking System</h1>
+<h2 id="a-beginners-guide">A Beginner&rsquo;s Guide</h2>
+<hr />
+<h2 id="table-of-contents">📚 Table of Contents</h2>
+<ol>
+<li><a href="#what-is-celery">What is Celery?</a></li>
+<li><a href="#why-we-need-celery">Why We Need Celery</a></li>
+<li><a href="#how-celery-works">How Celery Works</a></li>
+<li><a href="#celery-in-our-system">Celery in Our System</a></li>
+<li><a href="#real-world-example">Real-World Example</a></li>
+<li><a href="#celery-beat-scheduler">Celery Beat (Scheduler)</a></li>
+<li><a href="#common-tasks">Common Tasks</a></li>
+<li><a href="#troubleshooting">Troubleshooting</a></li>
+</ol>
+<hr />
+<h2 id="what-is-celery">🤔 What is Celery?</h2>
+<p><strong>Celery</strong> is a <strong>task queue</strong> system for Python. Think of it as a <strong>robot assistant</strong> that does background work while your main application keeps serving users.</p>
+<h3 id="simple-analogy">Simple Analogy 🎯</h3>
+<p>Imagine you&rsquo;re running a movie theater:</p>
+<p><strong>Without Celery:</strong></p>
+<pre><code>Customer: &quot;I want to book a ticket&quot;
+You: &quot;Sure! Let me...&quot;
+      1. Check seat availability ⏱️ (2 seconds)
+      2. Process payment ⏱️ (3 seconds)
+      3. Send confirmation email ⏱️ (5 seconds)
+      4. Print ticket ⏱️ (2 seconds)
+Customer: *waits 12 seconds* 😴
+You: &quot;Here's your ticket!&quot;
+</code></pre>
+<p><strong>With Celery:</strong></p>
+<pre><code>Customer: &quot;I want to book a ticket&quot;
+You: &quot;Sure! Let me...&quot;
+      1. Check seat availability ⏱️ (2 seconds)
+      2. Process payment ⏱️ (3 seconds)
+You: &quot;Done! You'll get email shortly!&quot; ✅
+Customer: *happy, leaves in 5 seconds* 😊
+
+[Meanwhile, Celery worker in background:]
+      3. Send confirmation email ⏱️ (5 seconds)
+      4. Print ticket ⏱️ (2 seconds)
+      [Happens in background, customer doesn't wait!]
+</code></pre>
+<h3 id="key-characteristics">Key Characteristics</h3>
+<ul>
+<li><strong>Asynchronous</strong>: Do work in the background, don&rsquo;t block users</li>
+<li><strong>Distributed</strong>: Can run on multiple servers/workers</li>
+<li><strong>Reliable</strong>: If a task fails, it can retry automatically</li>
+<li><strong>Scheduled</strong>: Can run tasks on a schedule (like cron jobs)</li>
+</ul>
+<hr />
+<h2 id="why-we-need-celery">🎯 Why We Need Celery</h2>
+<h3 id="problems-without-celery">Problems Without Celery ❌</h3>
+<h4 id="problem-1-slow-response-times">Problem 1: Slow Response Times</h4>
+<pre><code class="language-python">def book_ticket(user, showtime, seats):
+    # Step 1: Process payment (3 seconds)
+    payment = process_razorpay_payment()
+
+    # Step 2: Send confirmation email (5 seconds)
+    send_email(user.email, booking_details)
+
+    # Step 3: Send SMS (3 seconds)
+    send_sms(user.phone, booking_details)
+
+    # User waited 11 seconds! 😫
+    return &quot;Booking confirmed&quot;
+</code></pre>
+<h4 id="problem-2-expired-bookings-pile-up">Problem 2: Expired Bookings Pile Up</h4>
+<pre><code class="language-python"># Without background cleanup, expired bookings stay as &quot;PENDING&quot; forever
+# Admin has to manually find and expire them 😰
+</code></pre>
+<h4 id="problem-3-email-failures-block-everything">Problem 3: Email Failures Block Everything</h4>
+<pre><code class="language-python">def book_ticket():
+    payment = process_payment()  # Success ✅
+
+    send_email()  # SMTP server down! ❌
+    # Entire booking fails! 😱
+    # But payment already processed! 💸
+</code></pre>
+<h3 id="solutions-with-celery">Solutions With Celery ✅</h3>
+<h4 id="solution-1-instant-response">Solution 1: Instant Response</h4>
+<pre><code class="language-python">def book_ticket(user, showtime, seats):
+    # Step 1: Process payment (3 seconds)
+    payment = process_razorpay_payment()
+
+    # Step 2: Queue background tasks (instant!)
+    send_confirmation_email.delay(booking_id)  # Async!
+    send_confirmation_sms.delay(booking_id)    # Async!
+
+    # User sees response in 3 seconds! 😊
+    return &quot;Booking confirmed! Email coming soon&quot;
+</code></pre>
+<h4 id="solution-2-automatic-cleanup">Solution 2: Automatic Cleanup</h4>
+<pre><code class="language-python"># Celery Beat runs this every minute
+@periodic_task(run_every=60) 
+def cleanup_expired_bookings():
+    expired = Booking.objects.filter(
+        status='PENDING',
+        expires_at__lt=now()
+    )
+    for booking in expired:
+        booking.expire()
+    # Automatic cleanup! 🎉
+</code></pre>
+<h4 id="solution-3-fault-tolerance">Solution 3: Fault Tolerance</h4>
+<pre><code class="language-python">@task(bind=True, max_retries=3)
+def send_email(self, booking_id):
+    try:
+        # Try sending email
+        email.send()
+    except SMTPException:
+        # Retry after 5 minutes
+        self.retry(countdown=300)
+        # Booking still succeeded! ✅
+</code></pre>
+<hr />
+<h2 id="how-celery-works">⚙️ How Celery Works</h2>
+<h3 id="architecture">Architecture</h3>
+<pre><code>┌─────────────────────────────────────────────────────────────┐
+│                    DJANGO WEB SERVER                         │
+│                 (Handles HTTP Requests)                      │
+│                                                              │
+│  def book_ticket(request):                                   │
+│      # Do critical work now                                  │
+│      booking = create_booking()                              │
+│                                                              │
+│      # Queue background work                                 │
+│      send_email.delay(booking.id)  ──────┐                  │
+│                                           │                  │
+│      return &quot;Success!&quot;                    │                  │
+└───────────────────────────────────────────┼──────────────────┘
+                                            │
+                                            ▼
+                              ┌──────────────────────┐
+                              │   MESSAGE BROKER     │
+                              │      (Redis)         │
+                              │                      │
+                              │  Queue of Tasks:     │
+                              │  1. Send email #123  │
+                              │  2. Send SMS #124    │
+                              │  3. Expire bookings  │
+                              └──────────┬───────────┘
+                                         │
+                                         ▼
+                              ┌──────────────────────┐
+                              │   CELERY WORKER      │
+                              │   (Background Job)   │
+                              │                      │
+                              │  1. Take task from   │ 
+                              │     queue            │
+                              │  2. Execute it       │
+                              │  3. Mark as done     │
+                              │  4. Repeat forever   │
+                              └──────────────────────┘
+</code></pre>
+<h3 id="components">Components</h3>
+<h4 id="1-django-web-server-main-application">1. <strong>Django Web Server</strong> (Main Application)</h4>
+<ul>
+<li>Handles user requests (booking tickets, viewing movies)</li>
+<li>Queues tasks to Celery (sends email, cleanup)</li>
+<li>Responds to users immediately</li>
+</ul>
+<h4 id="2-redis-message-broker">2. <strong>Redis</strong> (Message Broker)</h4>
+<ul>
+<li>Acts as a &ldquo;to-do list&rdquo; for Celery</li>
+<li>Stores tasks waiting to be executed</li>
+<li>Like a queue at the DMV - first in, first out</li>
+</ul>
+<h4 id="3-celery-worker-background-processor">3. <strong>Celery Worker</strong> (Background Processor)</h4>
+<ul>
+<li>Runs as a separate process</li>
+<li>Picks up tasks from Redis queue</li>
+<li>Executes them one by one</li>
+<li>Can have multiple workers running in parallel</li>
+</ul>
+<h4 id="4-celery-beat-scheduler">4. <strong>Celery Beat</strong> (Scheduler)</h4>
+<ul>
+<li>Like a cron job</li>
+<li>Runs tasks on a schedule (every minute, every hour, etc.)</li>
+<li>Example: Clean up expired bookings every 60 seconds </li>
+</ul>
+<hr />
+<h2 id="celery-in-our-system">🎬 Celery in Our System</h2>
+<h3 id="our-celery-tasks">Our Celery Tasks</h3>
+<p>We have two main types of tasks:</p>
+<h4 id="1-on-demand-tasks-triggered-by-user-actions">1. <strong>On-Demand Tasks</strong> (Triggered by User Actions)</h4>
+<pre><code class="language-python"># File: bookings/email_utils.py
+
+@shared_task
+def send_booking_confirmation_email(booking_id):
+    &quot;&quot;&quot;
+    Send confirmation email after successful booking.
+    Called immediately after payment succeeds.
+    &quot;&quot;&quot;
+    booking = Booking.objects.get(id=booking_id)
+
+    send_mail(
+        subject=f'Booking Confirmed - {booking.booking_number}',
+        message=f'Your seats {booking.seats} are confirmed!',
+        from_email='noreply@moviebooking.com',
+        recipient_list=[booking.user.email],
+    )
+
+    return f&quot;Email sent to {booking.user.email}&quot;
+</code></pre>
+<p><strong>When it runs:</strong> Immediately after user completes payment<br />
+<strong>Why async:</strong> Email servers can be slow, don&rsquo;t make user wait</p>
+<h4 id="2-scheduled-tasks-run-periodically">2. <strong>Scheduled Tasks</strong> (Run Periodically)</h4>
+<pre><code class="language-python"># File: bookings/tasks.py
+
+@shared_task
+def release_expired_bookings():
+    &quot;&quot;&quot;
+    Find and expire all PENDING bookings past their expiry time.
+    Runs automatically every 60 seconds via Celery Beat.
+    &quot;&quot;&quot;
+    expired_bookings = Booking.objects.filter(
+        status='PENDING',
+        expires_at__lt=timezone.now()
+    )
+
+    released_count = 0
+    for booking in expired_bookings:
+        # Expire booking and release seats
+        success, error = BookingService.expire_booking(booking)
+        if success:
+            released_count += 1
+            logger.info(f&quot;Expired: {booking.booking_number}&quot;)
+
+    return f&quot;Released {released_count} expired bookings&quot;
+</code></pre>
+<p><strong>When it runs:</strong> Every 60 seconds, automatically<br />
+<strong>Why needed:</strong> Catches bookings that users abandoned</p>
+<hr />
+<h2 id="real-world-example">🎭 Real-World Example</h2>
+<p>Let&rsquo;s follow a complete booking flow with Celery:</p>
+<h3 id="scenario-john-books-seats-a1-a2">Scenario: John Books Seats A1, A2</h3>
+<h4 id="step-1-user-makes-booking-600-pm"><strong>Step 1: User Makes Booking (6:00 PM)</strong></h4>
+<pre><code class="language-python"># File: bookings/views.py
+
+def create_booking(request):
+    # 1. Reserve seats in Redis (instant)
+    SeatManager.reserve_seats(showtime_id, ['A1', 'A2'], user.id)
+
+    # 2. Create booking in database (fast)
+    booking = Booking.objects.create(
+        user=user,
+        showtime=showtime,
+        seats=['A1', 'A2'],
+        status='PENDING',
+        expires_at=now() + timedelta(minutes=10)  # 6:10 PM
+    )
+
+    # 3. User sees response immediately
+    return redirect('payment_page', booking.id)
+
+    # Total time: ~2 seconds ✅
+</code></pre>
+<h4 id="step-2-user-completes-payment-605-pm"><strong>Step 2: User Completes Payment (6:05 PM)</strong></h4>
+<pre><code class="language-python"># File: bookings/views.py
+
+def payment_success(request, booking_id):
+    # 1. Confirm booking (instant)
+    booking.status = 'CONFIRMED'
+    booking.save()
+
+    # 2. Queue email task (instant, doesn't wait!)
+    send_booking_confirmation_email.delay(booking_id)
+    #                               ^^^^^ 
+    #                          This makes it async!
+
+    # 3. Queue SMS task (instant) 
+    send_booking_sms.delay(booking_id)
+
+    # 4. User sees success page immediately
+    return render('booking_success.html')
+
+    # Total time: ~1 second ✅
+    # Email sends in background (user doesn't wait)
+</code></pre>
+<p><strong>What happens behind the scenes:</strong></p>
+<pre><code>6:05:00 PM - Django: Queue email task to Redis
+6:05:00 PM - Django: Queue SMS task to Redis
+6:05:00 PM - Django: Show success page to user ✅
+
+[Background - Celery Worker picks up tasks]
+6:05:02 PM - Celery: Start sending email...
+6:05:07 PM - Celery: Email sent ✅ 
+6:05:07 PM - Celery: Start sending SMS...
+6:05:10 PM - Celery: SMS sent ✅
+
+[User already moved on, doesn't care about delays]
+</code></pre>
+<h4 id="step-3-alternative-user-abandons-payment"><strong>Step 3: Alternative - User Abandons Payment</strong></h4>
+<pre><code class="language-python"># User closes browser at 6:05 PM, never completes payment
+# Booking stays as PENDING with expires_at = 6:10 PM
+
+# Meanwhile, Celery Beat is running...
+
+# 6:06 PM - Celery Beat: Check for expired bookings
+# (No expired bookings yet, expires_at is 6:10 PM)
+
+# 6:07 PM - Celery Beat: Check again
+# (Still no expired bookings)
+
+# 6:11 PM - Celery Beat: Check again
+@shared_task 
+def release_expired_bookings():
+    expired = Booking.objects.filter(
+        status='PENDING',
+        expires_at__lt=timezone.now()  # 6:11 PM
+    )
+    # Found: John's booking (expires_at = 6:10 PM) ✅
+
+    for booking in expired:
+        # Change status to EXPIRED
+        booking.status = 'EXPIRED'
+        booking.save()
+
+        # Release seats in Redis
+        SeatManager.release_seats(
+            booking.showtime.id,
+            booking.seats,
+            user_id=booking.user.id
+        )
+        # A1 and A2 now available again! ✅
+
+    return &quot;Released 1 expired bookings&quot;
+</code></pre>
+<p><strong>Timeline:</strong></p>
+<pre><code>6:00 PM - Booking created (PENDING, expires 6:10 PM)
+6:05 PM - User abandons payment, closes browser
+6:10 PM - Booking expires (passes expires_at time)
+6:11 PM - Celery Beat runs cleanup task
+6:11 PM - Booking marked EXPIRED, seats released ✅
+</code></pre>
+<hr />
+<h2 id="celery-beat-scheduler">⏰ Celery Beat (Scheduler)</h2>
+<p><strong>Celery Beat</strong> is like a smart alarm clock that triggers tasks on a schedule.</p>
+<h3 id="configuration">Configuration</h3>
+<pre><code class="language-python"># File: moviebooking/celery.py
+
+from celery import Celery
+from celery.schedules import crontab
+
+app = Celery('moviebooking')
+
+# Schedule periodic tasks
+app.conf.beat_schedule = {
+    # Task 1: Release expired bookings every 60 seconds
+    'release-expired-bookings': {
+        'task': 'bookings.tasks.release_expired_bookings',
+        'schedule': 60.0,  # Run every 60 seconds
+    },
+
+    # Task 2: Send reminder emails every day at 6 AM
+    'send-showtime-reminders': {
+        'task': 'bookings.tasks.send_showtime_reminders',
+        'schedule': crontab(hour=6, minute=0),  # 6:00 AM daily
+    },
+
+    # Task 3: Clean old data every Sunday at midnight
+    'cleanup-old-data': {
+        'task': 'bookings.tasks.cleanup_old_data',
+        'schedule': crontab(day_of_week=0, hour=0, minute=0),
+    },
+}
+</code></pre>
+<h3 id="schedule-types">Schedule Types</h3>
+<h4 id="1-simple-interval-every-x-seconds">1. <strong>Simple Interval</strong> (Every X Seconds)</h4>
+<pre><code class="language-python">'schedule': 60.0  # Every 60 seconds
+'schedule': 300.0  # Every 5 minutes
+'schedule': 3600.0  # Every hour
+</code></pre>
+<h4 id="2-cron-expression-specific-times">2. <strong>Cron Expression</strong> (Specific Times)</h4>
+<pre><code class="language-python"># Every day at 9 AM
+'schedule': crontab(hour=9, minute=0)
+
+# Every Monday at 6 PM
+'schedule': crontab(day_of_week=1, hour=18, minute=0)
+
+# Every hour at minute 30
+'schedule': crontab(minute=30)
+
+# First day of month at midnight
+'schedule': crontab(day_of_month=1, hour=0, minute=0)
+</code></pre>
+<hr />
+<h2 id="common-celery-tasks">📋 Common Celery Tasks</h2>
+<h3 id="1-send-confirmation-email-on-demand">1. <strong>Send Confirmation Email</strong> (On-Demand)</h3>
+<pre><code class="language-python">@shared_task
+def send_booking_confirmation_email(booking_id):
+    &quot;&quot;&quot;Runs after payment success&quot;&quot;&quot;
+    booking = Booking.objects.get(id=booking_id)
+    # Send email...
+    return f&quot;Email sent for {booking.booking_number}&quot;
+
+# Usage in views.py:
+send_booking_confirmation_email.delay(booking.id)
+</code></pre>
+<h3 id="2-release-expired-bookings-scheduled">2. <strong>Release Expired Bookings</strong> (Scheduled)</h3>
+<pre><code class="language-python">@shared_task
+def release_expired_bookings():
+    &quot;&quot;&quot;Runs every 60 seconds automatically&quot;&quot;&quot;
+    expired = Booking.objects.filter(
+        status='PENDING',
+        expires_at__lt=timezone.now()
+    )
+
+    for booking in expired:
+        BookingService.expire_booking(booking)
+
+    return f&quot;Released {expired.count()} bookings&quot;
+
+# Scheduled in celery.py (runs automatically)
+</code></pre>
+<h3 id="3-send-reminder-notifications-scheduled">3. <strong>Send Reminder Notifications</strong> (Scheduled)</h3>
+<pre><code class="language-python">@shared_task
+def send_showtime_reminders():
+    &quot;&quot;&quot;Runs daily at 6 AM&quot;&quot;&quot;
+    # Find bookings for shows in next 2 hours
+    upcoming = Booking.objects.filter(
+        status='CONFIRMED',
+        showtime__start_time__range=[
+            timezone.now(),
+            timezone.now() + timedelta(hours=2)
+        ]
+    )
+
+    for booking in upcoming:
+        send_email(booking.user.email, &quot;Show starts in 2 hours!&quot;)
+
+    return f&quot;Sent {upcoming.count()} reminders&quot;
+</code></pre>
+<h3 id="4-generate-reports-scheduled">4. <strong>Generate Reports</strong> (Scheduled)</h3>
+<pre><code class="language-python">@shared_task
+def generate_daily_report():
+    &quot;&quot;&quot;Runs every day at midnight&quot;&quot;&quot;
+    today = timezone.now().date()
+
+    bookings = Booking.objects.filter(
+        confirmed_at__date=today
+    )
+
+    report = {
+        'total_bookings': bookings.count(),
+        'total_revenue': sum(b.total_amount for b in bookings),
+        'most_popular_movie': ...
+    }
+
+    # Email report to admin
+    send_mail('Daily Report', report, 'admin@moviebooking.com')
+
+    return &quot;Report generated&quot;
+</code></pre>
+<hr />
+<h2 id="running-celery">🚀 Running Celery</h2>
+<h3 id="start-celery-worker">Start Celery Worker</h3>
+<pre><code class="language-bash"># Terminal 1: Start worker (processes tasks)
+celery -A moviebooking worker --loglevel=info
+
+# Output:
+# [2026-01-03 18:00:00] celery@MacBook-Pro ready
+# [2026-01-03 18:00:05] Task bookings.tasks.send_email[abc123] received
+# [2026-01-03 18:00:10] Task bookings.tasks.send_email[abc123] succeeded
+</code></pre>
+<h3 id="start-celery-beat">Start Celery Beat</h3>
+<pre><code class="language-bash"># Terminal 2: Start beat (scheduler)
+celery -A moviebooking beat --loglevel=info
+
+# Output:
+# [2026-01-03 18:00:00] Scheduler: Sending due task release-expired-bookings
+# [2026-01-03 18:01:00] Scheduler: Sending due task release-expired-bookings
+# [2026-01-03 18:02:00] Scheduler: Sending due task release-expired-bookings
+</code></pre>
+<h3 id="monitor-tasks">Monitor Tasks</h3>
+<pre><code class="language-bash"># Terminal 3: Monitor Celery events
+celery -A moviebooking events
+
+# Or use Flower (web-based monitoring)
+pip install flower
+celery -A moviebooking flower
+# Open: http://localhost:5555
+</code></pre>
+<hr />
+<h2 id="troubleshooting">🔧 Troubleshooting</h2>
+<h3 id="problem-1-tasks-not-executing">Problem 1: Tasks Not Executing</h3>
+<pre><code class="language-bash"># Check if worker is running
+ps aux | grep celery
+
+# If not running, start it
+celery -A moviebooking worker --loglevel=info
+
+# Check Redis connection
+redis-cli ping
+# Should return: PONG
+</code></pre>
+<h3 id="problem-2-scheduled-tasks-not-running">Problem 2: Scheduled Tasks Not Running</h3>
+<pre><code class="language-bash"># Check if Celery Beat is running
+ps aux | grep &quot;celery beat&quot;
+
+# If not running, start it
+celery -A moviebooking beat --loglevel=info
+
+# Check beat schedule
+python manage.py shell
+&gt;&gt;&gt; from moviebooking.celery import app
+&gt;&gt;&gt; print(app.conf.beat_schedule)
+</code></pre>
+<h3 id="problem-3-tasks-failing-silently">Problem 3: Tasks Failing Silently</h3>
+<pre><code class="language-python"># Add error handling to tasks
+@shared_task(bind=True)
+def send_email(self, booking_id):
+    try:
+        # Task code...
+        pass
+    except Exception as exc:
+        # Log error
+        logger.error(f&quot;Task failed: {exc}&quot;)
+        # Retry after 5 minutes
+        raise self.retry(exc=exc, countdown=300)
+</code></pre>
+<h3 id="problem-4-too-many-tasks-queued">Problem 4: Too Many Tasks Queued</h3>
+<pre><code class="language-bash"># Check queue length
+redis-cli
+&gt; LLEN celery
+
+# If too many, purge queue (DANGEROUS!)
+celery -A moviebooking purge
+
+# Or add more workers
+celery -A moviebooking worker --concurrency=4
+</code></pre>
+<hr />
+<h2 id="celery-vs-regular-code">📊 Celery vs Regular Code</h2>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Regular Code</th>
+<th>Celery Task</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Execution</strong></td>
+<td>Immediate</td>
+<td>Background</td>
+</tr>
+<tr>
+<td><strong>User Waits</strong></td>
+<td>Yes ⏳</td>
+<td>No ✅</td>
+</tr>
+<tr>
+<td><strong>Failure Handling</strong></td>
+<td>Blocks everything</td>
+<td>Can retry</td>
+</tr>
+<tr>
+<td><strong>Scalability</strong></td>
+<td>Limited</td>
+<td>Unlimited workers</td>
+</tr>
+<tr>
+<td><strong>Scheduling</strong></td>
+<td>Manual cron</td>
+<td>Built-in Beat</td>
+</tr>
+<tr>
+<td><strong>Monitoring</strong></td>
+<td>Basic logs</td>
+<td>Flower dashboard</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="key-takeaways">🎓 Key Takeaways</h2>
+<ol>
+<li><strong>Celery = Background Worker</strong>: Does slow work without blocking users</li>
+<li><strong>Beat = Scheduler</strong>: Runs tasks automatically on a schedule</li>
+<li><strong>Redis = Message Queue</strong>: Stores tasks waiting to be executed</li>
+<li><strong>Async = Better UX</strong>: Users see results immediately</li>
+<li><strong>Retry = Fault Tolerance</strong>: Failed tasks can retry automatically</li>
+<li><strong>Monitoring = Essential</strong>: Use Flower to watch task execution</li>
+</ol>
+<hr />
+<h2 id="next-steps">🚀 Next Steps</h2>
+<ol>
+<li>Read: <a href="./UNDERSTANDING_REDIS.md">Understanding Redis</a> - Learn about the message broker</li>
+<li>Read: <a href="./UNDERSTANDING_RAZORPAY.md">Understanding Razorpay</a> - Learn about payments</li>
+<li>Practice: Create a simple task and watch it execute</li>
+<li>Experiment: Try different schedules for periodic tasks</li>
+</ol>
+<hr />
+<p><strong>Remember</strong>: Celery is like hiring assistants - they do the slow work in the background while you focus on serving customers! 🎯⚙️</p>
+<p><em>Last Updated: January 3, 2026</em></p>
+        </div>
+        
+        <hr class="no-print">
+        <div class="meta no-print" style="margin-top: 30px;">
+            <p style="color: #666; font-size: 0.9em;">
+                💡 <strong>Tip:</strong> Use <kbd>Ctrl+P</kbd> (Windows/Linux) or <kbd>Cmd+P</kbd> (Mac) to print or save as PDF.
+                Select "Save as PDF" as your destination.
+            </p>
+        </div>
+    </div>
+    
+    <script>
+        // Download markdown function
+        function downloadMarkdown() {
+            const markdownContent = `# ⚙️ Understanding Celery in Movie Booking System\n## A Beginner's Guide\n\n---\n\n## 📚 Table of Contents\n1. [What is Celery?](#what-is-celery)\n2. [Why We Need Celery](#why-we-need-celery)\n3. [How Celery Works](#how-celery-works)\n4. [Celery in Our System](#celery-in-our-system)\n5. [Real-World Example](#real-world-example)\n6. [Celery Beat (Scheduler)](#celery-beat-scheduler)\n7. [Common Tasks](#common-tasks)\n8. [Troubleshooting](#troubleshooting)\n\n---\n\n## 🤔 What is Celery?\n\n**Celery** is a **task queue** system for Python. Think of it as a **robot assistant** that does background work while your main application keeps serving users.\n\n### Simple Analogy 🎯\nImagine you're running a movie theater:\n\n**Without Celery:**\n\`\`\`\nCustomer: "I want to book a ticket"\nYou: "Sure! Let me..."\n      1. Check seat availability ⏱️ (2 seconds)\n      2. Process payment ⏱️ (3 seconds)\n      3. Send confirmation email ⏱️ (5 seconds)\n      4. Print ticket ⏱️ (2 seconds)\nCustomer: *waits 12 seconds* 😴\nYou: "Here's your ticket!"\n\`\`\`\n\n**With Celery:**\n\`\`\`\nCustomer: "I want to book a ticket"\nYou: "Sure! Let me..."\n      1. Check seat availability ⏱️ (2 seconds)\n      2. Process payment ⏱️ (3 seconds)\nYou: "Done! You'll get email shortly!" ✅\nCustomer: *happy, leaves in 5 seconds* 😊\n\n[Meanwhile, Celery worker in background:]\n      3. Send confirmation email ⏱️ (5 seconds)\n      4. Print ticket ⏱️ (2 seconds)\n      [Happens in background, customer doesn't wait!]\n\`\`\`\n\n### Key Characteristics\n- **Asynchronous**: Do work in the background, don't block users\n- **Distributed**: Can run on multiple servers/workers\n- **Reliable**: If a task fails, it can retry automatically\n- **Scheduled**: Can run tasks on a schedule (like cron jobs)\n\n---\n\n## 🎯 Why We Need Celery\n\n### Problems Without Celery ❌\n\n#### Problem 1: Slow Response Times\n\`\`\`python\ndef book_ticket(user, showtime, seats):\n    # Step 1: Process payment (3 seconds)\n    payment = process_razorpay_payment()\n    \n    # Step 2: Send confirmation email (5 seconds)\n    send_email(user.email, booking_details)\n    \n    # Step 3: Send SMS (3 seconds)\n    send_sms(user.phone, booking_details)\n    \n    # User waited 11 seconds! 😫\n    return "Booking confirmed"\n\`\`\`\n\n#### Problem 2: Expired Bookings Pile Up\n\`\`\`python\n# Without background cleanup, expired bookings stay as "PENDING" forever\n# Admin has to manually find and expire them 😰\n\`\`\`\n\n#### Problem 3: Email Failures Block Everything\n\`\`\`python\ndef book_ticket():\n    payment = process_payment()  # Success ✅\n    \n    send_email()  # SMTP server down! ❌\n    # Entire booking fails! 😱\n    # But payment already processed! 💸\n\`\`\`\n\n### Solutions With Celery ✅\n\n#### Solution 1: Instant Response\n\`\`\`python\ndef book_ticket(user, showtime, seats):\n    # Step 1: Process payment (3 seconds)\n    payment = process_razorpay_payment()\n    \n    # Step 2: Queue background tasks (instant!)\n    send_confirmation_email.delay(booking_id)  # Async!\n    send_confirmation_sms.delay(booking_id)    # Async!\n    \n    # User sees response in 3 seconds! 😊\n    return "Booking confirmed! Email coming soon"\n\`\`\`\n\n#### Solution 2: Automatic Cleanup\n\`\`\`python\n# Celery Beat runs this every minute\n@periodic_task(run_every=60) \ndef cleanup_expired_bookings():\n    expired = Booking.objects.filter(\n        status='PENDING',\n        expires_at__lt=now()\n    )\n    for booking in expired:\n        booking.expire()\n    # Automatic cleanup! 🎉\n\`\`\`\n\n#### Solution 3: Fault Tolerance\n\`\`\`python\n@task(bind=True, max_retries=3)\ndef send_email(self, booking_id):\n    try:\n        # Try sending email\n        email.send()\n    except SMTPException:\n        # Retry after 5 minutes\n        self.retry(countdown=300)\n        # Booking still succeeded! ✅\n\`\`\`\n\n---\n\n## ⚙️ How Celery Works\n\n### Architecture\n\n\`\`\`\n┌─────────────────────────────────────────────────────────────┐\n│                    DJANGO WEB SERVER                         │\n│                 (Handles HTTP Requests)                      │\n│                                                              │\n│  def book_ticket(request):                                   │\n│      # Do critical work now                                  │\n│      booking = create_booking()                              │\n│                                                              │\n│      # Queue background work                                 │\n│      send_email.delay(booking.id)  ──────┐                  │\n│                                           │                  │\n│      return "Success!"                    │                  │\n└───────────────────────────────────────────┼──────────────────┘\n                                            │\n                                            ▼\n                              ┌──────────────────────┐\n                              │   MESSAGE BROKER     │\n                              │      (Redis)         │\n                              │                      │\n                              │  Queue of Tasks:     │\n                              │  1. Send email #123  │\n                              │  2. Send SMS #124    │\n                              │  3. Expire bookings  │\n                              └──────────┬───────────┘\n                                         │\n                                         ▼\n                              ┌──────────────────────┐\n                              │   CELERY WORKER      │\n                              │   (Background Job)   │\n                              │                      │\n                              │  1. Take task from   │ \n                              │     queue            │\n                              │  2. Execute it       │\n                              │  3. Mark as done     │\n                              │  4. Repeat forever   │\n                              └──────────────────────┘\n\`\`\`\n\n### Components\n\n#### 1. **Django Web Server** (Main Application)\n- Handles user requests (booking tickets, viewing movies)\n- Queues tasks to Celery (sends email, cleanup)\n- Responds to users immediately\n\n#### 2. **Redis** (Message Broker)\n- Acts as a "to-do list" for Celery\n- Stores tasks waiting to be executed\n- Like a queue at the DMV - first in, first out\n\n#### 3. **Celery Worker** (Background Processor)\n- Runs as a separate process\n- Picks up tasks from Redis queue\n- Executes them one by one\n- Can have multiple workers running in parallel\n\n#### 4. **Celery Beat** (Scheduler)\n- Like a cron job\n- Runs tasks on a schedule (every minute, every hour, etc.)\n- Example: Clean up expired bookings every 60 seconds \n\n---\n\n## 🎬 Celery in Our System\n\n### Our Celery Tasks\n\nWe have two main types of tasks:\n\n#### 1. **On-Demand Tasks** (Triggered by User Actions)\n\`\`\`python\n# File: bookings/email_utils.py\n\n@shared_task\ndef send_booking_confirmation_email(booking_id):\n    """\n    Send confirmation email after successful booking.\n    Called immediately after payment succeeds.\n    """\n    booking = Booking.objects.get(id=booking_id)\n    \n    send_mail(\n        subject=f'Booking Confirmed - {booking.booking_number}',\n        message=f'Your seats {booking.seats} are confirmed!',\n        from_email='noreply@moviebooking.com',\n        recipient_list=[booking.user.email],\n    )\n    \n    return f"Email sent to {booking.user.email}"\n\`\`\`\n\n**When it runs:** Immediately after user completes payment\n**Why async:** Email servers can be slow, don't make user wait\n\n#### 2. **Scheduled Tasks** (Run Periodically)\n\`\`\`python \n# File: bookings/tasks.py\n\n@shared_task\ndef release_expired_bookings():\n    """\n    Find and expire all PENDING bookings past their expiry time.\n    Runs automatically every 60 seconds via Celery Beat.\n    """\n    expired_bookings = Booking.objects.filter(\n        status='PENDING',\n        expires_at__lt=timezone.now()\n    )\n    \n    released_count = 0\n    for booking in expired_bookings:\n        # Expire booking and release seats\n        success, error = BookingService.expire_booking(booking)\n        if success:\n            released_count += 1\n            logger.info(f"Expired: {booking.booking_number}")\n    \n    return f"Released {released_count} expired bookings"\n\`\`\`\n\n**When it runs:** Every 60 seconds, automatically\n**Why needed:** Catches bookings that users abandoned\n\n---\n\n## 🎭 Real-World Example\n\nLet's follow a complete booking flow with Celery:\n\n### Scenario: John Books Seats A1, A2\n\n#### **Step 1: User Makes Booking (6:00 PM)**\n\`\`\`python\n# File: bookings/views.py\n\ndef create_booking(request):\n    # 1. Reserve seats in Redis (instant)\n    SeatManager.reserve_seats(showtime_id, ['A1', 'A2'], user.id)\n    \n    # 2. Create booking in database (fast)\n    booking = Booking.objects.create(\n        user=user,\n        showtime=showtime,\n        seats=['A1', 'A2'],\n        status='PENDING',\n        expires_at=now() + timedelta(minutes=10)  # 6:10 PM\n    )\n    \n    # 3. User sees response immediately\n    return redirect('payment_page', booking.id)\n    \n    # Total time: ~2 seconds ✅\n\`\`\`\n\n#### **Step 2: User Completes Payment (6:05 PM)** \n\`\`\`python\n# File: bookings/views.py\n\ndef payment_success(request, booking_id):\n    # 1. Confirm booking (instant)\n    booking.status = 'CONFIRMED'\n    booking.save()\n    \n    # 2. Queue email task (instant, doesn't wait!)\n    send_booking_confirmation_email.delay(booking_id)\n    #                               ^^^^^ \n    #                          This makes it async!\n    \n    # 3. Queue SMS task (instant) \n    send_booking_sms.delay(booking_id)\n    \n    # 4. User sees success page immediately\n    return render('booking_success.html')\n    \n    # Total time: ~1 second ✅\n    # Email sends in background (user doesn't wait)\n\`\`\`\n\n**What happens behind the scenes:**\n\`\`\`\n6:05:00 PM - Django: Queue email task to Redis\n6:05:00 PM - Django: Queue SMS task to Redis\n6:05:00 PM - Django: Show success page to user ✅\n\n[Background - Celery Worker picks up tasks]\n6:05:02 PM - Celery: Start sending email...\n6:05:07 PM - Celery: Email sent ✅ \n6:05:07 PM - Celery: Start sending SMS...\n6:05:10 PM - Celery: SMS sent ✅\n\n[User already moved on, doesn't care about delays]\n\`\`\`\n\n#### **Step 3: Alternative - User Abandons Payment**\n\`\`\`python\n# User closes browser at 6:05 PM, never completes payment\n# Booking stays as PENDING with expires_at = 6:10 PM\n\n# Meanwhile, Celery Beat is running...\n\n# 6:06 PM - Celery Beat: Check for expired bookings\n# (No expired bookings yet, expires_at is 6:10 PM)\n\n# 6:07 PM - Celery Beat: Check again\n# (Still no expired bookings)\n\n# 6:11 PM - Celery Beat: Check again\n@shared_task \ndef release_expired_bookings():\n    expired = Booking.objects.filter(\n        status='PENDING',\n        expires_at__lt=timezone.now()  # 6:11 PM\n    )\n    # Found: John's booking (expires_at = 6:10 PM) ✅\n    \n    for booking in expired:\n        # Change status to EXPIRED\n        booking.status = 'EXPIRED'\n        booking.save()\n        \n        # Release seats in Redis\n        SeatManager.release_seats(\n            booking.showtime.id,\n            booking.seats,\n            user_id=booking.user.id\n        )\n        # A1 and A2 now available again! ✅\n    \n    return "Released 1 expired bookings"\n\`\`\`\n\n**Timeline:**\n\`\`\`\n6:00 PM - Booking created (PENDING, expires 6:10 PM)\n6:05 PM - User abandons payment, closes browser\n6:10 PM - Booking expires (passes expires_at time)\n6:11 PM - Celery Beat runs cleanup task\n6:11 PM - Booking marked EXPIRED, seats released ✅\n\`\`\`\n\n---\n\n## ⏰ Celery Beat (Scheduler)\n\n**Celery Beat** is like a smart alarm clock that triggers tasks on a schedule.\n\n### Configuration\n\`\`\`python\n# File: moviebooking/celery.py\n\nfrom celery import Celery\nfrom celery.schedules import crontab\n\napp = Celery('moviebooking')\n\n# Schedule periodic tasks\napp.conf.beat_schedule = {\n    # Task 1: Release expired bookings every 60 seconds\n    'release-expired-bookings': {\n        'task': 'bookings.tasks.release_expired_bookings',\n        'schedule': 60.0,  # Run every 60 seconds\n    },\n    \n    # Task 2: Send reminder emails every day at 6 AM\n    'send-showtime-reminders': {\n        'task': 'bookings.tasks.send_showtime_reminders',\n        'schedule': crontab(hour=6, minute=0),  # 6:00 AM daily\n    },\n    \n    # Task 3: Clean old data every Sunday at midnight\n    'cleanup-old-data': {\n        'task': 'bookings.tasks.cleanup_old_data',\n        'schedule': crontab(day_of_week=0, hour=0, minute=0),\n    },\n}\n\`\`\`\n\n### Schedule Types\n\n#### 1. **Simple Interval** (Every X Seconds)\n\`\`\`python\n'schedule': 60.0  # Every 60 seconds\n'schedule': 300.0  # Every 5 minutes\n'schedule': 3600.0  # Every hour\n\`\`\`\n\n#### 2. **Cron Expression** (Specific Times)\n\`\`\`python\n# Every day at 9 AM\n'schedule': crontab(hour=9, minute=0)\n\n# Every Monday at 6 PM\n'schedule': crontab(day_of_week=1, hour=18, minute=0)\n\n# Every hour at minute 30\n'schedule': crontab(minute=30)\n\n# First day of month at midnight\n'schedule': crontab(day_of_month=1, hour=0, minute=0)\n\`\`\`\n\n---\n\n## 📋 Common Celery Tasks\n\n### 1. **Send Confirmation Email** (On-Demand)\n\`\`\`python\n@shared_task\ndef send_booking_confirmation_email(booking_id):\n    """Runs after payment success"""\n    booking = Booking.objects.get(id=booking_id)\n    # Send email...\n    return f"Email sent for {booking.booking_number}"\n\n# Usage in views.py:\nsend_booking_confirmation_email.delay(booking.id)\n\`\`\`\n\n### 2. **Release Expired Bookings** (Scheduled)\n\`\`\`python\n@shared_task\ndef release_expired_bookings():\n    """Runs every 60 seconds automatically"""\n    expired = Booking.objects.filter(\n        status='PENDING',\n        expires_at__lt=timezone.now()\n    )\n    \n    for booking in expired:\n        BookingService.expire_booking(booking)\n    \n    return f"Released {expired.count()} bookings"\n\n# Scheduled in celery.py (runs automatically)\n\`\`\`\n\n### 3. **Send Reminder Notifications** (Scheduled)\n\`\`\`python\n@shared_task\ndef send_showtime_reminders():\n    """Runs daily at 6 AM"""\n    # Find bookings for shows in next 2 hours\n    upcoming = Booking.objects.filter(\n        status='CONFIRMED',\n        showtime__start_time__range=[\n            timezone.now(),\n            timezone.now() + timedelta(hours=2)\n        ]\n    )\n    \n    for booking in upcoming:\n        send_email(booking.user.email, "Show starts in 2 hours!")\n    \n    return f"Sent {upcoming.count()} reminders"\n\`\`\`\n\n### 4. **Generate Reports** (Scheduled)\n\`\`\`python\n@shared_task\ndef generate_daily_report():\n    """Runs every day at midnight"""\n    today = timezone.now().date()\n    \n    bookings = Booking.objects.filter(\n        confirmed_at__date=today\n    )\n    \n    report = {\n        'total_bookings': bookings.count(),\n        'total_revenue': sum(b.total_amount for b in bookings),\n        'most_popular_movie': ...\n    }\n    \n    # Email report to admin\n    send_mail('Daily Report', report, 'admin@moviebooking.com')\n    \n    return "Report generated"\n\`\`\`\n\n---\n\n## 🚀 Running Celery\n\n### Start Celery Worker\n\`\`\`bash\n# Terminal 1: Start worker (processes tasks)\ncelery -A moviebooking worker --loglevel=info\n\n# Output:\n# [2026-01-03 18:00:00] celery@MacBook-Pro ready\n# [2026-01-03 18:00:05] Task bookings.tasks.send_email[abc123] received\n# [2026-01-03 18:00:10] Task bookings.tasks.send_email[abc123] succeeded\n\`\`\`\n\n### Start Celery Beat\n\`\`\`bash\n# Terminal 2: Start beat (scheduler)\ncelery -A moviebooking beat --loglevel=info\n\n# Output:\n# [2026-01-03 18:00:00] Scheduler: Sending due task release-expired-bookings\n# [2026-01-03 18:01:00] Scheduler: Sending due task release-expired-bookings\n# [2026-01-03 18:02:00] Scheduler: Sending due task release-expired-bookings\n\`\`\`\n\n### Monitor Tasks\n\`\`\`bash\n# Terminal 3: Monitor Celery events\ncelery -A moviebooking events\n\n# Or use Flower (web-based monitoring)\npip install flower\ncelery -A moviebooking flower\n# Open: http://localhost:5555\n\`\`\`\n\n---\n\n## 🔧 Troubleshooting\n\n### Problem 1: Tasks Not Executing\n\`\`\`bash\n# Check if worker is running\nps aux | grep celery\n\n# If not running, start it\ncelery -A moviebooking worker --loglevel=info\n\n# Check Redis connection\nredis-cli ping\n# Should return: PONG\n\`\`\`\n\n### Problem 2: Scheduled Tasks Not Running\n\`\`\`bash\n# Check if Celery Beat is running\nps aux | grep "celery beat"\n\n# If not running, start it\ncelery -A moviebooking beat --loglevel=info\n\n# Check beat schedule\npython manage.py shell\n>>> from moviebooking.celery import app\n>>> print(app.conf.beat_schedule)\n\`\`\`\n\n### Problem 3: Tasks Failing Silently\n\`\`\`python\n# Add error handling to tasks\n@shared_task(bind=True)\ndef send_email(self, booking_id):\n    try:\n        # Task code...\n        pass\n    except Exception as exc:\n        # Log error\n        logger.error(f"Task failed: {exc}")\n        # Retry after 5 minutes\n        raise self.retry(exc=exc, countdown=300)\n\`\`\`\n\n### Problem 4: Too Many Tasks Queued\n\`\`\`bash\n# Check queue length\nredis-cli\n> LLEN celery\n\n# If too many, purge queue (DANGEROUS!)\ncelery -A moviebooking purge\n\n# Or add more workers\ncelery -A moviebooking worker --concurrency=4\n\`\`\`\n\n---\n\n## 📊 Celery vs Regular Code\n\n| Feature | Regular Code | Celery Task |\n|---------|-------------|-------------|\n| **Execution** | Immediate | Background |\n| **User Waits** | Yes ⏳ | No ✅ |\n| **Failure Handling** | Blocks everything | Can retry |\n| **Scalability** | Limited | Unlimited workers |\n| **Scheduling** | Manual cron | Built-in Beat |\n| **Monitoring** | Basic logs | Flower dashboard |\n\n---\n\n## 🎓 Key Takeaways\n\n1. **Celery = Background Worker**: Does slow work without blocking users\n2. **Beat = Scheduler**: Runs tasks automatically on a schedule\n3. **Redis = Message Queue**: Stores tasks waiting to be executed\n4. **Async = Better UX**: Users see results immediately\n5. **Retry = Fault Tolerance**: Failed tasks can retry automatically\n6. **Monitoring = Essential**: Use Flower to watch task execution\n\n---\n\n## 🚀 Next Steps\n\n1. Read: [Understanding Redis](./UNDERSTANDING_REDIS.md) - Learn about the message broker\n2. Read: [Understanding Razorpay](./UNDERSTANDING_RAZORPAY.md) - Learn about payments\n3. Practice: Create a simple task and watch it execute\n4. Experiment: Try different schedules for periodic tasks\n\n---\n\n**Remember**: Celery is like hiring assistants - they do the slow work in the background while you focus on serving customers! 🎯⚙️\n\n*Last Updated: January 3, 2026*\n`;
+            const blob = new Blob([markdownContent], { type: 'text/markdown' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'UNDERSTANDING_CELERY.md';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        }
+        
+        // Keyboard shortcut for print
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+                e.preventDefault();
+                window.print();
+            }
+        });
+    </script>
+</body>
+</html>

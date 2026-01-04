@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Print Quality Test - Black & White</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: Georgia, 'Times New Roman', serif;
+            line-height: 1.8;
+            color: #000;
+            background: #fff;
+            padding: 40px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 { font-size: 18pt; border-bottom: 2px solid #000; padding-bottom: 10pt; margin-bottom: 15pt; }
+        h2 { font-size: 14pt; border-bottom: 1px solid #666; padding-bottom: 5pt; margin: 15pt 0 10pt; }
+        p { margin-bottom: 10pt; }
+        code {
+            background: #f0f0f0;
+            border: 1px solid #999;
+            padding: 2pt 4pt;
+            font-family: 'Courier New', monospace;
+            font-size: 9pt;
+            color: #000;
+            font-weight: 600;
+        }
+        pre {
+            background: #f8f8f8;
+            border: 2px solid #666;
+            padding: 10pt;
+            margin: 10pt 0;
+            font-size: 9pt;
+            line-height: 1.4;
+            overflow-x: auto;
+        }
+        pre code {
+            background: none;
+            border: none;
+            padding: 0;
+            font-weight: normal;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10pt 0;
+            border: 2px solid #000;
+        }
+        table th {
+            background: #e0e0e0;
+            color: #000;
+            border: 1px solid #666;
+            padding: 6pt;
+            font-weight: bold;
+            text-align: left;
+        }
+        table td {
+            border: 1px solid #999;
+            padding: 6pt;
+            color: #000;
+        }
+        table tr:nth-child(even) {
+            background: #f5f5f5;
+        }
+        .test-box {
+            border: 2px solid #000;
+            padding: 15pt;
+            margin: 15pt 0;
+            background: #f9f9f9;
+        }
+        .success { color: #000; font-weight: bold; }
+        @media print {
+            body { padding: 0; }
+            .no-print { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <h1>🖨️ Print Quality Test Page</h1>
+    
+    <p class="no-print" style="background: #ffffcc; padding: 10pt; border: 2px solid #ff0000; margin-bottom: 20pt;">
+        <strong>⚠️ BEFORE PRINTING:</strong><br>
+        Press Ctrl+P (or Cmd+P) and check this page in Print Preview.<br>
+        Enable "Background graphics" to see gray backgrounds.<br>
+        This tests if your documents will print correctly.
+    </p>
+
+    <div class="test-box">
+        <h2>✅ Test 1: Code Blocks</h2>
+        <p>This tests if code snippets are visible in black & white:</p>
+        
+        <pre><code># Python code example
+@cache_page(timeout=720)
+@PerformanceMonitor.measure_performance
+def movie_list(request):
+    movies = Movie.objects.filter(is_active=True)
+    return render(request, 'movies/list.html', {'movies': movies})</code></pre>
+        
+        <p class="success">✅ If you can see the code block with a border, your settings are correct!</p>
+    </div>
+
+    <div class="test-box">
+        <h2>✅ Test 2: Inline Code</h2>
+        <p>This is regular text with <code>inline code</code> and more <code>@decorator</code> examples.</p>
+        <p class="success">✅ If inline code has a border/background, it's working!</p>
+    </div>
+
+    <div class="test-box">
+        <h2>✅ Test 3: Tables</h2>
+        <table>
+            <tr>
+                <th>Feature</th>
+                <th>Status</th>
+                <th>Print Quality</th>
+            </tr>
+            <tr>
+                <td>Bold borders</td>
+                <td>✅ Working</td>
+                <td>Excellent</td>
+            </tr>
+            <tr>
+                <td>Alternating rows</td>
+                <td>✅ Working</td>
+                <td>Clear distinction</td>
+            </tr>
+            <tr>
+                <td>Header background</td>
+                <td>✅ Working</td>
+                <td>Gray visible</td>
+            </tr>
+        </table>
+        <p class="success">✅ If you see borders and light/dark rows, tables are printing correctly!</p>
+    </div>
+
+    <div class="test-box">
+        <h2>✅ Test 4: Text Hierarchy</h2>
+        <h1 style="font-size: 16pt;">This is H1 (16pt, bold, underline)</h1>
+        <h2 style="font-size: 14pt;">This is H2 (14pt, bold, underline)</h2>
+        <h3 style="font-size: 13pt;">This is H3 (13pt, bold)</h3>
+        <p>This is body text (11pt, serif font).</p>
+        <p class="success">✅ If headings are clearly distinguished, typography is correct!</p>
+    </div>
+
+    <div class="test-box">
+        <h2>✅ Test 5: Bash Commands</h2>
+        <pre><code># Terminal commands
+cd printable_docs
+python3 generate_html.py
+ls -la html/*.html</code></pre>
+        <p class="success">✅ If bash commands are visible, command blocks work!</p>
+    </div>
+
+    <div class="test-box">
+        <h2>✅ Test 6: JSON Code</h2>
+        <pre><code>{
+  "name": "Movie Booking System",
+  "version": "2.0.0",
+  "status": "production-ready",
+  "features": ["caching", "rate-limiting", "async-tasks"]
+}</code></pre>
+        <p class="success">✅ If JSON is readable with structure, code formatting works!</p>
+    </div>
+
+    <h2>📋 Final Checklist</h2>
+    <div class="test-box">
+        <p><strong>Before printing your actual documentation:</strong></p>
+        <ul style="margin-left: 20pt; margin-top: 10pt;">
+            <li>☑ All code blocks have visible borders</li>
+            <li>☑ Gray backgrounds are visible (light gray)</li>
+            <li>☑ Tables have clear borders and rows</li>
+            <li>☑ Inline code is distinguishable</li>
+            <li>☑ Headings are bold and clear</li>
+            <li>☑ Everything is readable in B&W</li>
+        </ul>
+        <p style="margin-top: 10pt;"><strong>If all checkmarks above are true, you're ready to print! 🎉</strong></p>
+    </div>
+
+    <h2>🖨️ Recommended Print Settings</h2>
+    <div class="test-box">
+        <pre style="border: none; background: #fff; font-size: 10pt;"><code>Destination: Save as PDF (or your printer)
+Pages: All
+Paper size: A4 or Letter
+Orientation: Portrait
+Margins: Default
+Scale: 100%
+
+✅ MUST ENABLE:
+☑ Background graphics: ON
+☑ Print backgrounds: ON
+
+Optional:
+☐ Two-sided (saves paper)
+☐ Headers/footers: OFF</code></pre>
+    </div>
+
+    <h2>✅ You're Ready!</h2>
+    <p>If this test page looks good in Print Preview, all your documentation will print perfectly!</p>
+    <p><strong>Next step:</strong> Open <code>/printable_docs/html/index.html</code> and start printing your docs! 🎉</p>
+
+</body>
+</html>
