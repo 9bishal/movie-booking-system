@@ -1,13 +1,9 @@
 import json
 import time
-import logging
 from decimal import Decimal
 from django.core.cache import cache
 from django.conf import settings
 from django.db.models import Q
-
-# Initialize logger
-logger = logging.getLogger(__name__)
 
 # ==============================================================================
 # 🧠 CONCEPT: HOW CACHING WORKS IN OUR APP
@@ -88,10 +84,12 @@ class SeatManager:
             # WHY: The Database is the final truth. 
             # We must remove seats that have already been SOLD (CONFIRMED).
             from .models import Booking
+            from django.utils import timezone
+            
             booked_seats_query = Booking.objects.filter(
                 showtime_id=showtime_id,
                 status='CONFIRMED'
-            ).values_list('seats', flat=True)
+            ).only('seats').values_list('seats', flat=True)
             
             for seats_list in booked_seats_query:
                 # 🔄 HOW: Removal. We subtract every sold seat from the 'for-sale' list.
@@ -99,8 +97,24 @@ class SeatManager:
                     if seat_id in available_seats:
                         available_seats.remove(seat_id)
             
-            # 💾 HOW: Synchronization. Save the clean list back to cache.
-            cache.set(cache_key, available_seats, timeout=3600)
+            # �️ CRITICAL: Also check PENDING bookings to prevent race conditions
+            # WHY: PENDING bookings are "payment in progress" - seats should be locked
+            # HOW: Only consider PENDING bookings that haven't expired yet
+            pending_seats_query = Booking.objects.filter(
+                showtime_id=showtime_id,
+                status='PENDING',
+                expires_at__gt=timezone.now()  # Not expired yet
+            ).only('seats').values_list('seats', flat=True)
+            
+            for seats_list in pending_seats_query:
+                for seat_id in seats_list:
+                    if seat_id in available_seats:
+                        available_seats.remove(seat_id)
+            
+            # 💾 CRITICAL: Use SHORT cache timeout (30 seconds)
+            # WHY: Allows seats to become available quickly after Redis TTL expires
+            # or when user force-closes tab without triggering ondismiss
+            cache.set(cache_key, available_seats, timeout=30)
         
         return available_seats
     
@@ -109,7 +123,30 @@ class SeatManager:
         """STEP 3: Get seats that are "In Progress" (User is paying)."""
         # These are seats that aren't booked yet, but someone is trying to.
         cache_key = f"reserved_seats_{showtime_id}"
-        return cache.get(cache_key) or []
+        redis_reserved = cache.get(cache_key) or []
+        
+        # 🛡️ CRITICAL: Also include seats from PENDING bookings in DB
+        # WHY: Redis cache might expire before booking is confirmed/cancelled
+        # This ensures seats in payment flow are always shown as reserved (yellow)
+        from .models import Booking
+        from django.utils import timezone
+        
+        # Use expires_at field which is set when booking is created
+        # Only include PENDING bookings that haven't expired yet
+        # OPTIMIZED: Use .only() to fetch only seats field (lighter query)
+        pending_bookings = Booking.objects.filter(
+            showtime_id=showtime_id,
+            status='PENDING',
+            expires_at__gt=timezone.now()  # Not expired yet
+        ).only('seats').values_list('seats', flat=True)
+        
+        db_reserved = []
+        for seats_list in pending_bookings:
+            db_reserved.extend(seats_list)
+        
+        # Combine Redis and DB reserved seats (no duplicates)
+        all_reserved = list(set(redis_reserved + db_reserved))
+        return all_reserved
     
     @staticmethod
     def reserve_seats(showtime_id, seat_ids, user_id):
@@ -155,60 +192,25 @@ class SeatManager:
     
     @staticmethod
     def release_seats(showtime_id, seat_ids=None, user_id=None):
-        """
-        RESCUE: Someone closed the tab or payment failed? Free the seats!
-        CRITICAL: Also clears individual seat locks to prevent stuck reservations
-        """
-        logger.info(f"release_seats called - showtime_id: {showtime_id}, seat_ids: {seat_ids}, user_id: {user_id}")
-        
+        """RESCUE: Someone closed the tab or payment failed? Free the seats!"""
         cache_key = f"reserved_seats_{showtime_id}"
         reserved_seats = cache.get(cache_key) or []
-        seats_to_release = []
-        
-        logger.info(f"Current reserved_seats before release: {reserved_seats}")
         
         if seat_ids:
             # Free specific seats
-            seats_to_release = seat_ids
             for sid in seat_ids:
-                if sid in reserved_seats: 
-                    reserved_seats.remove(sid)
-                    logger.info(f"Removed seat {sid} from reserved list")
-            
-            # CRITICAL: Also clear user reservation key when releasing specific seats
-            if user_id:
-                reservation_key = f"seat_reservation_{showtime_id}_{user_id}"
-                cache.delete(reservation_key)
-                logger.info(f"Deleted user reservation key: {reservation_key}")
-                
+                if sid in reserved_seats: reserved_seats.remove(sid)
         elif user_id:
             # Free all seats this user was trying to buy
             reservation_key = f"seat_reservation_{showtime_id}_{user_id}"
             user_res = cache.get(reservation_key)
-            logger.info(f"User reservation found: {user_res}")
-            
             if user_res:
-                seats_to_release = user_res.get('seat_ids', [])
-                logger.info(f"Seats to release from user reservation: {seats_to_release}")
-                for sid in seats_to_release:
-                    if sid in reserved_seats: 
-                        reserved_seats.remove(sid)
-                        logger.info(f"Removed seat {sid} from reserved list")
+                for sid in user_res.get('seat_ids', []):
+                    if sid in reserved_seats: reserved_seats.remove(sid)
                 cache.delete(reservation_key)
-                logger.info(f"Deleted user reservation key: {reservation_key}")
-        
-        # CRITICAL: Clear individual seat locks for each seat
-        # These locks use pattern: seat_lock:{showtime_id}:{seat_id}
-        for seat_id in seats_to_release:
-            lock_key = f"seat_lock:{showtime_id}:{seat_id}"
-            deleted = cache.delete(lock_key)
-            logger.debug(f"Tried to delete lock key {lock_key}, result: {deleted}")
         
         # Save the updated list back to cache
         cache.set(cache_key, reserved_seats, timeout=settings.SEAT_RESERVATION_TIMEOUT)
-        logger.info(f"Updated reserved_seats after release: {reserved_seats}")
-        
-        logger.info(f"Released {len(seats_to_release)} seats for showtime {showtime_id}")
         return True
     
     @staticmethod

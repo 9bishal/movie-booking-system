@@ -203,6 +203,47 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+    // 🔄 AUTO-REFRESH: Fetch updated seat status every 5 seconds
+    // WHY: So users can see when seats are reserved by others in real-time
+    async function refreshSeatStatus() {
+        try {
+            const response = await fetch(`/bookings/api/seat-status/{{ showtime.id }}/`);
+            const data = await response.json();
+            
+            if (data.success) {
+                const reservedSeats = data.reserved_seats || [];
+                const bookedSeats = data.booked_seats || [];
+                
+                // Update seat styles based on new data
+                document.querySelectorAll('.seat').forEach(seatEl => {
+                    const seatId = seatEl.dataset.seatId;
+                    if (!seatId) return;
+                    
+                    // Skip if user has selected this seat
+                    if (selectedSeats.has(seatId)) return;
+                    
+                    // Remove old status classes
+                    seatEl.classList.remove('available', 'reserved', 'booked');
+                    
+                    if (bookedSeats.includes(seatId)) {
+                        seatEl.classList.add('booked');
+                    } else if (reservedSeats.includes(seatId)) {
+                        seatEl.classList.add('reserved');
+                    } else {
+                        seatEl.classList.add('available');
+                    }
+                });
+                
+                console.log(`🔄 Seat status refreshed: ${reservedSeats.length} reserved, ${bookedSeats.length} booked`);
+            }
+        } catch (error) {
+            console.error('Error refreshing seat status:', error);
+        }
+    }
+    
+    // Refresh every 10 seconds (reduced from 5 to minimize Redis/DB load)
+    setInterval(refreshSeatStatus, 10000);
+    
     bookNowBtn.addEventListener('click', async function() {
         const seatIds = Array.from(selectedSeats);
         const showtimeId = "{{ showtime.id }}";

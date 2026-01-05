@@ -248,7 +248,6 @@ PyYAML==6.0.2
 pyzmq==26.2.0
 qdrant-client==1.15.1
 react==4.3.0
-redis==7.1.0
 referencing==0.35.1
 regex==2024.11.6
 requests==2.32.3
@@ -324,3 +323,11 @@ yarl==1.20.1
 youtube-transcript-api==1.2.1
 zipp==3.23.0
 zstandard==0.23.0
+redis==7.1.0
+celery==5.6.0
+django-celery-beat==2.8.1
+django-celery-results==2.6.0
+qrcode==8.1.0
+pillow==10.4.0
+razorpay==1.4.2
+python-dotenv==1.0.1

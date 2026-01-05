@@ -286,7 +286,7 @@
 
     - **Answer:** Celery is an asynchronous task queue. We use it to offload long-running or non-critical tasks from the main request-response cycle. In our system, we use it for sending confirmation emails (which take 2-5 seconds via SMTP) and for scheduled maintenance like releasing expired seats. This keeps the user interface responsive.
 
-36. **Explain the role of a 'Broker' vs. a 'Result Backend' in the context of Celery.**
+36. **Explain the role of a 'Broker(redis)' vs. a 'Result Backend' in the context of Celery.**
 
     - **Answer:**
       - **Broker (Redis):** Acts as a mediator (post office) between the Django app and the Celery worker. When a task is called with `.delay()`, Django puts a message into Redis. The Celery worker then picks it up.
