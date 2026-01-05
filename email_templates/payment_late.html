@@ -1,0 +1,62 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f5f5f5; }
+        .container { max-width: 600px; margin: 20px auto; background: white; padding: 20px; border-radius: 8px; }
+        .header { background: #ff6b6b; color: white; padding: 15px; border-radius: 5px; text-align: center; }
+        .content { padding: 20px; }
+        .details { background: #f9f9f9; padding: 15px; margin: 15px 0; border-left: 4px solid #ff6b6b; }
+        .details p { margin: 10px 0; }
+        .refund-box { background: #fffacd; padding: 15px; border-radius: 5px; margin: 15px 0; }
+        .action-box { background: #e8f4f8; padding: 15px; border-radius: 5px; margin: 15px 0; }
+        .footer { text-align: center; color: #666; font-size: 12px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>❌ Payment Window Expired</h2>
+            <p>Refund Initiated</p>
+        </div>
+
+        <div class="content">
+            <p>Hello <strong>{{ user.first_name }}</strong>,</p>
+
+            <p>We received your payment for booking <strong>{{ booking.booking_number }}</strong>, but unfortunately it arrived after the 12-minute payment window expired.</p>
+
+            <div class="details">
+                <h3>📋 Booking Details:</h3>
+                <p><strong>Movie:</strong> {{ movie.title }}</p>
+                <p><strong>Theater:</strong> {{ theater.name }}</p>
+                <p><strong>Date:</strong> {{ showtime.date }}</p>
+                <p><strong>Time:</strong> {{ showtime.start_time }}</p>
+                <p><strong>Selected Seats:</strong> {{ booking.get_seats_display }}</p>
+            </div>
+
+            <div class="refund-box">
+                <h3>💰 Refund Status:</h3>
+                <p>A refund of <strong>₹{{ booking.total_amount }}</strong> has been initiated and will appear in your account within <strong>24 hours</strong>.</p>
+            </div>
+
+            <div class="action-box">
+                <h3>🔄 What You Can Do:</h3>
+                <ol>
+                    <li>Select new seats if available</li>
+                    <li>Complete payment within 12 minutes</li>
+                    <li>Proceed to checkout and confirm your booking</li>
+                </ol>
+            </div>
+
+            <p>If you have any questions or concerns, please contact our support team.</p>
+
+            <p>Best regards,<br><strong>Movie Booking System</strong></p>
+        </div>
+
+        <div class="footer">
+            <p>© 2026 Movie Booking System. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -165,3 +165,44 @@ def send_seat_reminder_email(booking_id):
     except Exception as e:
         logger.error(f"❌ Error sending reminder email: {str(e)}")
         return f"Error sending reminder: {str(e)}"
+
+@shared_task
+def send_late_payment_email(booking_id):
+    """
+    💰 Send email when payment arrives AFTER 12-minute window expires
+    
+    WHEN: Payment received after booking.expires_at
+    WHAT: Notify user of refund and suggest trying again
+    """
+    from .models import Booking
+    
+    try:
+        booking = Booking.objects.get(id=booking_id)
+        user = booking.user
+        
+        logger.info(f"📧 Generating late payment email for booking {booking.booking_number}")
+        
+        context = {
+            'booking': booking,
+            'user': user,
+            'movie': booking.showtime.movie,
+            'showtime': booking.showtime,
+            'theater': booking.showtime.screen.theater,
+        }
+        
+        text_content = render_to_string('payment_late.txt', context)
+        html_content = render_to_string('payment_late.html', context)
+        
+        subject = f'💰 Refund Initiated - Booking {booking.booking_number}'
+        from_email = settings.DEFAULT_FROM_EMAIL
+        to_email = [user.email]
+        
+        email = EmailMultiAlternatives(subject, text_content, from_email, to_email)
+        email.attach_alternative(html_content, "text/html")
+        email.send()
+        
+        logger.info(f"✅ Late payment email sent to {user.email}")
+        return f"Late payment email sent to {user.email}"
+    except Exception as e:
+        logger.error(f"❌ Error sending late payment email: {str(e)}")
+        return f"Error sending late payment email: {str(e)}"

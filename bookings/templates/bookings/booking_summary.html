@@ -174,18 +174,17 @@ async function initiateRazorpayCheckout(data) {
         }, 1500);
     } else {
         // 💳 LIVE MODE: Open the real deal
-        const rzp = new Razorpay(options);
-        rzp.on('payment.failed', function (response){
+        razorpayInstance = new Razorpay(options);
+        razorpayInstance.on('payment.failed', function (response){
             window.location.href = `/bookings/${data.booking_id}/payment/failed/`;
         });
-        rzp.open();
+        razorpayInstance.open();
     }
 }
 
-// ⏲️ WHY: UI Synchronization.
-// We must ensure the user knows exactly when our backend 'lock' on the seats will expire (12 minutes).
-// HOW: This function decrements every second and forces a redirect if it hits zero.
-// WHEN: Starts immediately when the 'Booking Summary' page loads.
+// ⏲️ Timer initialization - will auto-dismiss Razorpay modal after 12 minutes
+let razorpayInstance = null;
+
 function initTimer(duration) {
     let timer = duration;
     const display = document.getElementById('timer-display');
@@ -201,7 +200,13 @@ function initTimer(duration) {
             clearInterval(countdown);
             timerBadge.className = 'badge bg-danger shadow-sm';
             display.textContent = "EXPIRED";
-            alert("Timeout! Your seat reservation has expired. Please select seats again.");
+            
+            // 🔐 AUTO-DISMISS: Close Razorpay modal when timer expires
+            if (razorpayInstance) {
+                razorpayInstance.close();
+            }
+            
+            alert("⏰ Payment window expired (12 minutes). Your seats have been released. Please select new seats.");
             window.location.href = "{% url 'select_seats' showtime.id %}";
         }
         

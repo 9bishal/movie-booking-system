@@ -47,21 +47,11 @@ class Booking(models.Model):
     status = models.CharField(max_length=20, choices=BOOKING_STATUS, default='PENDING', db_index=True)
     payment_method = models.CharField(max_length=50, blank=True)
     payment_id = models.CharField(max_length=100, blank=True, db_index=True)
+    razorpay_order_id = models.CharField(max_length=100, blank=True, unique=True, db_index=True, null=True)
     
-    # 🔐 CRITICAL: Razorpay Order ID must be UNIQUE
-    # WHY: Prevents duplicate orders for the same booking
-    # HOW: Database enforces one-to-one relationship between booking and Razorpay order
-    # WHEN: Set once during first payment page load, never changed
-    razorpay_order_id = models.CharField(
-        max_length=100, 
-        blank=True, 
-        unique=True,  # ← KEY FIX: Prevents duplicate orders
-        db_index=True,  # ← Fast lookups for webhooks
-        null=True  # ← Allows NULL for bookings without orders yet
-    )
-    
-    # Idempotency key for preventing duplicate Razorpay requests
-    idempotency_key = models.CharField(max_length=100, blank=True, unique=True, null=True)
+    # 🔐 Payment timeout protection
+    payment_initiated_at = models.DateTimeField(null=True, blank=True)
+    payment_received_at = models.DateTimeField(null=True, blank=True)
     
     qr_code = models.ImageField(upload_to='booking_qrcodes/', blank=True, null=True)
     
@@ -82,28 +72,22 @@ class Booking(models.Model):
     # 2. auto-calculate Taxes and Totals
     # 3. Set Expiry time for pending bookings
     def save(self, *args, **kwargs): # Fixed typo 'kwags' -> 'kwargs'
-        # 🔐 Generate unique booking number if not exists
         if not self.booking_number:
             date_str=timezone.now().strftime('%Y%m%d')
             random_str=str(uuid.uuid4().int)[:5]
             self.booking_number=f"BOOK-{date_str}-{random_str}"
 
-        # 🔐 Generate idempotency key for Razorpay
-        if not self.idempotency_key:
-            self.idempotency_key = f"idem_{self.booking_number}_{uuid.uuid4().hex[:8]}"
 
-        # Auto-calculate taxes if not set
         if self.base_price and not self.tax_amount:
             self.tax_amount=(self.base_price+self.convenience_fee)*0.18
         
-        # Auto-calculate total if not set
         if self.base_price and not self.total_amount:
             self.total_amount=self.base_price + self.convenience_fee + self.tax_amount
             
-        # Set expiry time for PENDING bookings (12 minutes to match Razorpay)
         if self.status == 'PENDING' and not self.expires_at:
+            # Reserve seats based on settings timeout
             from django.conf import settings
-            timeout = getattr(settings, 'SEAT_RESERVATION_TIMEOUT', 720)  # Default 12 minutes
+            timeout = getattr(settings, 'SEAT_RESERVATION_TIMEOUT', 600)
             self.expires_at = timezone.now() + timezone.timedelta(seconds=timeout)
         
         super().save(*args, **kwargs)
@@ -122,42 +106,6 @@ class Booking(models.Model):
         if self.status == 'PENDING' and self.expires_at:
             return timezone.now() > self.expires_at
         return False
-
-    def can_create_payment_order(self):
-        """
-        🔐 CRITICAL: Check if a new Razorpay order can be created
-        WHY: Prevents duplicate orders
-        RETURNS: (can_create: bool, reason: str)
-        """
-        # Already has an order and it's still pending
-        if self.razorpay_order_id and self.status == 'PENDING':
-            return False, "Payment order already exists. Please complete the payment."
-        
-        # Already confirmed
-        if self.status == 'CONFIRMED':
-            return False, "Booking already confirmed."
-        
-        # Expired
-        if self.is_expired():
-            return False, "Booking has expired. Please create a new booking."
-        
-        # Cancelled or failed - can create new order
-        if self.status in ['CANCELLED', 'FAILED', 'EXPIRED']:
-            return False, "Booking is no longer active."
-        
-        # All good - can create order
-        return True, "OK"
-
-    def get_or_reuse_razorpay_order(self):
-        """
-        🔐 IDEMPOTENT: Get existing Razorpay order or signal to create new one
-        WHY: Prevents duplicate orders when page is refreshed
-        RETURNS: order_id if exists, None if needs creation
-        """
-        if self.razorpay_order_id and self.status == 'PENDING':
-            # Reuse existing order
-            return self.razorpay_order_id
-        return None
 
 # ========== TRANSACTION MODEL ==========
 class Transaction(models.Model):

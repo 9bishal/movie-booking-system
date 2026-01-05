@@ -265,7 +265,9 @@ def create_booking(request, showtime_id):
         # WHY: Security Anchor. This ensures we only accept a success response
         # that specifically matches this created order, preventing payment hijacking.
         # WHEN: Triggers immediately after Razorpay confirms order creation.
+        # 🔐 ALSO: Record when payment was initiated for timeout checks
         booking.razorpay_order_id = order_data['order_id']
+        booking.payment_initiated_at = timezone.now()
         booking.save()
 
         return JsonResponse({
@@ -360,7 +362,35 @@ def payment_success(request, booking_id):
     )
     
     if is_valid:
-        # 🕵️ THE POST-PAYMENT SAFETY SHIELD:
+        # � PAYMENT TIMEOUT CHECK: Ensure payment arrived BEFORE expiration
+        # WHY: Seats are released after 12 minutes, payment after that is invalid
+        # HOW: Compare payment_received_at with booking.expires_at
+        payment_received_at = timezone.now()
+        
+        if payment_received_at > booking.expires_at:
+            # 💰 LATE PAYMENT: Booking expired before payment was received
+            booking.status = 'FAILED'
+            booking.payment_id = razorpay_payment_id
+            booking.payment_received_at = payment_received_at
+            booking.save()
+            
+            logger.warning(
+                f"⏰ LATE PAYMENT: {booking.booking_number} received at {payment_received_at}, "
+                f"but expired at {booking.expires_at}"
+            )
+            
+            # Send refund email
+            from .email_utils import send_late_payment_email
+            send_late_payment_email.delay(booking.id)
+            
+            messages.error(
+                request, 
+                '⏰ Payment window expired. Your seats were released. '
+                'Refund will be processed within 24 hours.'
+            )
+            return redirect('select_seats', showtime_id=booking.showtime.id)
+        
+        # �🕵️ THE POST-PAYMENT SAFETY SHIELD:
         # One last check to see if anyone stole the seats during the payment window.
         # WHY: Data Authority. Client-side clocks (Razorpay modal) can stay open 
         # longer than our server-side safety lock. This is the master check.
@@ -391,6 +421,7 @@ def payment_success(request, booking_id):
         # Mark booking as confirmed and release locks
         booking.status = 'CONFIRMED'
         booking.payment_id = razorpay_payment_id
+        booking.payment_received_at = timezone.now()
         booking.confirmed_at = timezone.now()
         booking.payment_method = 'RAZORPAY'
         booking.save()
@@ -423,11 +454,14 @@ def payment_failed(request, booking_id):
     return redirect('select_seats', showtime_id=booking.showtime.id)
 
 @csrf_exempt
+@csrf_exempt
 def razorpay_webhook(request):
     """
     🤖 WHY: Background notification from Razorpay.
     If the user closes their browser before returning to 'payment_success', 
     Razorpay tells the server directly via this webhook.
+    
+    🔐 ALSO: Validate late payments - reject if payment arrives after expiration
     """
     if request.method != 'POST':
         return HttpResponse(status=405)
@@ -446,17 +480,46 @@ def razorpay_webhook(request):
         if event == 'payment.captured':
             try:
                 booking = Booking.objects.get(razorpay_order_id=order_id)
+                payment_received_at = timezone.now()
+                
+                # 🔐 CHECK: Is payment too late?
+                if payment_received_at > booking.expires_at:
+                    # ⏰ LATE PAYMENT: Booking expired, reject this payment
+                    booking.status = 'FAILED'
+                    booking.payment_id = payment_id
+                    booking.payment_received_at = payment_received_at
+                    booking.save()
+                    
+                    logger.warning(
+                        f"⏰ WEBHOOK LATE PAYMENT: {booking.booking_number} "
+                        f"received at {payment_received_at}, expired at {booking.expires_at}"
+                    )
+                    
+                    # Send refund email
+                    from .email_utils import send_late_payment_email
+                    send_late_payment_email.delay(booking.id)
+                    
+                    return HttpResponse(status=200)
+                
+                # ✅ VALID: Payment is on time
                 if booking.status != 'CONFIRMED':
                     booking.status = 'CONFIRMED'
                     booking.payment_id = payment_id
+                    booking.payment_received_at = payment_received_at
                     booking.confirmed_at = timezone.now()
                     booking.save()
                     SeatManager.confirm_seats(booking.showtime.id, booking.seats)
+                    
+                    from .email_utils import send_booking_confirmation_email
+                    send_booking_confirmation_email.delay(booking.id)
+                    
             except Booking.DoesNotExist:
+                logger.error(f"⚠️ Webhook: Booking not found for order {order_id}")
                 pass
                 
         return HttpResponse(status=200)
     except Exception as e:
+        logger.error(f"❌ Webhook error: {e}")
         return HttpResponse(status=400)
 
 @login_required

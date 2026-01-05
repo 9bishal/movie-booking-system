@@ -1,0 +1,28 @@
+Payment Window Expired - Refund Initiated
+
+Hello {{ user.first_name }},
+
+We received your payment for booking {{ booking.booking_number }}, but unfortunately it arrived after the 12-minute payment window expired.
+
+📋 Booking Details:
+- Movie: {{ movie.title }}
+- Theater: {{ theater.name }}
+- Date: {{ showtime.date }}
+- Time: {{ showtime.start_time }}
+- Selected Seats: {{ booking.get_seats_display }}
+
+❌ What Happened:
+Your seats were released after 12 minutes to allow other users to book them. When your payment arrived, the seats were no longer available for you.
+
+💰 Refund Status:
+A refund of ₹{{ booking.total_amount }} has been initiated and will appear in your account within 24 hours.
+
+🔄 What You Can Do:
+1. Select new seats if available
+2. Complete payment within 12 minutes
+3. Proceed to checkout and confirm your booking
+
+If you have any questions, please contact our support team.
+
+Best regards,
+Movie Booking System
