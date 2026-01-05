@@ -262,9 +262,15 @@
         },
         "modal": {
             "ondismiss": function() {
-                console.log('❌ Payment cancelled by user');
-                alert('Payment cancelled. Your seats are still reserved for a few more minutes.');
-                paymentInProgress = false;
+                // Only trigger cancellation if payment is still in progress
+                // (not already completed)
+                if (paymentInProgress) {
+                    console.log('❌ Payment cancelled by user');
+                    alert('Payment cancelled. Your seats are still reserved for a few more minutes.');
+                    paymentInProgress = false;
+                } else {
+                    console.log('⏭️  Modal dismissed but payment already processed');
+                }
                 
                 // Re-enable the payment button
                 const btn = document.getElementById('razorpay-pay-button');

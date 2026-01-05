@@ -527,7 +527,8 @@ def razorpay_webhook(request):
                     return HttpResponse(status=200)
                 
                 # ✅ VALID: Payment is on time
-                if booking.status != 'CONFIRMED':
+                # Only confirm if not already confirmed (to avoid double emails)
+                if booking.status == 'PENDING':
                     booking.status = 'CONFIRMED'
                     booking.payment_id = payment_id
                     booking.payment_received_at = payment_received_at
@@ -535,10 +536,14 @@ def razorpay_webhook(request):
                     booking.save()
                     SeatManager.confirm_seats(booking.showtime.id, booking.seats)
                     
-                    # Only send confirmation email from webhook if payment_success didn't already send it
-                    # (payment_success is called for user redirects, webhook is fallback for abandoned browsers)
-                    # To avoid double-sending, we check if confirmed_at was just set (indicating webhook triggered it)
-                    logger.info(f"✅ WEBHOOK: Booking {booking.booking_number} confirmed via webhook. Email already sent by payment_success view if user completed payment flow.")
+                    # Send confirmation email only from webhook if payment_success view didn't send it
+                    # (webhook handles the case where user closes browser before being redirected)
+                    from .email_utils import send_booking_confirmation_email
+                    send_booking_confirmation_email.delay(booking.id)
+                    logger.info(f"✅ WEBHOOK: Confirmation email sent for booking {booking.booking_number}")
+                elif booking.status == 'CONFIRMED':
+                    # Already confirmed by payment_success view - don't send email again
+                    logger.info(f"⏭️  WEBHOOK: Booking {booking.booking_number} already confirmed. Skipping email.")
                     
             except Booking.DoesNotExist:
                 logger.error(f"⚠️ Webhook: Booking not found for order {order_id}")
