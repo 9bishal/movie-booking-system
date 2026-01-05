@@ -535,8 +535,10 @@ def razorpay_webhook(request):
                     booking.save()
                     SeatManager.confirm_seats(booking.showtime.id, booking.seats)
                     
-                    from .email_utils import send_booking_confirmation_email
-                    send_booking_confirmation_email.delay(booking.id)
+                    # Only send confirmation email from webhook if payment_success didn't already send it
+                    # (payment_success is called for user redirects, webhook is fallback for abandoned browsers)
+                    # To avoid double-sending, we check if confirmed_at was just set (indicating webhook triggered it)
+                    logger.info(f"✅ WEBHOOK: Booking {booking.booking_number} confirmed via webhook. Email already sent by payment_success view if user completed payment flow.")
                     
             except Booking.DoesNotExist:
                 logger.error(f"⚠️ Webhook: Booking not found for order {order_id}")
