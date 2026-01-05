@@ -17,6 +17,10 @@ app.config_from_object('django.conf:settings', namespace='CELERY')
 # Celery will look for a file named 'tasks.py' in every installed app automatically.
 app.autodiscover_tasks()
 
+# 📧 Manually import email tasks since they're in email_utils.py, not tasks.py
+# This ensures Celery recognizes all @shared_task decorated functions
+from bookings import email_utils  # noqa: F401
+
 @app.task(bind=True, ignore_result=True)
 def debug_task(self):
     print(f'Request: {self.request!r}')

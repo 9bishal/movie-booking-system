@@ -173,6 +173,12 @@ def send_late_payment_email(booking_id):
     
     WHEN: Payment received after booking.expires_at
     WHAT: Notify user of refund and suggest trying again
+    
+    🔐 SCENARIO:
+    - User completes payment at 12:05 PM
+    - But the 12-minute window expired at 12:12 PM (payment initiated at 12:00 PM)
+    - So payment is marked FAILED and this email is sent
+    - User is notified that refund will be processed within 24 hours
     """
     from .models import Booking
     
@@ -180,7 +186,13 @@ def send_late_payment_email(booking_id):
         booking = Booking.objects.get(id=booking_id)
         user = booking.user
         
-        logger.info(f"📧 Generating late payment email for booking {booking.booking_number}")
+        logger.info(
+            f"📧 [LATE PAYMENT] Generating refund email for booking {booking.booking_number}\n"
+            f"   Payment received at: {booking.payment_received_at}\n"
+            f"   Window expired at: {booking.expires_at}\n"
+            f"   Payment ID: {booking.payment_id}\n"
+            f"   User: {user.email}"
+        )
         
         context = {
             'booking': booking,
@@ -188,12 +200,15 @@ def send_late_payment_email(booking_id):
             'movie': booking.showtime.movie,
             'showtime': booking.showtime,
             'theater': booking.showtime.screen.theater,
+            'payment_received_at': booking.payment_received_at,
+            'expires_at': booking.expires_at,
+            'payment_id': booking.payment_id,
         }
         
         text_content = render_to_string('payment_late.txt', context)
         html_content = render_to_string('payment_late.html', context)
         
-        subject = f'💰 Refund Initiated - Booking {booking.booking_number}'
+        subject = f'💰 Refund Initiated - Booking {booking.booking_number} (Payment After Timeout)'
         from_email = settings.DEFAULT_FROM_EMAIL
         to_email = [user.email]
         
@@ -201,8 +216,16 @@ def send_late_payment_email(booking_id):
         email.attach_alternative(html_content, "text/html")
         email.send()
         
-        logger.info(f"✅ Late payment email sent to {user.email}")
-        return f"Late payment email sent to {user.email}"
+        logger.info(f"✅ [LATE PAYMENT] Refund email sent to {user.email} for booking {booking.booking_number}")
+        
+        # Mark booking with refund notification sent
+        booking.refund_notification_sent = True
+        booking.save(update_fields=['refund_notification_sent'])
+        
+        return f"Late payment refund email sent to {user.email}"
     except Exception as e:
-        logger.error(f"❌ Error sending late payment email: {str(e)}")
+        logger.error(
+            f"❌ [LATE PAYMENT] Error sending refund email for booking {booking_id}: {str(e)}\n"
+            f"   Exception type: {type(e).__name__}"
+        )
         return f"Error sending late payment email: {str(e)}"

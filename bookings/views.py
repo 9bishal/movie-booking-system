@@ -369,24 +369,37 @@ def payment_success(request, booking_id):
         
         if payment_received_at > booking.expires_at:
             # 💰 LATE PAYMENT: Booking expired before payment was received
+            # ✅ Payment WAS successful, but booking window closed
+            time_diff = (payment_received_at - booking.expires_at).total_seconds()
+            
             booking.status = 'FAILED'
             booking.payment_id = razorpay_payment_id
             booking.payment_received_at = payment_received_at
             booking.save()
             
             logger.warning(
-                f"⏰ LATE PAYMENT: {booking.booking_number} received at {payment_received_at}, "
-                f"but expired at {booking.expires_at}"
+                f"⏰ LATE PAYMENT DETECTED: {booking.booking_number}\n"
+                f"   ✅ Payment received at: {payment_received_at}\n"
+                f"   ❌ Window expired at: {booking.expires_at}\n"
+                f"   ⏱️  Lateness: {time_diff:.1f} seconds over deadline\n"
+                f"   💳 Payment ID: {razorpay_payment_id}\n"
+                f"   👤 User: {request.user.username}\n"
+                f"   📊 Status set to: FAILED\n"
+                f"   📧 Action: Refund email queued"
             )
             
-            # Send refund email
-            from .email_utils import send_late_payment_email
-            send_late_payment_email.delay(booking.id)
+            # Send refund email (Async Celery task) - Only if not already sent
+            if not booking.refund_notification_sent:
+                from .email_utils import send_late_payment_email
+                task = send_late_payment_email.delay(booking.id)
+                logger.info(f"📧 Late payment refund email task queued: {task.id}")
+            else:
+                logger.info(f"⏭️  Refund email already sent for booking {booking.booking_number}")
             
             messages.error(
                 request, 
-                '⏰ Payment window expired. Your seats were released. '
-                'Refund will be processed within 24 hours.'
+                f'⏰ Payment window expired ({int(time_diff)} seconds late). Your seats were released. '
+                'Refund will be processed within 24 hours. Check your email for details.'
             )
             return redirect('select_seats', showtime_id=booking.showtime.id)
         
@@ -485,19 +498,31 @@ def razorpay_webhook(request):
                 # 🔐 CHECK: Is payment too late?
                 if payment_received_at > booking.expires_at:
                     # ⏰ LATE PAYMENT: Booking expired, reject this payment
+                    # ✅ Payment WAS successful, but booking window closed
+                    time_diff = (payment_received_at - booking.expires_at).total_seconds()
+                    
                     booking.status = 'FAILED'
                     booking.payment_id = payment_id
                     booking.payment_received_at = payment_received_at
                     booking.save()
                     
                     logger.warning(
-                        f"⏰ WEBHOOK LATE PAYMENT: {booking.booking_number} "
-                        f"received at {payment_received_at}, expired at {booking.expires_at}"
+                        f"⏰ WEBHOOK LATE PAYMENT DETECTED: {booking.booking_number}\n"
+                        f"   ✅ Payment received at: {payment_received_at}\n"
+                        f"   ❌ Window expired at: {booking.expires_at}\n"
+                        f"   ⏱️  Lateness: {time_diff:.1f} seconds over deadline\n"
+                        f"   💳 Payment ID: {payment_id}\n"
+                        f"   📊 Status set to: FAILED\n"
+                        f"   📧 Action: Refund email queued"
                     )
                     
-                    # Send refund email
-                    from .email_utils import send_late_payment_email
-                    send_late_payment_email.delay(booking.id)
+                    # Send refund email (Async Celery task) - Only if not already sent
+                    if not booking.refund_notification_sent:
+                        from .email_utils import send_late_payment_email
+                        task = send_late_payment_email.delay(booking.id)
+                        logger.info(f"📧 Late payment refund email task queued via webhook: {task.id}")
+                    else:
+                        logger.info(f"⏭️  Refund email already sent for booking {booking.booking_number} via webhook")
                     
                     return HttpResponse(status=200)
                 

@@ -122,12 +122,24 @@
     (function() {
         let timeRemaining = parseInt("{{ time_remaining|default:0 }}");
         const countdownEl = document.getElementById('countdown');
+        let razorpayModal = null;  // Store reference to modal for closing
         
         function updateTimer() {
             // ⏰ CRITICAL: Timer expired - booking is no longer valid
             if (timeRemaining <= 0) {
                 // Clear interval
                 clearInterval(timerInterval);
+                
+                // ❌ AUTO-DISMISS: Close Razorpay modal if open
+                if (razorpayModal && paymentInProgress) {
+                    console.log('⏰ TIME EXPIRED: Auto-closing Razorpay modal');
+                    try {
+                        razorpayModal.close();  // Force close the modal
+                    } catch (e) {
+                        console.log('Modal close attempt:', e.message);
+                    }
+                    paymentInProgress = false;
+                }
                 
                 // Disable payment button
                 const payBtn = document.getElementById('razorpay-pay-button');
@@ -144,12 +156,18 @@
                         <div class="fs-5 fw-bold mb-2 text-danger">
                             <i class="fas fa-exclamation-triangle me-2"></i>Booking Expired
                         </div>
-                        <p class="mb-3">Your seat reservation has expired. Please select seats again.</p>
+                        <p class="mb-3">Your seat reservation has expired. Your payment window is now closed.</p>
+                        <div class="alert alert-info mb-3">
+                            <strong>ℹ️ Note:</strong> If you made a payment after this time, it will be refunded within 24 hours.
+                        </div>
                         <a href="{% url 'select_seats' booking.showtime.id %}" class="btn btn-primary">
                             <i class="fas fa-redo me-2"></i>Select Seats Again
                         </a>
                     `;
                 }
+                
+                // 📧 Release booking seats, cancel on backend, and send payment failed email
+                releaseSeatsDueToTimeout();
                 
                 // Redirect after 5 seconds
                 setTimeout(() => {
@@ -168,6 +186,11 @@
                 // Change to red when less than 1 minute remaining
                 if (timeRemaining < 60) {
                     countdownEl.parentElement.className = 'alert alert-danger text-center mb-4 border-0 shadow-sm animate__animated animate__pulse animate__infinite';
+                    
+                    // Show warning if less than 30 seconds
+                    if (timeRemaining === 30) {
+                        console.warn('⚠️ 30 seconds remaining! Close Razorpay modal or payment window will auto-close');
+                    }
                 }
             }
             
@@ -179,6 +202,31 @@
         
         // Clear interval when page unloads
         window.addEventListener('beforeunload', () => clearInterval(timerInterval));
+        
+        // 🛡️ Function to release seats when timeout occurs
+        function releaseSeatsDueToTimeout() {
+            fetch('{% url "cancel_booking" booking.id %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || ''
+                },
+                body: JSON.stringify({
+                    reason: '⏰ Payment window expired - 12 minutes timeout (no payment received)',
+                    timeout: true
+                })
+            })
+            .then(r => r.json())
+            .then(data => {
+                console.log('✅ Seats released due to timeout and email sent:', data);
+            })
+            .catch(err => {
+                console.error('❌ Error releasing seats:', err);
+            });
+        }
+        
+        // Export razorpayModal reference for use in button handler
+        window.razorpayModalRef = { set: (modal) => { razorpayModal = modal; } };
     })();
     
     // 🚀 Razorpay Checkout Configuration
@@ -267,6 +315,10 @@
                 // Create Razorpay instance with modal configuration
                 const rzp = new Razorpay(options);
                 
+                // 🔗 Store reference to modal for auto-close on timeout
+                window.razorpayModalRef?.set(rzp);
+                console.log('✅ Razorpay modal reference stored for auto-dismiss');
+                
                 // Set up payment failure handler
                 rzp.on('payment.failed', function(response) {
                     console.error('❌ Payment failed:', response.error);
@@ -274,6 +326,16 @@
                     paymentInProgress = false;
                     btn.disabled = false;
                     btn.innerHTML = '<i class="fas fa-lock me-2"></i>Pay ₹{{ booking.total_amount }} with Razorpay';
+                });
+                
+                // 🚨 Handle modal dismiss (user closes without paying)
+                rzp.on('payment.closed', function() {
+                    console.log('⚠️ Payment modal closed by user');
+                    if (paymentInProgress) {
+                        paymentInProgress = false;
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fas fa-lock me-2"></i>Pay ₹{{ booking.total_amount }} with Razorpay';
+                    }
                 });
                 
                 // Open the Razorpay modal (NOT hosted page)
@@ -311,7 +373,7 @@
             });
             
             navigator.sendBeacon(
-                '{% url "payment_abandoned" booking.id %}',
+                '{% url "release_booking_beacon" booking.id %}',
                 new Blob([data], { type: 'application/json' })
             );
             
