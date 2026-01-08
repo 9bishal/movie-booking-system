@@ -29,8 +29,8 @@
                     </p>
                     
                     <div class="d-flex justify-content-between mb-2 small">
-                        <span><i class="fas fa-calendar-alt me-2"></i>{{ booking.showtime.get_formatted_date }}</span>
-                        <span><i class="fas fa-clock me-2"></i>{{ booking.showtime.get_formatted_time }}</span>
+                        <span><i class="fas fa-calendar-alt me-2"></i>{{ booking.showtime.date|date:"M d, Y" }}</span>
+                        <span><i class="fas fa-clock me-2"></i>{{ booking.showtime.start_time|date:"g:i A" }}</span>
                     </div>
                     
                     <div class="mb-3">

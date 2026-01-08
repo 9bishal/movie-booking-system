@@ -27,12 +27,54 @@ def send_booking_confirmation_email(booking_id):
     - Generates a QR Code containing booking details.
     - Encodes it as Base64 to embed in the email.
     ❓ WHY: Provides the user with a digital ticket they can show at the theater.
+    
+    🛡️ CRITICAL CHECKS:
+    - Only send if payment_received_at is set
+    - Only send if status is CONFIRMED
+    - Only send once (idempotency)
     """
     from .models import Booking
+    from django.db import transaction
+    
     try:
-        booking = Booking.objects.get(id=booking_id)
-        user = booking.user
+        # 🛡️ ATOMIC LOCK: Use select_for_update to ensure only one task processes this email
+        # This prevents race conditions where multiple async tasks try to send the same email
+        with transaction.atomic():
+            booking = Booking.objects.select_for_update().get(id=booking_id)
+            user = booking.user
+            
+            # 🛡️ CRITICAL: Only send if payment_received_at is set
+            # This ensures we never send confirmation before payment is actually received
+            if not booking.payment_received_at:
+                logger.warning(
+                    f"⏭️  Skipping confirmation email for {booking.booking_number} - "
+                    f"payment_received_at not set (payment not received)"
+                )
+                return f"Email not sent - payment not received yet"
+            
+            # 🛡️ CRITICAL: Only send if booking is CONFIRMED
+            # Don't send confirmation if payment failed
+            if booking.status != 'CONFIRMED':
+                logger.warning(
+                    f"⏭️  Skipping confirmation email for {booking.booking_number} - "
+                    f"Status is {booking.status}, not CONFIRMED (payment may have failed)"
+                )
+                return f"Email not sent - booking status is {booking.status}"
+            
+            # 🛡️ IDEMPOTENCY CHECK: Only send once
+            # If email was already sent, don't send again (prevents double emails)
+            if booking.confirmation_email_sent:
+                logger.warning(
+                    f"⏭️  Skipping confirmation email for {booking.booking_number} - "
+                    f"Email already sent"
+                )
+                return f"Email already sent - skipping"
+            
+            # 🛡️ MARK AS PROCESSING: Set flag inside transaction to prevent concurrent sends
+            booking.confirmation_email_sent = True
+            booking.save()
         
+        # Rest of the email sending happens OUTSIDE the transaction lock
         logger.info(f"📧 Generating confirmation email for booking {booking.booking_number}")
         
         # Generate QR Code
@@ -89,13 +131,54 @@ def send_payment_failed_email(booking_id):
     
     WHEN: Called when payment fails or is cancelled
     WHAT: Notifies user that payment failed and seats are released
+    
+    🛡️ CRITICAL LOGIC:
+    - Never send if payment_received_at is set (payment succeeded)
+    - Never send if status is CONFIRMED (payment succeeded)
+    - Only send if in a failure state (FAILED, PENDING with no payment)
     """
     from .models import Booking
+    from django.db import transaction
     
     try:
-        booking = Booking.objects.get(id=booking_id)
-        user = booking.user
+        # 🛡️ ATOMIC LOCK: Use select_for_update to ensure only one task processes this email
+        # This prevents race conditions where multiple async tasks try to send the same email
+        with transaction.atomic():
+            booking = Booking.objects.select_for_update().get(id=booking_id)
+            user = booking.user
+            
+            # 🛡️ CRITICAL CHECK 1: If payment_received_at is set, payment DEFINITELY succeeded
+            # Don't send failure email at all
+            if booking.payment_received_at:
+                logger.warning(
+                    f"⏭️  Skipping payment failed email for {booking.booking_number} - "
+                    f"payment_received_at is set ({booking.payment_received_at}). Payment actually succeeded!"
+                )
+                return f"Email not sent - payment was received"
+            
+            # 🛡️ CRITICAL CHECK 2: Only send if booking is still FAILED
+            # Don't send failure email if booking is CONFIRMED (payment succeeded)
+            if booking.status != 'FAILED':
+                logger.warning(
+                    f"⏭️  Skipping payment failed email for {booking.booking_number} - "
+                    f"Status is {booking.status}, not FAILED"
+                )
+                return f"Email not sent - booking status is {booking.status}"
+            
+            # 🛡️ IDEMPOTENCY CHECK: Only send once
+            # If email was already sent, don't send again (prevents double emails)
+            if booking.failure_email_sent:
+                logger.warning(
+                    f"⏭️  Skipping payment failed email for {booking.booking_number} - "
+                    f"Email already sent"
+                )
+                return f"Email already sent - skipping"
+            
+            # 🛡️ MARK AS PROCESSING: Set flag inside transaction to prevent concurrent sends
+            booking.failure_email_sent = True
+            booking.save()
         
+        # Rest of the email sending happens OUTSIDE the transaction lock
         logger.info(f"📧 Generating payment failed email for booking {booking.booking_number}")
         
         context = {

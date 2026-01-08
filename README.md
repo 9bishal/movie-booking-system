@@ -449,6 +449,125 @@ This project is for **educational purposes only**. See the [LICENSE](LICENSE) fi
 
 ---
 
+## ✅ Testing
+
+### Running Tests
+
+```bash
+# Run all tests
+python manage.py test
+
+# Run with verbosity
+python manage.py test --verbosity=2
+
+# Run specific app
+python manage.py test bookings
+
+# Run specific test class
+python manage.py test bookings.tests.BookingCreationTests
+
+# Run specific test method
+python manage.py test bookings.tests.BookingCreationTests.test_booking_can_be_created
+
+# Generate coverage report
+coverage run --source='.' manage.py test
+coverage report
+coverage html  # View in htmlcov/index.html
+```
+
+### Test Coverage
+
+**Total**: 53 tests ✅ All passing
+
+**Categories**:
+- ✅ Authentication Tests (2)
+- ✅ Booking Creation Tests (2)
+- ✅ Price Calculation Tests (2)
+- ✅ Payment Success Tests (2)
+- ✅ Late Payment Tests (2)
+- ✅ Payment Failure Tests (2)
+- ✅ Duplicate Payment Prevention (2)
+- ✅ Edge Cases Tests (5)
+- ✅ API Endpoints Tests (3)
+- ✅ Security Tests (2)
+- ✅ Seat Reservation Tests (3)
+- ✅ Refund Logic Tests (2)
+- ✅ Email Notification Tests (3)
+- ✅ Concurrent Operations Tests (2)
+- ✅ Booking Cancellation Tests (3)
+- ✅ Data Validation Tests (7)
+- ✅ Business Logic Tests (4)
+- ✅ Model Relationship Tests (5)
+
+---
+
+## 🚀 Deployment
+
+### Heroku Deployment
+
+Complete deployment documentation available in [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)
+
+**Quick Start**:
+
+```bash
+# 1. Login to Heroku
+heroku login
+
+# 2. Create app
+heroku create your-app-name
+
+# 3. Add PostgreSQL and Redis
+heroku addons:create heroku-postgresql:standard-0
+heroku addons:create heroku-redis:premium-0
+
+# 4. Set environment variables
+heroku config:set DEBUG=False
+heroku config:set SECRET_KEY='your-secret-key'
+heroku config:set RAZORPAY_KEY_ID='your-key'
+heroku config:set RAZORPAY_KEY_SECRET='your-secret'
+
+# 5. Deploy
+git push heroku main
+
+# 6. Run migrations
+heroku run python manage.py migrate
+
+# 7. Start processes
+heroku ps:scale web=1 worker=1
+
+# 8. Open app
+heroku open
+```
+
+### Docker Deployment
+
+```bash
+# Build image
+docker build -t movie-booking .
+
+# Run with docker-compose
+docker-compose up
+
+# Access at http://localhost:8000
+```
+
+### Pre-Deployment Checklist
+
+See [DEPLOYMENT_CHECKLIST.md](./DEPLOYMENT_CHECKLIST.md) for comprehensive checklist.
+
+**Key items**:
+- [ ] All tests passing (53/53)
+- [ ] DEBUG = False
+- [ ] SECRET_KEY is strong
+- [ ] Database migrations applied
+- [ ] Static files collected
+- [ ] Email configured
+- [ ] Razorpay keys set
+- [ ] Redis configured
+- [ ] Celery workers running
+
+---
+
 ## 📞 Contact
 
 Project Link: [https://github.com/9bishal/movie-booking-system](https://github.com/9bishal/movie-booking-system)

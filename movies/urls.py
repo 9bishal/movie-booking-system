@@ -29,6 +29,8 @@ urlpatterns = [
     path('wishlist/', views.wishlist_view, name='wishlist'),
     path('<int:movie_id>/wishlist/toggle/', views.toggle_wishlist, name='toggle_wishlist'),
     path('<int:movie_id>/interest/toggle/', views.toggle_interest, name='toggle_interest'),
+    path('wishlist-toggle/', views.toggle_wishlist_json, name='toggle_wishlist_json'),
+    path('interest-toggle/', views.toggle_interest_json, name='toggle_interest_json'),
     
     # Reviews
     path('movie/<int:movie_id>/review/add/', views.add_review, name='add_review'),

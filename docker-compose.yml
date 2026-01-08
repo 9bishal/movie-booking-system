@@ -1,0 +1,122 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:16-alpine
+    container_name: moviebooking_db
+    environment:
+      POSTGRES_DB: moviebooking
+      POSTGRES_USER: moviebooking_user
+      POSTGRES_PASSWORD: moviebooking_password_change_this
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U moviebooking_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache & Message Broker
+  redis:
+    image: redis:7-alpine
+    container_name: moviebooking_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Django Web Application
+  web:
+    build: .
+    container_name: moviebooking_web
+    command: >
+      sh -c "python manage.py migrate --settings=moviebooking.settings_production &&
+             python manage.py collectstatic --noinput --settings=moviebooking.settings_production &&
+             gunicorn moviebooking.wsgi:application --bind 0.0.0.0:8000 --workers 3 --timeout 120 --settings=moviebooking.settings_production"
+    ports:
+      - "8000:8000"
+    environment:
+      DEBUG: "False"
+      SECRET_KEY: "django-insecure-change-me-in-production"
+      ALLOWED_HOSTS: "localhost,127.0.0.1,0.0.0.0"
+      DATABASE_URL: "postgresql://moviebooking_user:moviebooking_password_change_this@db:5432/moviebooking"
+      REDIS_URL: "redis://redis:6379/0"
+      CELERY_BROKER_URL: "redis://redis:6379/0"
+      CELERY_RESULT_BACKEND: "redis://redis:6379/0"
+      EMAIL_HOST: "smtp.gmail.com"
+      EMAIL_PORT: "587"
+      EMAIL_HOST_USER: "your-email@gmail.com"
+      EMAIL_HOST_PASSWORD: "your-app-password"
+      RAZORPAY_KEY_ID: "your-key-id"
+      RAZORPAY_KEY_SECRET: "your-key-secret"
+    volumes:
+      - .:/app
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # Celery Worker
+  worker:
+    build: .
+    container_name: moviebooking_worker
+    command: "celery -A moviebooking worker --loglevel=info"
+    environment:
+      DEBUG: "False"
+      SECRET_KEY: "django-insecure-change-me-in-production"
+      ALLOWED_HOSTS: "localhost,127.0.0.1,0.0.0.0"
+      DATABASE_URL: "postgresql://moviebooking_user:moviebooking_password_change_this@db:5432/moviebooking"
+      REDIS_URL: "redis://redis:6379/0"
+      CELERY_BROKER_URL: "redis://redis:6379/0"
+      CELERY_RESULT_BACKEND: "redis://redis:6379/0"
+      EMAIL_HOST: "smtp.gmail.com"
+      EMAIL_PORT: "587"
+      EMAIL_HOST_USER: "your-email@gmail.com"
+      EMAIL_HOST_PASSWORD: "your-app-password"
+    depends_on:
+      - db
+      - redis
+      - web
+    volumes:
+      - .:/app
+
+  # Celery Beat Scheduler
+  beat:
+    build: .
+    container_name: moviebooking_beat
+    command: "celery -A moviebooking beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler"
+    environment:
+      DEBUG: "False"
+      SECRET_KEY: "django-insecure-change-me-in-production"
+      ALLOWED_HOSTS: "localhost,127.0.0.1,0.0.0.0"
+      DATABASE_URL: "postgresql://moviebooking_user:moviebooking_password_change_this@db:5432/moviebooking"
+      REDIS_URL: "redis://redis:6379/0"
+      CELERY_BROKER_URL: "redis://redis:6379/0"
+      CELERY_RESULT_BACKEND: "redis://redis:6379/0"
+    depends_on:
+      - db
+      - redis
+      - web
+    volumes:
+      - .:/app
+
+volumes:
+  postgres_data:
+  redis_data:
+  static_volume:
+  media_volume:
+
+networks:
+  default:
+    name: moviebooking_network

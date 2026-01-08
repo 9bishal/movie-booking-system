@@ -53,6 +53,8 @@ class Booking(models.Model):
     payment_initiated_at = models.DateTimeField(null=True, blank=True)
     payment_received_at = models.DateTimeField(null=True, blank=True)
     refund_notification_sent = models.BooleanField(default=False, help_text="Track if refund notification email was sent")
+    confirmation_email_sent = models.BooleanField(default=False, help_text="Track if confirmation email was sent")
+    failure_email_sent = models.BooleanField(default=False, help_text="Track if payment failure email was sent")
     
     qr_code = models.ImageField(upload_to='booking_qrcodes/', blank=True, null=True)
     

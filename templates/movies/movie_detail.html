@@ -413,6 +413,66 @@
     </div>
 
     <script>
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        async function toggleWishlist(btn, movieId) {
+            try {
+                const response = await fetch(`/wishlist-toggle/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken'),
+                    },
+                    body: JSON.stringify({ movie_id: movieId })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    btn.classList.toggle('active');
+                    btn.querySelector('i').classList.toggle('fas');
+                    btn.querySelector('i').classList.toggle('far');
+                    btn.closest('.card')?.querySelector('.wishlist-btn')?.classList.toggle('btn-danger');
+                    btn.closest('.card')?.querySelector('.wishlist-btn')?.classList.toggle('btn-outline-danger');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        async function toggleInterest(btn, movieId) {
+            try {
+                const response = await fetch(`/interest-toggle/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken'),
+                    },
+                    body: JSON.stringify({ movie_id: movieId })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    btn.classList.toggle('btn-success');
+                    btn.classList.toggle('btn-outline-success');
+                    btn.querySelector('i').classList.toggle('fas');
+                    btn.querySelector('i').classList.toggle('far');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
         async function likeReview(reviewId, isLike, btn) {
             const response = await fetch(`/review/${reviewId}/like/`, {
                 method: 'POST',

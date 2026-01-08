@@ -105,9 +105,10 @@
 <script>
     // 🚨 Prevent accidental page refresh during payment
     let paymentInProgress = false;
+    let paymentSuccessful = false;  // ✅ NEW: Track if payment succeeded
     
     window.addEventListener('beforeunload', function (e) {
-        if (paymentInProgress) {
+        if (paymentInProgress && !paymentSuccessful) {
             // Modern browsers ignore custom messages, but we still set returnValue
             e.preventDefault();
             e.returnValue = '';
@@ -248,6 +249,11 @@
             // ✅ Payment successful! Razorpay returns payment details here
             console.log('✅ Payment successful! Response:', response);
             
+            // 🛡️ CRITICAL: Set paymentSuccessful IMMEDIATELY before any redirect
+            // This prevents beforeunload from sending a cancel/release beacon
+            paymentSuccessful = true;
+            paymentInProgress = false;
+            
             // Show loading state
             const btn = document.getElementById('razorpay-pay-button');
             if (btn) {
@@ -262,8 +268,14 @@
         },
         "modal": {
             "ondismiss": function() {
-                // Only trigger cancellation if payment is still in progress
-                // (not already completed)
+                // 🛡️ CRITICAL: If payment was successful, don't send any cancellation logic
+                // Payment is being verified on the backend
+                if (paymentSuccessful) {
+                    console.log('✅ Payment successful - modal ondismiss event ignored');
+                    return;  // Don't do anything
+                }
+                
+                // Only trigger cancellation if payment was actually in progress (user abandoned it)
                 if (paymentInProgress) {
                     console.log('❌ Payment cancelled by user');
                     alert('Payment cancelled. Your seats are still reserved for a few more minutes.');
@@ -301,6 +313,10 @@
             btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Simulating Secure Payment...';
             
             setTimeout(() => {
+                // 🛡️ CRITICAL: Mark payment as successful BEFORE redirecting
+                paymentSuccessful = true;
+                paymentInProgress = false;
+                
                 // Generate mock payment credentials
                 const mockPaymentId = "pay_mock_" + Math.random().toString(36).substr(2, 9);
                 const mockOrderId = "{{ order_id }}";
@@ -369,8 +385,10 @@
     // 🚪 TAB CLOSE DETECTION - Release seats immediately
     // ============================================================
     window.addEventListener('beforeunload', function(e) {
-        // Only trigger if payment not in progress
-        if (!paymentInProgress) {
+        // 🛡️ CRITICAL: Only send beacon if payment was NOT successful
+        // If paymentSuccessful is true, the booking is being confirmed on the backend
+        // and we should NOT send a release beacon
+        if (!paymentInProgress && !paymentSuccessful) {
             // Send beacon to server (guaranteed delivery even if page closes)
             const data = JSON.stringify({
                 booking_id: {{ booking.id }},
@@ -384,6 +402,8 @@
             );
             
             console.log('🚪 Tab closing - notifying server to release seats');
+        } else if (paymentSuccessful) {
+            console.log('✅ Payment successful - NOT sending release beacon');
         }
     });
     

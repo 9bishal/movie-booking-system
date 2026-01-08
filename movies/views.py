@@ -528,3 +528,67 @@ def search_youtube_trailer(request, movie_id):
         
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+
+@login_required
+@csrf_exempt
+def toggle_wishlist_json(request):
+    """Toggle wishlist via JSON API"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            movie_id = data.get('movie_id')
+            movie = get_object_or_404(Movie, id=movie_id)
+            
+            wishlist_item, created = Wishlist.objects.get_or_create(
+                user=request.user,
+                movie=movie
+            )
+            
+            if not created:
+                wishlist_item.delete()
+                return JsonResponse({
+                    'success': True,
+                    'action': 'removed',
+                    'in_wishlist': False,
+                })
+            
+            return JsonResponse({
+                'success': True,
+                'action': 'added',
+                'in_wishlist': True,
+            })
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=400)
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
+@login_required
+@csrf_exempt
+def toggle_interest_json(request):
+    """Toggle interest via JSON API"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            movie_id = data.get('movie_id')
+            movie = get_object_or_404(Movie, id=movie_id)
+            
+            interest_item, created = Interest.objects.get_or_create(
+                user=request.user,
+                movie=movie
+            )
+            
+            if not created:
+                interest_item.delete()
+                return JsonResponse({
+                    'success': True,
+                    'action': 'removed',
+                    'is_interested': False,
+                })
+            
+            return JsonResponse({
+                'success': True,
+                'action': 'added',
+                'is_interested': True,
+            })
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=400)
+    return JsonResponse({'error': 'Invalid request'}, status=400)
