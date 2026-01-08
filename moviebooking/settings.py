@@ -29,7 +29,7 @@ def env(key, default=None):
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-%ejejq7abc9^3iy8@#2x-9d#*cr&$lnau%!y@2e)+84d73z(_b"
+SECRET_KEY = os.environ.get('SECRET_KEY', "_6$604vp-8p%p8y$j%txfa@*bzc)v5na6p7h)u135w1hllmo@k")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'

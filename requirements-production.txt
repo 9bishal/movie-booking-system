@@ -21,7 +21,7 @@ django-celery-beat==2.5.0
 sendgrid==6.11.0
 
 # Error tracking (optional)
-sentry-sdk==1.45.2
+sentry-sdk==2.49.0
 
 # Security
 django-cors-headers==4.3.1

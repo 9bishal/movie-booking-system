@@ -7,7 +7,9 @@ from moviebooking.settings import *  # noqa
 
 # Security Settings
 DEBUG = False
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',')
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+# Strip whitespace from each host
+ALLOWED_HOSTS = [host.strip() for host in ALLOWED_HOSTS]
 
 # Use secure cookies in production
 SESSION_COOKIE_SECURE = True
