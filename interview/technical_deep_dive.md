@@ -74,3 +74,12 @@ This document explains the "Why, How, and When" behind the core architectural de
 🎬 **Knowledge Check:**
 
 > "The goal of a robust system isn't just to make things work; it's to handle what happens when things fail, timeout, or collide."
+
+
+Dockerfile# Why install postgresql-client?
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    postgresql-client \
+ && rm -rf /var/lib/apt/lists/*
+Interview-ready answer
+
+We install postgresql-client to provide PostgreSQL command-line tools inside the container, which are often required for database connectivity, migrations, debugging, and maintenance tasks. The cleanup reduces Docker image size.
