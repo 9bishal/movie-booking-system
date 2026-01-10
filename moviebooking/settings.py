@@ -50,7 +50,6 @@ INSTALLED_APPS = [
     "bookings",
     "django_celery_beat",
     "django_celery_results",
-    "dashboard",
     "custom_admin",
     "embed_video",
 ]
@@ -91,7 +90,6 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'dashboard.context_processors.admin_stats',
             ],
             'loaders': [
                 ('django.template.loaders.cached.Loader', [
