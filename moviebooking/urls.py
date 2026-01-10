@@ -8,8 +8,8 @@ def home_redirect(request):
     return redirect('login')
 
 urlpatterns = [
-    # Dashboard URLs must come BEFORE admin.site.urls to prevent shadowing
-    path('', include('dashboard.urls')),
+    # Custom Admin
+    path('custom-admin/', include('custom_admin.urls')),
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),
     path('bookings/', include('bookings.urls')),
