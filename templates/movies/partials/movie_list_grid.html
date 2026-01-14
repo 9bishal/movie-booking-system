@@ -9,13 +9,19 @@
         {% for movie in movies %}
         <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6 mb-4">
             <div class="movie-card cursor-pointer position-relative hover-lift" onclick="window.location.href='{% url 'movie_detail' movie.slug %}';">
+                <!-- Wishlist Heart Icon Badge (Top Right) -->
                 <div class="position-absolute top-0 end-0 m-2 d-flex flex-column align-items-center" style="z-index: 10;">
-                    <!-- Wishlist (Watch Later) -->
-                    <button class="btn btn-icon rounded-circle bg-white shadow-sm border-0 mb-1 {% if movie.id in user_wishlist %}active{% endif %}" 
+                    <button class="btn btn-icon rounded-circle bg-white shadow-sm border-0 wishlist-toggle-btn position-relative" 
                             onclick="event.stopPropagation(); toggleWishlist(this, '{{ movie.id }}');" 
                             title="Watch Later"
-                            style="width: 32px; height: 32px;">
-                        <i class="{% if movie.id in user_wishlist %}fas text-danger{% else %}far text-muted{% endif %} fa-heart" style="font-size: 0.9rem;"></i>
+                            style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                        <i class="{% if movie.id in user_wishlist %}fas text-danger{% else %}far text-muted{% endif %} fa-heart" style="font-size: 1.1rem;"></i>
+                        {% if movie.id in user_wishlist %}
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" 
+                              style="font-size: 0.6rem; padding: 2px 5px;">
+                            <i class="fas fa-check"></i>
+                        </span>
+                        {% endif %}
                     </button>
                 </div>
 
@@ -31,7 +37,7 @@
                 <div class="movie-card-body">
                     <div class="text-muted small mb-1">
                         <i class="fas fa-users text-primary me-1" style="font-size: 0.8rem;"></i>
-                        <span class="interest-count-{{ movie.id }}">{{ movie.interest_count }}</span> Count Interested
+                        <span class="interest-count-{{ movie.id }}">{{ movie.interest_count }}</span> Interested
                     </div>
                     <h5 class="movie-card-title text-truncate mb-1" title="{{ movie.title }}">{{ movie.title }}</h5>
                     <div class="movie-card-genre small text-muted">

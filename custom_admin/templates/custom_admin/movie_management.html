@@ -1,0 +1,1152 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Management - Admin Dashboard</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #667eea;
+            --secondary: #764ba2;
+            --success: #1cc88a;
+            --warning: #f6c23e;
+            --danger: #e74a3b;
+            --light: #f8f9fa;
+            --dark: #2e3338;
+            --gray-400: #858796;
+            --gray-700: #595c6c;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--light);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .navbar {
+            background: white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            padding: 15px 20px;
+            margin-bottom: 30px;
+        }
+
+        .container-main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px 50px;
+        }
+
+        .page-header {
+            margin-bottom: 30px;
+        }
+
+        .page-header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 10px;
+        }
+
+        .page-header p {
+            color: var(--gray-700);
+            font-size: 14px;
+        }
+
+        .tabs-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .nav-tabs {
+            border-bottom: 2px solid #e9ecef;
+            background: #f8f9fa;
+        }
+
+        .nav-tabs .nav-link {
+            color: var(--gray-700);
+            border: none;
+            padding: 16px 24px;
+            font-weight: 600;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .nav-tabs .nav-link:hover {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .nav-tabs .nav-link.active {
+            color: var(--primary);
+            background: white;
+            border-bottom-color: var(--primary);
+        }
+
+        .tab-content {
+            padding: 30px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #e9ecef;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title i {
+            color: var(--primary);
+            font-size: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 8px;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: block;
+        }
+
+        .form-control, .form-select {
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-control::placeholder {
+            color: #bfc1c8;
+        }
+
+        .input-group-text {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-right: none;
+        }
+
+        .input-group .form-control {
+            border-left: none;
+        }
+
+        .btn {
+            border-radius: 8px;
+            font-weight: 600;
+            padding: 12px 24px;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            border: none;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--secondary);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #e9ecef;
+            border: none;
+            color: var(--dark);
+        }
+
+        .btn-secondary:hover {
+            background: #d9dcdf;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            border: none;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #d63a2f;
+            transform: translateY(-2px);
+        }
+
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 12px;
+        }
+
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            margin-bottom: 20px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+            transform: translateY(-2px);
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 16px 20px;
+            border: none;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        .card-title {
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 12px;
+            font-size: 16px;
+        }
+
+        .card-text {
+            color: var(--gray-700);
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .badge {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-primary {
+            background: rgba(102, 126, 234, 0.1);
+            color: var(--primary);
+        }
+
+        .badge-success {
+            background: rgba(28, 200, 138, 0.1);
+            color: var(--success);
+        }
+
+        .badge-warning {
+            background: rgba(246, 194, 62, 0.1);
+            color: #d4a019;
+        }
+
+        .list-group {
+            border: none;
+        }
+
+        .list-group-item {
+            border: 1px solid #e9ecef;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .list-group-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .feature-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 4px 16px rgba(102, 126, 234, 0.15);
+        }
+
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-size: 24px;
+            margin-bottom: 12px;
+        }
+
+        .feature-title {
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .feature-desc {
+            color: var(--gray-700);
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .step-indicator {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .step-number {
+            width: 32px;
+            height: 32px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .step-label {
+            color: var(--gray-700);
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .step.active .step-number {
+            background: var(--success);
+        }
+
+        .step.active .step-label {
+            color: var(--success);
+        }
+
+        .divider {
+            height: 2px;
+            background: #e9ecef;
+            margin: 30px 0;
+        }
+
+        .info-box {
+            background: rgba(102, 126, 234, 0.05);
+            border-left: 4px solid var(--primary);
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .info-box-title {
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .info-box-text {
+            color: var(--gray-700);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .modal {
+            z-index: 1000;
+        }
+
+        .modal-content {
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            border: none;
+            padding: 20px 24px;
+        }
+
+        .modal-title {
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        .btn-close {
+            filter: brightness(0) invert(1);
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .modal-footer {
+            border-top: 1px solid #e9ecef;
+            padding: 16px 24px;
+        }
+
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table thead th {
+            background: #f8f9fa;
+            border: none;
+            font-weight: 700;
+            color: var(--dark);
+            padding: 14px 16px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .table tbody td {
+            padding: 14px 16px;
+            border-color: #e9ecef;
+            color: var(--gray-700);
+            vertical-align: middle;
+        }
+
+        .table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            color: #bfc1c8;
+            margin-bottom: 16px;
+        }
+
+        .empty-state-title {
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+
+        .empty-state-text {
+            color: var(--gray-700);
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .alert {
+            border-radius: 8px;
+            border: none;
+            padding: 14px 16px;
+        }
+
+        .alert-info {
+            background: rgba(54, 185, 204, 0.1);
+            color: #2a7f96;
+        }
+
+        .alert-success {
+            background: rgba(28, 200, 138, 0.1);
+            color: #0e5a3a;
+        }
+
+        .alert-warning {
+            background: rgba(246, 194, 62, 0.1);
+            color: #7a5e1a;
+        }
+
+        .alert-danger {
+            background: rgba(231, 74, 59, 0.1);
+            color: #842029;
+        }
+
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .checkbox-wrapper:hover {
+            border-color: var(--primary);
+            background: rgba(102, 126, 234, 0.02);
+        }
+
+        .checkbox-wrapper input[type="checkbox"] {
+            cursor: pointer;
+        }
+
+        .checkbox-label {
+            color: var(--dark);
+            font-weight: 500;
+            cursor: pointer;
+            margin: 0;
+        }
+
+        @media (max-width: 768px) {
+            .page-header h1 {
+                font-size: 24px;
+            }
+
+            .container-main {
+                padding: 0 15px 30px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-tabs .nav-link {
+                padding: 12px 16px;
+                font-size: 13px;
+            }
+
+            .tab-content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/custom-admin/">
+                <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+            </a>
+        </div>
+    </nav>
+
+    <div class="container-main">
+        <div class="page-header">
+            <h1><i class="fas fa-ticket me-2"></i>Movie Management System</h1>
+            <p>Add, manage, and organize movies across your cinema chain</p>
+        </div>
+
+        <!-- Tabs Navigation -->
+        <div class="tabs-container">
+            <ul class="nav nav-tabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" role="tab">
+                        <i class="fas fa-eye me-2"></i>Overview
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="add-movie-tab" data-bs-toggle="tab" data-bs-target="#add-movie" role="tab">
+                        <i class="fas fa-plus me-2"></i>Add Movie
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="create-showtime-tab" data-bs-toggle="tab" data-bs-target="#create-showtime" role="tab">
+                        <i class="fas fa-clock me-2"></i>Schedule Showtime
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="manage-tab" data-bs-toggle="tab" data-bs-target="#manage" role="tab">
+                        <i class="fas fa-sliders-h me-2"></i>Manage
+                    </button>
+                </li>
+            </ul>
+
+            <!-- Tab Content -->
+            <div class="tab-content">
+                <!-- Overview Tab -->
+                <div class="tab-pane fade show active" id="overview" role="tabpanel">
+                    <div class="section">
+                        <h2 class="section-title">
+                            <i class="fas fa-info-circle"></i>How It Works
+                        </h2>
+                        <p style="color: var(--gray-700); font-size: 14px; line-height: 1.8; margin-bottom: 20px;">
+                            The movie management system follows a structured hierarchy to organize your cinema operations:
+                        </p>
+                    </div>
+
+                    <!-- Hierarchy Diagram -->
+                    <div class="info-box">
+                        <div class="info-box-title">System Hierarchy</div>
+                        <div class="info-box-text">
+                            <strong>Movie</strong> (e.g., "Avengers: Endgame")<br>
+                            └─ <strong>Theater</strong> (e.g., "PVR Cyber Hub, Bangalore")<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;└─ <strong>Screen</strong> (e.g., "Screen 1 - IMAX")<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─ <strong>Showtime</strong> (e.g., "2025-01-15, 09:30 PM")
+                        </div>
+                    </div>
+
+                    <!-- Step-by-step guide -->
+                    <div class="section">
+                        <h2 class="section-title">
+                            <i class="fas fa-tasks"></i>Step-by-Step Guide
+                        </h2>
+
+                        <div class="feature-grid">
+                            <div class="feature-card">
+                                <div style="font-weight: 700; color: var(--dark); margin-bottom: 12px; font-size: 14px;">
+                                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; background: var(--primary); color: white; border-radius: 50%; font-size: 12px; margin-right: 8px;">1</span>
+                                    Create Movie
+                                </div>
+                                <p style="color: var(--gray-700); font-size: 13px; line-height: 1.6; margin: 0;">
+                                    Add basic movie details: title, duration, genre, language, certificate, and poster image.
+                                </p>
+                            </div>
+
+                            <div class="feature-card">
+                                <div style="font-weight: 700; color: var(--dark); margin-bottom: 12px; font-size: 14px;">
+                                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; background: var(--primary); color: white; border-radius: 50%; font-size: 12px; margin-right: 8px;">2</span>
+                                    Select Theater
+                                </div>
+                                <p style="color: var(--gray-700); font-size: 13px; line-height: 1.6; margin: 0;">
+                                    Choose which theater locations will show this movie from your cinema chain.
+                                </p>
+                            </div>
+
+                            <div class="feature-card">
+                                <div style="font-weight: 700; color: var(--dark); margin-bottom: 12px; font-size: 14px;">
+                                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; background: var(--primary); color: white; border-radius: 50%; font-size: 12px; margin-right: 8px;">3</span>
+                                    Pick Screen
+                                </div>
+                                <p style="color: var(--gray-700); font-size: 13px; line-height: 1.6; margin: 0;">
+                                    Select specific screens (auditoriums) within chosen theaters. Each screen has its own seat layout.
+                                </p>
+                            </div>
+
+                            <div class="feature-card">
+                                <div style="font-weight: 700; color: var(--dark); margin-bottom: 12px; font-size: 14px;">
+                                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; background: var(--primary); color: white; border-radius: 50%; font-size: 12px; margin-right: 8px;">4</span>
+                                    Create Showtimes
+                                </div>
+                                <p style="color: var(--gray-700); font-size: 13px; line-height: 1.6; margin: 0;">
+                                    Add show times with dates, start/end times, pricing, and available seats. Multiple showtimes per screen/day.
+                                </p>
+                            </div>
+
+                            <div class="feature-card">
+                                <div style="font-weight: 700; color: var(--dark); margin-bottom: 12px; font-size: 14px;">
+                                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; background: var(--primary); color: white; border-radius: 50%; font-size: 12px; margin-right: 8px;">5</span>
+                                    Launch & Monitor
+                                </div>
+                                <p style="color: var(--gray-700); font-size: 13px; line-height: 1.6; margin: 0;">
+                                    Publish the movie and monitor bookings, seats, and revenue in real-time from the dashboard.
+                                </p>
+                            </div>
+
+                            <div class="feature-card">
+                                <div style="font-weight: 700; color: var(--dark); margin-bottom: 12px; font-size: 14px;">
+                                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; background: var(--primary); color: white; border-radius: 50%; font-size: 12px; margin-right: 8px;">6</span>
+                                    Manage & Update
+                                </div>
+                                <p style="color: var(--gray-700); font-size: 13px; line-height: 1.6; margin: 0;">
+                                    Update pricing, manage availability, track bookings, and handle special requests from the management panel.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Key Information -->
+                    <div class="divider"></div>
+                    <div class="section">
+                        <h2 class="section-title">
+                            <i class="fas fa-lightbulb"></i>Key Information
+                        </h2>
+
+                        <div class="list-group">
+                            <div class="list-group-item">
+                                <strong>Movie Status</strong>
+                                <p style="color: var(--gray-700); font-size: 13px; margin-top: 6px; margin-bottom: 0;">
+                                    Now Showing (active bookings) | Coming Soon (pre-bookings) | Expired (archived)
+                                </p>
+                            </div>
+                            <div class="list-group-item">
+                                <strong>Certificate Types</strong>
+                                <p style="color: var(--gray-700); font-size: 13px; margin-top: 6px; margin-bottom: 0;">
+                                    U (Universal) | UA (Parental Guidance) | A (Adults Only) | R (Restricted)
+                                </p>
+                            </div>
+                            <div class="list-group-item">
+                                <strong>Screen Types</strong>
+                                <p style="color: var(--gray-700); font-size: 13px; margin-top: 6px; margin-bottom: 0;">
+                                    2D (Standard) | 3D (3 Dimension) | IMAX (Large Format) | 4DX (Dynamic Experience)
+                                </p>
+                            </div>
+                            <div class="list-group-item">
+                                <strong>Pricing Strategy</strong>
+                                <p style="color: var(--gray-700); font-size: 13px; margin-top: 6px; margin-bottom: 0;">
+                                    Set different prices per showtime. Premium shows (morning/evening) can have different rates than matinee shows.
+                                </p>
+                            </div>
+                            <div class="list-group-item">
+                                <strong>Seat Management</strong>
+                                <p style="color: var(--gray-700); font-size: 13px; margin-top: 6px; margin-bottom: 0;">
+                                    Each screen has a total seat count. Available seats decrease automatically as bookings increase.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Add Movie Tab -->
+                <div class="tab-pane fade" id="add-movie" role="tabpanel">
+                    <div class="section">
+                        <h2 class="section-title">
+                            <i class="fas fa-clapperboard"></i>Add New Movie
+                        </h2>
+                        <p style="color: var(--gray-700); font-size: 14px; margin-bottom: 20px;">
+                            Create a new movie and add it to your system. This is the first step in making it available for bookings.
+                        </p>
+                    </div>
+
+                    <form id="addMovieForm">
+                        <!-- Basic Information -->
+                        <div class="section">
+                            <h3 class="section-title" style="border: none; font-size: 14px; margin-bottom: 16px;">
+                                <i class="fas fa-info-circle"></i>Basic Information
+                            </h3>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label" for="movieTitle">Movie Title *</label>
+                                    <input type="text" class="form-control" id="movieTitle" placeholder="e.g., Avengers: Endgame" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="releaseDate">Release Date *</label>
+                                    <input type="date" class="form-control" id="releaseDate" required>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label" for="duration">Duration (Minutes) *</label>
+                                    <input type="number" class="form-control" id="duration" placeholder="e.g., 150" min="30" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="certificate">Certificate *</label>
+                                    <select class="form-select" id="certificate" required>
+                                        <option value="">Select Certificate</option>
+                                        <option value="U">U - Universal</option>
+                                        <option value="UA">UA - Parental Guidance</option>
+                                        <option value="A">A - Adults Only</option>
+                                        <option value="R">R - Restricted</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label" for="language">Language *</label>
+                                    <select class="form-select" id="language" required>
+                                        <option value="">Select Language</option>
+                                        <option value="en">English</option>
+                                        <option value="hi">Hindi</option>
+                                        <option value="ta">Tamil</option>
+                                        <option value="te">Telugu</option>
+                                        <option value="ka">Kannada</option>
+                                        <option value="ml">Malayalam</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="genre">Genre(s) *</label>
+                                    <select class="form-select" id="genre" multiple required>
+                                        <option value="action">Action</option>
+                                        <option value="comedy">Comedy</option>
+                                        <option value="drama">Drama</option>
+                                        <option value="horror">Horror</option>
+                                        <option value="romance">Romance</option>
+                                        <option value="scifi">Sci-Fi</option>
+                                        <option value="thriller">Thriller</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Description & Details -->
+                        <div class="section">
+                            <h3 class="section-title" style="border: none; font-size: 14px; margin-bottom: 16px;">
+                                <i class="fas fa-align-left"></i>Description & Details
+                            </h3>
+
+                            <div class="form-group">
+                                <label class="form-label" for="description">Movie Description *</label>
+                                <textarea class="form-control" id="description" rows="4" placeholder="Describe the movie plot, storyline, and key details..." required></textarea>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label" for="director">Director</label>
+                                    <input type="text" class="form-control" id="director" placeholder="e.g., Christopher Nolan">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="cast">Cast</label>
+                                    <input type="text" class="form-control" id="cast" placeholder="e.g., Robert Downey Jr., Chris Evans">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Media & Links -->
+                        <div class="section">
+                            <h3 class="section-title" style="border: none; font-size: 14px; margin-bottom: 16px;">
+                                <i class="fas fa-image"></i>Media & Links
+                            </h3>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label" for="poster">Poster Image</label>
+                                    <input type="file" class="form-control" id="poster" accept="image/*">
+                                    <small style="color: var(--gray-700);">JPG, PNG (Max 5MB)</small>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="trailer">Trailer URL</label>
+                                    <input type="url" class="form-control" id="trailer" placeholder="https://youtube.com/watch?v=...">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Status -->
+                        <div class="section">
+                            <h3 class="section-title" style="border: none; font-size: 14px; margin-bottom: 16px;">
+                                <i class="fas fa-toggle-on"></i>Status
+                            </h3>
+
+                            <div class="form-group">
+                                <label class="form-label">Movie Status *</label>
+                                <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                                    <label class="checkbox-wrapper">
+                                        <input type="radio" name="status" value="now_showing" checked>
+                                        <span class="checkbox-label">Now Showing</span>
+                                    </label>
+                                    <label class="checkbox-wrapper">
+                                        <input type="radio" name="status" value="coming_soon">
+                                        <span class="checkbox-label">Coming Soon</span>
+                                    </label>
+                                    <label class="checkbox-wrapper">
+                                        <input type="radio" name="status" value="expired">
+                                        <span class="checkbox-label">Expired</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="section" style="margin-top: 30px;">
+                            <div style="display: flex; gap: 12px;">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i>Create Movie
+                                </button>
+                                <button type="reset" class="btn btn-secondary">
+                                    <i class="fas fa-redo"></i>Clear
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Create Showtime Tab -->
+                <div class="tab-pane fade" id="create-showtime" role="tabpanel">
+                    <div class="section">
+                        <h2 class="section-title">
+                            <i class="fas fa-calendar-alt"></i>Schedule Showtime
+                        </h2>
+                        <p style="color: var(--gray-700); font-size: 14px; margin-bottom: 20px;">
+                            Add show timings for movies in your theaters. Each showtime represents a single screening.
+                        </p>
+                    </div>
+
+                    <form id="addShowtimeForm">
+                        <!-- Movie Selection -->
+                        <div class="section">
+                            <h3 class="section-title" style="border: none; font-size: 14px; margin-bottom: 16px;">
+                                <i class="fas fa-clapperboard"></i>Select Movie & Theater
+                            </h3>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label" for="showtimeMovie">Movie *</label>
+                                    <select class="form-select" id="showtimeMovie" required>
+                                        <option value="">Select a Movie</option>
+                                        <option value="1">Avengers: Endgame</option>
+                                        <option value="2">The Dark Knight</option>
+                                        <option value="3">Inception</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="showtimeTheater">Theater *</label>
+                                    <select class="form-select" id="showtimeTheater" required>
+                                        <option value="">Select a Theater</option>
+                                        <option value="1">PVR Cyber Hub, Bangalore</option>
+                                        <option value="2">INOX Mumbai, Lokhandwala</option>
+                                        <option value="3">Cinépolis Delhi</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label" for="showtimeScreen">Screen *</label>
+                                    <select class="form-select" id="showtimeScreen" required>
+                                        <option value="">Select a Screen</option>
+                                        <option value="1">Screen 1 - IMAX (150 seats)</option>
+                                        <option value="2">Screen 2 - 3D (120 seats)</option>
+                                        <option value="3">Screen 3 - 2D (100 seats)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Date & Time -->
+                        <div class="section">
+                            <h3 class="section-title" style="border: none; font-size: 14px; margin-bottom: 16px;">
+                                <i class="fas fa-clock"></i>Date & Time
+                            </h3>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label" for="showtimeDate">Show Date *</label>
+                                    <input type="date" class="form-control" id="showtimeDate" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="showtimeStartTime">Start Time *</label>
+                                    <input type="time" class="form-control" id="showtimeStartTime" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="showtimeEndTime">End Time *</label>
+                                    <input type="time" class="form-control" id="showtimeEndTime" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Pricing & Availability -->
+                        <div class="section">
+                            <h3 class="section-title" style="border: none; font-size: 14px; margin-bottom: 16px;">
+                                <i class="fas fa-dollar-sign"></i>Pricing & Availability
+                            </h3>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label" for="showtimePrice">Ticket Price (₹) *</label>
+                                    <input type="number" class="form-control" id="showtimePrice" placeholder="e.g., 200" step="0.01" min="0" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="showtimeSeats">Available Seats *</label>
+                                    <input type="number" class="form-control" id="showtimeSeats" placeholder="e.g., 150" min="1" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="section" style="margin-top: 30px;">
+                            <div style="display: flex; gap: 12px;">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-clock"></i>Schedule Showtime
+                                </button>
+                                <button type="reset" class="btn btn-secondary">
+                                    <i class="fas fa-redo"></i>Clear
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Manage Tab -->
+                <div class="tab-pane fade" id="manage" role="tabpanel">
+                    <div class="section">
+                        <h2 class="section-title">
+                            <i class="fas fa-list"></i>Manage Movies & Showtimes
+                        </h2>
+                        <p style="color: var(--gray-700); font-size: 14px; margin-bottom: 20px;">
+                            View, edit, and manage all movies and showtimes in your system.
+                        </p>
+                    </div>
+
+                    <!-- Search & Filter -->
+                    <div class="section">
+                        <div class="form-row" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+                            <div class="form-group">
+                                <label class="form-label">Search Movies</label>
+                                <input type="text" class="form-control" placeholder="Search by title...">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Filter Status</label>
+                                <select class="form-select">
+                                    <option value="">All Status</option>
+                                    <option value="now_showing">Now Showing</option>
+                                    <option value="coming_soon">Coming Soon</option>
+                                    <option value="expired">Expired</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Filter Theater</label>
+                                <select class="form-select">
+                                    <option value="">All Theaters</option>
+                                    <option value="1">PVR Cyber Hub, Bangalore</option>
+                                    <option value="2">INOX Mumbai, Lokhandwala</option>
+                                    <option value="3">Cinépolis Delhi</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Movies Table -->
+                    <div class="section">
+                        <h3 class="section-title" style="border: none; font-size: 14px; margin-bottom: 16px;">
+                            <i class="fas fa-film"></i>Active Movies
+                        </h3>
+
+                        <div style="overflow-x: auto;">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Title</th>
+                                        <th>Status</th>
+                                        <th>Language</th>
+                                        <th>Theaters</th>
+                                        <th>Showtimes</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>Avengers: Endgame</strong></td>
+                                        <td><span class="badge badge-success">Now Showing</span></td>
+                                        <td>English</td>
+                                        <td>3</td>
+                                        <td>12</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-primary">Edit</button>
+                                            <button class="btn btn-sm btn-secondary">View</button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>The Dark Knight</strong></td>
+                                        <td><span class="badge badge-warning">Coming Soon</span></td>
+                                        <td>English</td>
+                                        <td>2</td>
+                                        <td>8</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-primary">Edit</button>
+                                            <button class="btn btn-sm btn-secondary">View</button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Inception</strong></td>
+                                        <td><span class="badge badge-primary">Now Showing</span></td>
+                                        <td>English</td>
+                                        <td>5</td>
+                                        <td>18</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-primary">Edit</button>
+                                            <button class="btn btn-sm btn-secondary">View</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="section">
+                        <h3 class="section-title" style="border: none; font-size: 14px; margin-bottom: 16px;">
+                            <i class="fas fa-lightning-bolt"></i>Quick Actions
+                        </h3>
+
+                        <div class="feature-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+                            <button class="btn btn-secondary" style="width: 100%; justify-content: center;">
+                                <i class="fas fa-sync"></i>Refresh Data
+                            </button>
+                            <button class="btn btn-secondary" style="width: 100%; justify-content: center;">
+                                <i class="fas fa-download"></i>Export Report
+                            </button>
+                            <button class="btn btn-secondary" style="width: 100%; justify-content: center;">
+                                <i class="fas fa-redo"></i>Bulk Update
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Form submissions
+        document.getElementById('addMovieForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Movie would be created with the provided details');
+            this.reset();
+        });
+
+        document.getElementById('addShowtimeForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Showtime would be scheduled with the provided details');
+            this.reset();
+        });
+
+        // Dynamic screen loading based on theater selection
+        document.getElementById('showtimeTheater').addEventListener('change', function() {
+            const screenSelect = document.getElementById('showtimeScreen');
+            // This would be dynamically populated from the server
+            console.log('Theater selected:', this.value);
+        });
+    </script>
+</body>
+</html>

@@ -133,6 +133,7 @@ class SeatManager:
         
         # Use expires_at field which is set when booking is created
         # Only include PENDING bookings that haven't expired yet
+        # IMPORTANT: Exclude FAILED, CANCELLED, EXPIRED bookings (they should not block seats)
         # OPTIMIZED: Use .only() to fetch only seats field (lighter query)
         pending_bookings = Booking.objects.filter(
             showtime_id=showtime_id,
@@ -196,18 +197,20 @@ class SeatManager:
         cache_key = f"reserved_seats_{showtime_id}"
         reserved_seats = cache.get(cache_key) or []
         
-        if seat_ids:
-            # Free specific seats
-            for sid in seat_ids:
-                if sid in reserved_seats: reserved_seats.remove(sid)
-        elif user_id:
-            # Free all seats this user was trying to buy
+        # Always clear the user's specific reservation key if user_id is provided
+        if user_id:
             reservation_key = f"seat_reservation_{showtime_id}_{user_id}"
-            user_res = cache.get(reservation_key)
-            if user_res:
-                for sid in user_res.get('seat_ids', []):
-                    if sid in reserved_seats: reserved_seats.remove(sid)
-                cache.delete(reservation_key)
+            cache.delete(reservation_key)
+        
+        # Free the specified seats from the global reserved list
+        if seat_ids:
+            for sid in seat_ids:
+                if sid in reserved_seats: 
+                    reserved_seats.remove(sid)
+        
+        # Save the updated list back to cache
+        cache.set(cache_key, reserved_seats, timeout=settings.SEAT_RESERVATION_TIMEOUT)
+        return True
         
         # Save the updated list back to cache
         cache.set(cache_key, reserved_seats, timeout=settings.SEAT_RESERVATION_TIMEOUT)

@@ -92,6 +92,89 @@
             color: var(--white) !important;
         }
 
+        /* Responsive Navigation Styles */
+        .navbar-nav {
+            flex-wrap: nowrap;
+            gap: 0.25rem;
+        }
+
+        .nav-item {
+            flex-shrink: 0;
+        }
+
+        .user-name-text {
+            max-width: 120px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Improved mobile responsiveness */
+        @media (max-width: 1200px) {
+            .user-name-text {
+                max-width: 100px;
+            }
+        }
+
+        /* Compact navigation for smaller screens */
+        @media (max-width: 992px) {
+            .nav-link-bms {
+                margin: 0 4px;
+                padding: 8px 12px !important;
+                font-size: 0.9rem;
+            }
+            
+            .navbar-brand-bms {
+                font-size: 1.6rem;
+            }
+            
+            .user-name-text {
+                max-width: 80px;
+            }
+
+            .navbar-nav {
+                gap: 0.1rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-link-bms {
+                margin: 0 2px;
+                padding: 8px 8px !important;
+                font-size: 0.85rem;
+            }
+            
+            .navbar-brand-bms {
+                font-size: 1.4rem;
+            }
+            
+            .navbar-brand-bms i {
+                font-size: 1.6rem;
+                margin-right: 8px;
+            }
+            
+            /* Hide text on small screens, keep icons */
+            .nav-text-hide-sm {
+                display: none;
+            }
+
+            .navbar-nav {
+                gap: 0;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .navbar-brand-bms {
+                font-size: 1.2rem;
+            }
+            
+            .nav-link-bms {
+                margin: 0 1px;
+                padding: 6px 6px !important;
+                font-size: 0.8rem;
+            }
+        }
+
         .btn-bms-primary {
             background-color: var(--primary-red);
             color: var(--white);
@@ -125,6 +208,45 @@
             transform: translateY(-2px);
         }
 
+        /* Global Loading Styles */
+        .btn-loading-state {
+            opacity: 0.8 !important;
+            cursor: not-allowed !important;
+            pointer-events: none !important;
+        }
+        
+        .btn-loading .fa-spinner {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Loading progress bar (optional) */
+        .loading-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-red), var(--primary-red-dark));
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            z-index: 9999;
+        }
+        
+        .loading-progress.active {
+            animation: progressLoading 2s ease-in-out infinite;
+        }
+        
+        @keyframes progressLoading {
+            0% { transform: translateX(-100%); }
+            50% { transform: translateX(0%); }
+            100% { transform: translateX(100%); }
+        }
+
         /* Main Container */
         .main-container {
             max-width: 1400px;
@@ -143,6 +265,7 @@
             border-radius: 10px;
             margin-bottom: 30px;
             text-align: center;
+            overflow: hidden; /* Prevent any overflow */
         }
 
         .hero-banner h1 {
@@ -156,6 +279,36 @@
             opacity: 0.9;
             max-width: 800px;
             margin: 0 auto 30px;
+        }
+
+        @media (max-width: 768px) {
+            .hero-banner {
+                padding: 40px 15px;
+            }
+            
+            .hero-banner h1 {
+                font-size: 2.2rem;
+            }
+            
+            .hero-banner p {
+                font-size: 1.1rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .hero-banner {
+                padding: 30px 10px;
+                margin: 0 -15px 20px -15px; /* Extend to container edges on mobile */
+                border-radius: 0;
+            }
+            
+            .hero-banner h1 {
+                font-size: 1.8rem;
+            }
+            
+            .hero-banner p {
+                font-size: 1rem;
+            }
         }
 
         /* Movie Cards */
@@ -370,6 +523,7 @@
             padding: 25px;
             box-shadow: var(--shadow);
             margin-bottom: 20px;
+            transition: all 0.3s ease;
         }
 
         .booking-header {
@@ -378,6 +532,7 @@
             margin-bottom: 20px;
         }
 
+        /* Simple Booking Status Styles */
         .booking-status {
             display: inline-block;
             padding: 5px 15px;
@@ -396,7 +551,7 @@
             color: #856404;
         }
 
-        .status-cancelled {
+        .status-cancelled, .status-failed {
             background-color: #f8d7da;
             color: #721c24;
         }
@@ -466,15 +621,17 @@
             position: relative;
             max-width: 600px;
             margin: 0 auto;
+            width: 100%;
         }
 
         .search-input {
             width: 100%;
-            padding: 15px 20px 15px 50px;
+            padding: 15px 120px 15px 50px; /* More padding on right for button */
             border-radius: 50px;
             border: 2px solid var(--medium-gray);
             font-size: 1rem;
             transition: all 0.3s ease;
+            box-sizing: border-box;
         }
 
         .search-input:focus {
@@ -488,6 +645,89 @@
             top: 50%;
             transform: translateY(-50%);
             color: var(--text-light);
+            z-index: 10;
+        }
+
+        /* Search Button Responsive */
+        .search-container .btn {
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        @media (max-width: 576px) {
+            .search-input {
+                padding: 12px 100px 12px 40px;
+                font-size: 0.9rem;
+            }
+            
+            .search-icon {
+                left: 15px;
+            }
+            
+            .search-container .btn {
+                padding: 6px 12px;
+                font-size: 0.85rem;
+                right: 6px !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .search-input {
+                padding: 10px 80px 10px 35px;
+            }
+            
+            .search-container .btn {
+                padding: 4px 8px;
+                font-size: 0.8rem;
+            }
+            
+            .search-container .btn .me-1 {
+                display: none;
+            }
+        }
+
+        /* Sidebar Filters Responsive */
+        .bg-light {
+            border-radius: 10px;
+        }
+
+        @media (max-width: 767px) {
+            /* Mobile: Hide sidebar or make it collapsible */
+            .col-md-3.bg-light {
+                margin-bottom: 20px;
+                border-radius: 8px;
+            }
+            
+            .sticky-top {
+                position: static !important;
+            }
+            
+            .list-group-item {
+                font-size: 0.9rem;
+                padding: 8px 12px !important;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .sticky-top {
+                max-height: calc(100vh - 120px);
+                overflow-y: auto;
+            }
+        }
+
+        /* Container Overflow Prevention */
+        .container-fluid {
+            overflow-x: hidden;
+        }
+
+        .row {
+            margin-left: 0;
+            margin-right: 0;
+        }
+
+        .col-md-3, .col-lg-2 {
+            padding-left: 15px;
+            padding-right: 15px;
         }
 
         /* Tab Navigation */
@@ -576,6 +816,89 @@
             margin-bottom: 2px;
         }
 
+        /* Wishlist button styling */
+        .wishlist-toggle-btn {
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .wishlist-toggle-btn:hover {
+            transform: scale(1.15);
+            box-shadow: 0 8px 20px rgba(248, 68, 100, 0.4) !important;
+        }
+
+        .wishlist-toggle-btn i {
+            transition: all 0.3s ease;
+        }
+
+        .wishlist-toggle-btn.active i {
+            font-weight: 900;
+            animation: heartBeat 0.6s ease;
+        }
+
+        /* Heart beat animation for active wishlist */
+        @keyframes heartBeat {
+            0%, 100% { transform: scale(1); }
+            15% { transform: scale(1.2); }
+            30% { transform: scale(1); }
+            45% { transform: scale(1.2); }
+            60% { transform: scale(1); }
+        }
+
+        /* Review like/dislike button styling (FEATURE DISABLED) */
+        /*
+        .review-like-btn,
+        .review-dislike-btn {
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .review-like-btn:hover,
+        .review-dislike-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .review-like-btn.btn-primary,
+        .review-dislike-btn.btn-danger {
+            animation: buttonClick 0.4s ease;
+        }
+
+        @keyframes buttonClick {
+            0% { transform: scale(0.95); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .review-card {
+            transition: all 0.3s ease;
+        }
+
+        .review-card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
+        */
+
+        /* Interest button styling */
+        .interest-btn {
+            transition: all 0.3s ease;
+        }
+
+        .interest-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .interest-btn.btn-success {
+            animation: thumbsUp 0.4s ease;
+        }
+
+        @keyframes thumbsUp {
+            0% { transform: scale(0.9) rotate(-5deg); }
+            50% { transform: scale(1.1) rotate(0deg); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+
         /* Wishlist button active state */
         .btn-icon.active i {
             font-weight: 900;
@@ -584,6 +907,9 @@
     </style>
 </head>
 <body>
+    <!-- Global Loading Progress Bar -->
+    <div class="loading-progress" id="globalProgress"></div>
+    
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-bms">
         <div class="container">
@@ -599,52 +925,62 @@
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
                         <a class="nav-link-bms nav-link {% if request.path == '/' %}active{% endif %}" href="{% url 'home' %}">
-                            <i class="fas fa-home me-1"></i>Home
+                            <i class="fas fa-home me-1"></i><span class="d-none d-sm-inline">Home</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link-bms nav-link {% if 'movies' in request.path %}active{% endif %}" href="{% url 'movie_list' %}">
-                            <i class="fas fa-ticket-alt me-1"></i>Movies
+                            <i class="fas fa-ticket-alt me-1"></i><span class="d-none d-sm-inline">Movies</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link-bms nav-link" href="#">
-                            <i class="fas fa-video me-1"></i>Stream
+                            <!-- <i class="fas fa-video me-1"></i><span class="nav-text-hide-sm">Stream</span> -->
                         </a>
                     </li>
+                    {% comment %}
                     <li class="nav-item">
                         <a class="nav-link-bms nav-link" href="#">
-                            <i class="fas fa-calendar-alt me-1"></i>Events
+                            <i class="fas fa-calendar-alt me-1"></i><span class="nav-text-hide-sm">Events</span>
                         </a>
                     </li>
+                    {% endcomment %}
                 </ul>
                 
                 <ul class="navbar-nav align-items-center">
                     {% if user.is_authenticated %}
+                    {% comment %}
+                    <!-- Wishlist link (FEATURE DISABLED) -->
                     <li class="nav-item me-3">
-                        <a class="nav-link-bms nav-link position-relative" href="{% url 'wishlist' %}" title="My Wishlist">
-                            <i class="fas fa-heart text-danger fs-5"></i>
+                        <a class="nav-link-bms nav-link position-relative" href="#" title="Feature Disabled" onclick="return false;">
+                            <i class="fas fa-heart text-muted fs-5"></i>
                         </a>
                     </li>
+                    {% endcomment %}
+                    
+                    <!-- User Profile Section (RESPONSIVE DROPDOWN) -->
                     <li class="nav-item dropdown">
-                        <a class="nav-link-bms nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-user-circle me-2" style="font-size: 1.2rem;"></i>
-                            <span>{{ user.username }}</span>
+                        <a class="nav-link-bms nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-user-circle me-1" style="font-size: 1.1rem;"></i>
+                            <span class="d-none d-lg-inline user-name-text">{{ user.username|truncatechars:10 }}</span>
+                            <span class="d-lg-none d-none d-sm-inline">{{ user.username|truncatechars:6 }}</span>
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="{% url 'profile' %}">
-                                <i class="fas fa-user me-2"></i>My Profile
-                            </a></li>
-                            <li><a class="dropdown-item" href="{% url 'my_bookings' %}">
-                                <i class="fas fa-ticket-alt me-2"></i>My Bookings
-                            </a></li>
-                            <li><a class="dropdown-item" href="#">
-                                <i class="fas fa-heart me-2"></i>Watchlist
-                            </a></li>
+                        <ul class="dropdown-menu dropdown-menu-end bg-white border-0 shadow-lg" style="min-width: 160px;">
+                            <li class="px-3 py-2 border-bottom">
+                                <small class="text-muted">Signed in as</small><br>
+                                <strong class="text-dark" style="font-size: 0.9rem;">{{ user.username }}</strong>
+                            </li>
+                            <li>
+                                <a class="dropdown-item py-2" href="{% url 'my_bookings' %}">
+                                    <i class="fas fa-ticket-alt me-2 text-primary"></i>My Bookings
+                                </a>
+                            </li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{% url 'logout' %}">
-                                <i class="fas fa-sign-out-alt me-2"></i>Logout
-                            </a></li>
+                            <li>
+                                <a class="dropdown-item py-2" href="{% url 'logout' %}">
+                                    <i class="fas fa-sign-out-alt me-2 text-danger"></i>Logout
+                                </a>
+                            </li>
                         </ul>
                     </li>
                     {% else %}
@@ -665,10 +1001,11 @@
     </nav>
 
     <!-- Toast Container (Fixed in Corner) -->
-    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 2000;">
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 2000;" id="toast-container">
         {% if messages %}
             {% for message in messages %}
-            <div class="toast align-items-center text-white bg-{{ message.tags|default:'primary' }} border-0 shadow-lg mb-2 animate__animated animate__slideInRight" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true" data-bs-delay="5000">
+            <div class="toast align-items-center text-white bg-{{ message.tags|default:'primary' }} border-0 shadow-lg mb-2 animate__animated animate__slideInRight" 
+                 role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true" data-bs-delay="5000">
                 <div class="d-flex">
                     <div class="toast-body d-flex align-items-center">
                         <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' or message.tags == 'danger' %}exclamation-circle{% elif message.tags == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %} me-2 fs-5"></i>
@@ -752,15 +1089,21 @@
     <!-- Custom JS -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Initialize and show all toasts
-            var toastElList = [].slice.call(document.querySelectorAll('.toast'))
-            var toastList = toastElList.map(function(toastEl) {
+            // Initialize and show all toasts - Django messages are auto-consumed after iteration
+            var toastElList = [].slice.call(document.querySelectorAll('.toast'));
+            
+            toastElList.forEach(function(toastEl) {
                 var toast = new bootstrap.Toast(toastEl, {
                     autohide: true,
                     delay: 5000
                 });
+                
+                // Remove toast from DOM after it's hidden to keep DOM clean
+                toastEl.addEventListener('hidden.bs.toast', function () {
+                    toastEl.remove();
+                });
+                
                 toast.show();
-                return toast;
             });
 
             // Smooth scroll for anchor links
@@ -789,6 +1132,107 @@
     
     <!-- Global Custom Scripts -->
     <script src="{% static 'js/main.js' %}"></script>
+    
+    <!-- Global Loading Utilities -->
+    <script>
+        // Global loading utilities
+        window.LoadingUtils = {
+            progressBar: document.getElementById('globalProgress'),
+            
+            // Show global progress bar
+            showProgress: function() {
+                if (this.progressBar) {
+                    this.progressBar.classList.add('active');
+                }
+            },
+            
+            // Hide global progress bar
+            hideProgress: function() {
+                if (this.progressBar) {
+                    this.progressBar.classList.remove('active');
+                }
+            },
+            
+            // Generic button loading state
+            setButtonLoading: function(button, loading = true) {
+                const btnText = button.querySelector('.btn-text');
+                const btnLoading = button.querySelector('.btn-loading');
+                
+                if (!btnText || !btnLoading) return;
+                
+                if (loading) {
+                    btnText.style.display = 'none';
+                    btnLoading.style.display = 'inline-block';
+                    button.disabled = true;
+                    button.classList.add('btn-loading-state');
+                } else {
+                    btnText.style.display = 'inline-block';
+                    btnLoading.style.display = 'none';
+                    button.disabled = false;
+                    button.classList.remove('btn-loading-state');
+                }
+            },
+            
+            // Auto-timeout for buttons
+            setButtonTimeout: function(button, timeout = 10000) {
+                setTimeout(() => {
+                    this.setButtonLoading(button, false);
+                }, timeout);
+            },
+            
+            // Show toast notification
+            showToast: function(message, type = 'info') {
+                // Create toast if it doesn't exist
+                let toastContainer = document.getElementById('toast-container');
+                if (!toastContainer) {
+                    toastContainer = document.createElement('div');
+                    toastContainer.id = 'toast-container';
+                    toastContainer.className = 'position-fixed top-0 end-0 p-3';
+                    toastContainer.style.zIndex = '9999';
+                    document.body.appendChild(toastContainer);
+                }
+                
+                const toastId = 'toast-' + Date.now();
+                const toastHTML = `
+                    <div id="${toastId}" class="toast show align-items-center text-white bg-${type === 'error' ? 'danger' : type === 'success' ? 'success' : 'primary'} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                        <div class="d-flex">
+                            <div class="toast-body">
+                                <i class="fas fa-${type === 'error' ? 'exclamation-circle' : type === 'success' ? 'check-circle' : 'info-circle'} me-2"></i>
+                                ${message}
+                            </div>
+                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>
+                    </div>
+                `;
+                
+                toastContainer.insertAdjacentHTML('beforeend', toastHTML);
+                
+                // Auto-dismiss after 5 seconds
+                setTimeout(() => {
+                    const toast = document.getElementById(toastId);
+                    if (toast) {
+                        toast.remove();
+                    }
+                }, 5000);
+            }
+        };
+        
+        // Global form handling
+        document.addEventListener('DOMContentLoaded', function() {
+            // Auto-enhance forms with loading indicators
+            const forms = document.querySelectorAll('form');
+            forms.forEach(form => {
+                const submitBtn = form.querySelector('button[type="submit"]');
+                if (submitBtn && submitBtn.querySelector('.btn-text') && submitBtn.querySelector('.btn-loading')) {
+                    form.addEventListener('submit', function() {
+                        window.LoadingUtils.showProgress();
+                        window.LoadingUtils.setButtonLoading(submitBtn, true);
+                        window.LoadingUtils.setButtonTimeout(submitBtn, 15000);
+                    });
+                }
+            });
+        });
+    </script>
     
     {% block extra_scripts %}
     <!-- Page-specific scripts go here -->

@@ -25,16 +25,16 @@ urlpatterns = [
     # Movie trailer
     path('movie/<slug:slug>/trailer/', views.movie_trailer, name='movie_trailer'),
     
-    # Wishlist
-    path('wishlist/', views.wishlist_view, name='wishlist'),
-    path('<int:movie_id>/wishlist/toggle/', views.toggle_wishlist, name='toggle_wishlist'),
-    path('<int:movie_id>/interest/toggle/', views.toggle_interest, name='toggle_interest'),
-    path('wishlist-toggle/', views.toggle_wishlist_json, name='toggle_wishlist_json'),
-    path('interest-toggle/', views.toggle_interest_json, name='toggle_interest_json'),
+    # Wishlist (FEATURE DISABLED)
+    # path('wishlist/', views.wishlist_view, name='wishlist'),
+    # path('<int:movie_id>/wishlist/toggle/', views.toggle_wishlist, name='toggle_wishlist'),
+    # path('<int:movie_id>/interest/toggle/', views.toggle_interest, name='toggle_interest'),
+    # path('wishlist-toggle/', views.toggle_wishlist_json, name='toggle_wishlist_json'),
+    # path('interest-toggle/', views.toggle_interest_json, name='toggle_interest_json'),
     
-    # Reviews
-    path('movie/<int:movie_id>/review/add/', views.add_review, name='add_review'),
-    path('review/<int:review_id>/like/', views.like_review, name='like_review'),
+    # Reviews (FEATURE DISABLED)
+    # path('movie/<int:movie_id>/review/add/', views.add_review, name='add_review'),
+    # path('review/<int:review_id>/like/', views.like_review, name='like_review'),
     
     # Autocomplete
     path('autocomplete/', views.movie_autocomplete, name='movie_autocomplete'),

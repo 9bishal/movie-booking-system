@@ -285,7 +285,7 @@
     <div class="modal fade" id="addReviewModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form action="{% url 'add_review' movie.id %}" method="POST">
+                <form action="# DISABLED add_review" method="POST">
                     {% csrf_token %}
                     <div class="modal-header">
                         <h5 class="modal-title">Write a Review</h5>
@@ -326,13 +326,19 @@
         {% for movie in recommended_movies %}
         <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6 mb-4">
             <div class="movie-card cursor-pointer position-relative hover-lift" onclick="window.location.href='{% url 'movie_detail' movie.slug %}';">
+                <!-- Wishlist Heart Icon Badge (Top Right) -->
                 <div class="position-absolute top-0 end-0 m-2 d-flex flex-column align-items-center" style="z-index: 10;">
-                    <!-- Wishlist (Watch Later) -->
-                    <button class="btn btn-icon rounded-circle bg-white shadow-sm border-0 mb-1 {% if movie.id in user_wishlist %}active{% endif %}" 
+                    <button class="btn btn-icon rounded-circle bg-white shadow-sm border-0 wishlist-toggle-btn position-relative" 
                             onclick="event.stopPropagation(); toggleWishlist(this, '{{ movie.id }}');" 
                             title="Watch Later"
-                            style="width: 32px; height: 32px;">
-                        <i class="{% if movie.id in user_wishlist %}fas text-danger{% else %}far text-muted{% endif %} fa-heart" style="font-size: 0.9rem;"></i>
+                            style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                        <i class="{% if movie.id in user_wishlist %}fas text-danger{% else %}far text-muted{% endif %} fa-heart" style="font-size: 1.1rem;"></i>
+                        {% if movie.id in user_wishlist %}
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" 
+                              style="font-size: 0.6rem; padding: 2px 5px;">
+                            <i class="fas fa-check"></i>
+                        </span>
+                        {% endif %}
                     </button>
                 </div>
 
@@ -348,7 +354,7 @@
                 <div class="movie-card-body">
                     <div class="text-muted small mb-1">
                         <i class="fas fa-users text-primary me-1" style="font-size: 0.8rem;"></i>
-                        <span class="interest-count-{{ movie.id }}">{{ movie.interest_count }}</span> Count Interested
+                        <span class="interest-count-{{ movie.id }}">{{ movie.interest_count }}</span> Interested
                     </div>
                     <h5 class="movie-card-title text-truncate mb-1" title="{{ movie.title }}">{{ movie.title }}</h5>
                     <div class="movie-card-genre small text-muted">
@@ -362,7 +368,9 @@
             </div>
         </div>
         {% empty %}
-        <p class="text-muted ps-3">No recommendations found.</p>
+        <div class="col-12">
+            <p class="text-muted ps-3">No recommendations found.</p>
+        </div>
         {% endfor %}
     </div>
 
@@ -374,13 +382,19 @@
         {% for movie in recently_added %}
         <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6 mb-4">
             <div class="movie-card cursor-pointer position-relative hover-lift" onclick="window.location.href='{% url 'movie_detail' movie.slug %}';">
+                <!-- Wishlist Heart Icon Badge (Top Right) -->
                 <div class="position-absolute top-0 end-0 m-2 d-flex flex-column align-items-center" style="z-index: 10;">
-                    <!-- Wishlist (Watch Later) -->
-                    <button class="btn btn-icon rounded-circle bg-white shadow-sm border-0 mb-1 {% if movie.id in user_wishlist %}active{% endif %}" 
+                    <button class="btn btn-icon rounded-circle bg-white shadow-sm border-0 wishlist-toggle-btn position-relative" 
                             onclick="event.stopPropagation(); toggleWishlist(this, '{{ movie.id }}');" 
                             title="Watch Later"
-                            style="width: 32px; height: 32px;">
-                        <i class="{% if movie.id in user_wishlist %}fas text-danger{% else %}far text-muted{% endif %} fa-heart" style="font-size: 0.9rem;"></i>
+                            style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                        <i class="{% if movie.id in user_wishlist %}fas text-danger{% else %}far text-muted{% endif %} fa-heart" style="font-size: 1.1rem;"></i>
+                        {% if movie.id in user_wishlist %}
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" 
+                              style="font-size: 0.6rem; padding: 2px 5px;">
+                            <i class="fas fa-check"></i>
+                        </span>
+                        {% endif %}
                     </button>
                 </div>
 
@@ -396,7 +410,7 @@
                 <div class="movie-card-body">
                     <div class="text-muted small mb-1">
                         <i class="fas fa-users text-primary me-1" style="font-size: 0.8rem;"></i>
-                        <span class="interest-count-{{ movie.id }}">{{ movie.interest_count }}</span> Count Interested
+                        <span class="interest-count-{{ movie.id }}">{{ movie.interest_count }}</span> Interested
                     </div>
                     <h5 class="movie-card-title text-truncate mb-1" title="{{ movie.title }}">{{ movie.title }}</h5>
                     <div class="movie-card-genre small text-muted">
@@ -409,101 +423,12 @@
                 </div>
             </div>
         </div>
-        {% endfor %}
-    </div>
+        {% empty %}
+        <div class="col-12">
+            <p class="text-muted ps-3">No recently added movies found.</p>
+        </div>
+        {% endfor %}    </div>
 
-    <script>
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
-            }
-            return cookieValue;
-        }
-
-        async function toggleWishlist(btn, movieId) {
-            try {
-                const response = await fetch(`/wishlist-toggle/`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie('csrftoken'),
-                    },
-                    body: JSON.stringify({ movie_id: movieId })
-                });
-                const data = await response.json();
-                if (data.success) {
-                    btn.classList.toggle('active');
-                    btn.querySelector('i').classList.toggle('fas');
-                    btn.querySelector('i').classList.toggle('far');
-                    btn.closest('.card')?.querySelector('.wishlist-btn')?.classList.toggle('btn-danger');
-                    btn.closest('.card')?.querySelector('.wishlist-btn')?.classList.toggle('btn-outline-danger');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-            }
-        }
-
-        async function toggleInterest(btn, movieId) {
-            try {
-                const response = await fetch(`/interest-toggle/`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie('csrftoken'),
-                    },
-                    body: JSON.stringify({ movie_id: movieId })
-                });
-                const data = await response.json();
-                if (data.success) {
-                    btn.classList.toggle('btn-success');
-                    btn.classList.toggle('btn-outline-success');
-                    btn.querySelector('i').classList.toggle('fas');
-                    btn.querySelector('i').classList.toggle('far');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-            }
-        }
-
-        async function likeReview(reviewId, isLike, btn) {
-            const response = await fetch(`/review/${reviewId}/like/`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken'),
-                },
-                body: JSON.stringify({ is_like: isLike })
-            });
-            const data = await response.json();
-            if (data.success) {
-                const card = btn.closest('.review-card') || btn.closest('.card');
-                card.querySelector('.likes-count').textContent = data.likes;
-                card.querySelector('.dislikes-count').textContent = data.dislikes;
-                
-                // Toggle active states
-                if (isLike) {
-                    btn.classList.toggle('btn-primary');
-                    btn.classList.toggle('btn-outline-secondary');
-                    btn.querySelector('i').classList.toggle('fas');
-                    btn.querySelector('i').classList.toggle('far');
-                } else {
-                    btn.classList.toggle('btn-danger');
-                    btn.classList.toggle('btn-outline-secondary');
-                    btn.querySelector('i').classList.toggle('fas');
-                    btn.querySelector('i').classList.toggle('far');
-                }
-            }
-        }
-    </script>
-    
     <!-- Back to Movies -->
     <div class="mt-4 text-center">
         <a href="{% url 'movie_list' %}" class="btn btn-outline-primary">

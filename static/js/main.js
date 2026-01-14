@@ -42,7 +42,6 @@ async function toggleWishlist(button, movieId) {
                 if(label) label.textContent = 'In Watchlist';
                 btn.classList.remove('btn-outline-danger');
                 btn.classList.add('btn-danger', 'text-white');
-                showToast(`Added to watchlist`, 'success');
             } else {
                 if(icon) {
                     icon.classList.remove('fas');
@@ -51,12 +50,10 @@ async function toggleWishlist(button, movieId) {
                 if(label) label.textContent = 'Watch Later';
                 btn.classList.remove('btn-danger', 'text-white');
                 btn.classList.add('btn-outline-danger');
-                showToast('Removed from watchlist', 'info');
             }
         }
     } catch (error) {
         console.error('Wishlist error:', error);
-        showToast('Please login to use watchlist', 'danger');
     }
 }
 
@@ -95,7 +92,6 @@ async function toggleInterest(button, movieId) {
                 if(label) label.textContent = 'Interested';
                 btn.classList.remove('btn-outline-success');
                 btn.classList.add('btn-success');
-                showToast(`Interested!`, 'success');
             } else {
                 if(icon) {
                     icon.classList.remove('fas');
@@ -114,16 +110,19 @@ async function toggleInterest(button, movieId) {
         }
     } catch (error) {
         console.error('Interest toggle error:', error);
-        showToast('Please login to show interest', 'danger');
     }
 }
 
 /**
- * Displays a temporary Bootstrap notification
+ * Displays a temporary notification (optional - disabled by default)
  * @param {string} message - The message to display
  * @param {string} type - Bootstrap color type (success, danger, info, warning)
+ * @param {boolean} show - Set to true to show the toast (default: false to disable)
  */
-function showToast(message, type = 'info') {
+function showToast(message, type = 'info', show = false) {
+    // Toast notifications disabled by default - pass show=true to enable
+    if (!show) return;
+    
     // Remove existing toasts to prevent stacking too many
     document.querySelectorAll('.toast-container-custom').forEach(t => t.remove());
 
@@ -170,3 +169,96 @@ function getCookie(name) {
     }
     return cookieValue;
 }
+
+/**
+ * Like or dislike a review via AJAX (FEATURE DISABLED)
+ * @param {string} reviewId - The ID of the review
+ * @param {boolean} isLike - True for like, False for dislike
+ * @param {HTMLElement} button - The button element clicked
+ */
+/*
+async function likeReview(reviewId, isLike, button) {
+    const csrftoken = getCookie('csrftoken');
+    
+    try {
+        const response = await fetch(`/review/${reviewId}/like/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken,
+                'X-Requested-With': 'XMLHttpRequest',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ is_like: isLike })
+        });
+        
+        if (!response.ok) {
+            console.error('Review like error: HTTP', response.status);
+            return;
+        }
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Find the review card container
+            const reviewCard = button.closest('.review-card') || button.closest('.card');
+            if (!reviewCard) return;
+            
+            // Update counts
+            const likeBtn = reviewCard.querySelector('.review-like-btn');
+            const dislikeBtn = reviewCard.querySelector('.review-dislike-btn');
+            
+            if (likeBtn && data.likes !== undefined) {
+                const likeCount = likeBtn.querySelector('.likes-count');
+                if (likeCount) likeCount.textContent = data.likes;
+                
+                // Update visual state for like button
+                if (isLike) {
+                    likeBtn.classList.remove('btn-outline-secondary');
+                    likeBtn.classList.add('btn-primary');
+                    const icon = likeBtn.querySelector('i');
+                    if (icon) {
+                        icon.classList.remove('far');
+                        icon.classList.add('fas');
+                    }
+                } else if (data.action === 'removed') {
+                    // Only revert if user clicked dislike and it was a like
+                    likeBtn.classList.add('btn-outline-secondary');
+                    likeBtn.classList.remove('btn-primary');
+                    const icon = likeBtn.querySelector('i');
+                    if (icon) {
+                        icon.classList.add('far');
+                        icon.classList.remove('fas');
+                    }
+                }
+            }
+            
+            if (dislikeBtn && data.dislikes !== undefined) {
+                const dislikeCount = dislikeBtn.querySelector('.dislikes-count');
+                if (dislikeCount) dislikeCount.textContent = data.dislikes;
+                
+                // Update visual state for dislike button
+                if (!isLike) {
+                    dislikeBtn.classList.remove('btn-outline-secondary');
+                    dislikeBtn.classList.add('btn-danger');
+                    const icon = dislikeBtn.querySelector('i');
+                    if (icon) {
+                        icon.classList.remove('far');
+                        icon.classList.add('fas');
+                    }
+                } else if (data.action === 'removed') {
+                    // Only revert if user clicked like and it was a dislike
+                    dislikeBtn.classList.add('btn-outline-secondary');
+                    dislikeBtn.classList.remove('btn-danger');
+                    const icon = dislikeBtn.querySelector('i');
+                    if (icon) {
+                        icon.classList.add('far');
+                        icon.classList.remove('fas');
+                    }
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Review like error:', error);
+    }
+}
+*/

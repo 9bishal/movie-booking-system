@@ -149,15 +149,17 @@ class Movie(models.Model):
         from django.urls import reverse
         return reverse('movie_detail', kwargs={'slug': self.slug})
 
-    @property
-    def wishlist_count(self):
-        """Return the number of times this movie is in wishlists"""
-        return self.wishlisted_by.count()
+    # DISABLED: Wishlist feature commented out
+    # @property
+    # def wishlist_count(self):
+    #     """Return the number of times this movie is in wishlists"""
+    #     return self.wishlisted_by.count()
 
-    @property
-    def interest_count(self):
-        """Return the number of times this movie is marked as interested"""
-        return self.interests.count()
+    # DISABLED: Interest feature commented out
+    # @property
+    # def interest_count(self):
+    #     """Return the number of times this movie is marked as interested"""
+    #     return self.interests.count()
 
     class Meta:
         # Default ordering: Newest releases first, then alphabetical by title

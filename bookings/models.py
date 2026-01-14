@@ -4,6 +4,10 @@ from movies.theater_models import Showtime
 import uuid 
 from django.utils import timezone
 from decimal import Decimal
+from django.core.files.base import ContentFile
+import qrcode
+from io import BytesIO
+import base64
 
 # ==============================================================================
 # 💡 DATA MODELING CONCEPTS
@@ -109,6 +113,90 @@ class Booking(models.Model):
         if self.status == 'PENDING' and self.expires_at:
             return timezone.now() > self.expires_at
         return False
+
+    def generate_qr_code(self):
+        """Generate QR code for confirmed booking"""
+        if self.status != 'CONFIRMED':
+            return None
+        
+        # Create QR code data
+        qr_data = f"""MovieBooking Ticket
+Booking: {self.booking_number}
+Movie: {self.showtime.movie.title}
+Theater: {self.showtime.screen.theater.name}
+Screen: {self.showtime.screen.name}
+Date: {self.showtime.date.strftime('%d/%m/%Y')}
+Time: {self.showtime.start_time.strftime('%I:%M %p')}
+Seats: {self.get_seats_display()}
+Amount: ₹{self.total_amount}
+Status: {self.get_status_display()}"""
+        
+        # Generate QR code
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            box_size=10,
+            border=4,
+        )
+        qr.add_data(qr_data)
+        qr.make(fit=True)
+        
+        # Create QR code image
+        qr_img = qr.make_image(fill_color="black", back_color="white")
+        
+        # Convert to bytes
+        buffer = BytesIO()
+        qr_img.save(buffer, format='PNG')
+        qr_image_data = buffer.getvalue()
+        
+        # Save to model
+        filename = f'qr_{self.booking_number}.png'
+        self.qr_code.save(
+            filename,
+            ContentFile(qr_image_data),
+            save=False
+        )
+        
+        return self.qr_code
+
+    def get_qr_code_base64(self):
+        """Get QR code as base64 string for embedding in templates"""
+        if not self.qr_code:
+            self.generate_qr_code()
+            self.save()
+        
+        if self.qr_code:
+            try:
+                with self.qr_code.open('rb') as qr_file:
+                    qr_data = qr_file.read()
+                    return base64.b64encode(qr_data).decode('utf-8')
+            except:
+                # Generate inline QR if file access fails
+                return self._generate_inline_qr_base64()
+        return None
+
+    def _generate_inline_qr_base64(self):
+        """Generate QR code as base64 without saving to file"""
+        if self.status != 'CONFIRMED':
+            return None
+            
+        qr_data = f"""MovieBooking Ticket
+{self.booking_number}
+{self.showtime.movie.title}
+{self.showtime.screen.theater.name}
+{self.showtime.date.strftime('%d/%m/%Y')} {self.showtime.start_time.strftime('%I:%M %p')}
+{self.get_seats_display()}
+₹{self.total_amount}"""
+        
+        qr = qrcode.QRCode(version=1, box_size=8, border=2)
+        qr.add_data(qr_data)
+        qr.make(fit=True)
+        
+        qr_img = qr.make_image(fill_color="black", back_color="white")
+        buffer = BytesIO()
+        qr_img.save(buffer, format='PNG')
+        
+        return base64.b64encode(buffer.getvalue()).decode('utf-8')
 
 # ========== TRANSACTION MODEL ==========
 class Transaction(models.Model):

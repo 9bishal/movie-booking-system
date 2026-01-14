@@ -9,15 +9,15 @@
     {% for movie in featured_movies %}
     <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6 mb-4">
         <div class="movie-card cursor-pointer position-relative hover-lift" onclick="window.location.href='{% url 'movie_detail' movie.slug %}';" style="height: 100%;">
-            <div class="position-absolute top-0 end-0 m-2 d-flex flex-column align-items-center" style="z-index: 10;">
-                <!-- Wishlist (Watch Later) -->
+            <!-- Wishlist (Watch Later) (FEATURE DISABLED) -->
+            <!-- <div class="position-absolute top-0 end-0 m-2 d-flex flex-column align-items-center" style="z-index: 10;">
                 <button class="btn btn-icon rounded-circle bg-white shadow-sm border-0 mb-1 {% if movie.id in user_wishlist %}active{% endif %}" 
                         onclick="event.stopPropagation(); toggleWishlist(this, '{{ movie.id }}');" 
                         title="Watch Later"
                         style="width: 32px; height: 32px;">
                     <i class="{% if movie.id in user_wishlist %}fas text-danger{% else %}far text-muted{% endif %} fa-heart" style="font-size: 0.9rem;"></i>
                 </button>
-            </div>
+            </div> -->
 
             <div class="movie-card-img-container">
                 {% if movie.poster %}

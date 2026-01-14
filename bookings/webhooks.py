@@ -170,9 +170,9 @@ def handle_payment_failed(webhook_data):
             booking.payment_id = payment_id
             booking.save()
             
-            # Release seats
+            # 🛡️ CRITICAL: Release seats from both Redis cache and user reservation key
             from .utils import SeatManager
-            SeatManager.release_seats(booking.showtime.id, booking.seats)
+            SeatManager.release_seats(booking.showtime.id, booking.seats, user_id=booking.user.id)
             
             # Create transaction record
             Transaction.objects.create(

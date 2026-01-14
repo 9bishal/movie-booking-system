@@ -29,7 +29,7 @@ def env(key, default=None):
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('SECRET_KEY', "_6$604vp-8p%p8y$j%txfa@*bzc)v5na6p7h)u135w1hllmo@k")
+SECRET_KEY = "django-insecure-%ejejq7abc9^3iy8@#2x-9d#*cr&$lnau%!y@2e)+84d73z(_b"
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
@@ -50,7 +50,6 @@ INSTALLED_APPS = [
     "bookings",
     "django_celery_beat",
     "django_celery_results",
-    "custom_admin",
     "embed_video",
 ]
 
@@ -70,6 +69,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    # "utils.refresh_safe_messages.RefreshSafeMessagesMiddleware",  # Commented out - module empty
 ]
 
 if HAS_DEBUG_TOOLBAR:
@@ -170,6 +170,21 @@ if DEBUG:
 
 SESSION_ENGINE="django.contrib.sessions.backends.cache"
 SESSION_CACHE_ALIAS="default"
+
+# ========== MESSAGES FRAMEWORK ==========
+# Use session storage - messages are cleared after being displayed
+MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
+
+# Map message tags to Bootstrap CSS classes for consistent styling
+from django.contrib.messages import constants as messages
+MESSAGE_TAGS = {
+    messages.DEBUG: 'secondary',
+    messages.INFO: 'info',
+    messages.SUCCESS: 'success',
+    messages.WARNING: 'warning',
+    messages.ERROR: 'danger',
+}
+
 # ⏲️ WHY: Concurrency Synchronization.
 # This timeout defines how long a seat stays "locked" while a user is paying.
 # 12 minutes (720s) is chosen to align with Razorpay payment window timeout.
@@ -219,9 +234,16 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Authentication
+AUTHENTICATION_BACKENDS = [
+    'accounts.backends.EmailBackend',  # Custom email-based authentication
+    'django.contrib.auth.backends.ModelBackend',  # Default username-based authentication
+]
+
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'profile'  # Redirect to profile after login
-LOGOUT_REDIRECT_URL = 'login'   # Redirect to login after logout
+LOGOUT_REDIRECT_URL = 'home'   # Redirect to home after logout
 
 MEDIA_URL='/media/'
 MEDIA_ROOT=os.path.join(BASE_DIR,'media/')
@@ -247,15 +269,23 @@ RAZORPAY_KEY_ID = os.environ.get('RAZORPAY_KEY_ID', '')
 RAZORPAY_KEY_SECRET = os.environ.get('RAZORPAY_KEY_SECRET', '')
 
 # Email Configuration
-# Always use SMTP backend to send real emails
+# Use SMTP for actual email sending
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
+EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT', '587'))
+EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'
+
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 
-DEFAULT_FROM_EMAIL = os.environ.get('EMAIL_HOST_USER', 'noreply@moviebooking.com')
+# Use EMAIL_HOST_USER as default if DEFAULT_FROM_EMAIL not explicitly set
+_default_from = os.environ.get('DEFAULT_FROM_EMAIL') or os.environ.get('EMAIL_HOST_USER', 'noreply@moviebooking.com')
+DEFAULT_FROM_EMAIL = _default_from
+
+SITE_URL = os.environ.get('SITE_URL', 'http://localhost:8000')
+
+# Password Reset Timeout (24 hours)
+PASSWORD_RESET_TIMEOUT = 86400
 
 # Debug Toolbar Settings
 INTERNAL_IPS = [

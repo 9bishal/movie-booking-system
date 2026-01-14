@@ -1,51 +1,22 @@
-# ============================================================================
-# 📌 BOOKINGS VIEWS: Core booking and payment workflow
-# 
-# PURPOSE: Handle all user interactions related to seat selection, booking,
-#          and payment processing
-#
-# KEY CONCEPTS:
-# 🎫 BOOKING LIFECYCLE:
-#    1. select_seats → User picks seats on UI
-#    2. reserve_seats (AJAX) → Seats locked in Redis for 10-12 minutes
-#    3. booking_summary → User reviews price and details
-#    4. create_booking → PENDING booking saved to database, Razorpay order created
-#    5. payment_page → User enters payment details
-#    6. payment_success/payment_failed → Razorpay redirects here after payment
-#    7. razorpay_webhook → Backup endpoint if user closes browser
-#
-# 🛡️ SAFETY MECHANISMS:
-#    - Redis TTL: Seats auto-released after 12 minutes
-#    - Signature Verification: Validate Razorpay payment with secret key
-#    - Late Payment Detection: Reject payments that arrive after seat window
-#    - Seat Availability Check: Verify no one stole seats during payment
-#    - Duplicate Prevention: Use payment_received_at atomic guard
-#
-# ⚡ REAL-TIME UPDATES:
-#    - WebSocket polling via get_seat_status API
-#    - Users see updated seat colors as others book/release
-#    - 5-second refresh interval for smooth UX
-#
-# ============================================================================
-
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 import json
 import logging
 from .razorpay_utils import razorpay_client
 from .email_utils import send_booking_confirmation_email
+from django.views.decorators.csrf import csrf_exempt
+from django.http import HttpResponse
 from movies.models import Movie
 from movies.theater_models import Showtime
 from .models import Booking, Transaction
 from .utils import SeatManager, PriceCalculator
 from django.conf import settings
 
-# 📝 LOGGER: Used to track important events for debugging
-# Example: logger.info("Payment received"), logger.error("Seat collision")
+# Initialize logger
 logger = logging.getLogger(__name__)
 
 # ==============================================================================
@@ -59,16 +30,9 @@ logger = logging.getLogger(__name__)
 # ==============================================================================
 
 # ========== SEAT SELECTION VIEW ==========
-# 🎨 PURPOSE: Display interactive seat map for a specific showtime
-# 🎨 SECURITY: @login_required decorator ensures only logged-in users access
-# 🎨 HOW IT WORKS:
-#    1. Get showtime from URL parameter
-#    2. Check if showtime is not in the past
-#    3. Fetch seat layout, reserved seats, and available seats from Redis
-#    4. Mark each seat as: available (green), reserved (yellow), or booked (red)
-#    5. Render HTML with interactive seat map
-# ========== 
-
+# ❓ @login_required: 
+# This is a Django Decorator. It ensures that only logged-in users can access this page.
+# Anonymous users will be redirected to the login page automatically.
 @login_required
 def select_seats(request, showtime_id):
     """
@@ -110,28 +74,13 @@ def select_seats(request, showtime_id):
     return render(request, 'bookings/select_seats.html', context)
 
 # ========== RESERVE SEATS API (AJAX) ==========
-# 💻 JsonResponse: Returns DATA (JSON), not HTML page
-# 💻 Used by: Browser JavaScript making AJAX (background) requests
-# 💻 PURPOSE: Store seat selection in session before proceeding to payment
-# ========== 
-
+# ❓ JsonResponse: 
+# Instead of returning a full HTML page, this returns DATA (JSON).
+# This is used for AJAX requests (background calls) from the Browser's JavaScript.
 @login_required
 @csrf_exempt
 def reserve_seats(request, showtime_id):
-    """
-    📝 API ENDPOINT: Store seat selection in user's session
-    
-    FLOW:
-    1. Browser calls this via JavaScript (AJAX)
-    2. We save seat_ids to request.session
-    3. JavaScript receives { "success": true, "seat_ids": [...] }
-    4. User can now proceed to booking summary
-    
-    WHY SESSION (not Redis yet)?
-    - We don't lock seats until user clicks "Proceed to Payment"
-    - This is Phase 1 of optimistic locking (just store intent)
-    - Real lock happens in create_booking (Phase 2)
-    """
+    """API endpoint to store seat selection in session (Optimistic Locking Phase 1)"""
     if request.method != 'POST':
         return JsonResponse({'error': 'Invalid request method'}, status=400)
     
@@ -346,8 +295,9 @@ def payment_page(request, booking_id):
     if booking.is_expired():
         booking.status = 'EXPIRED'
         booking.save()
-        # Free the seats so other users can book them.
-        SeatManager.release_seats(booking.showtime.id, booking.seats)
+        # 🛡️ CRITICAL: Free the seats from both Redis cache and user reservation key
+        # This ensures the seats are immediately available for other users
+        SeatManager.release_seats(booking.showtime.id, booking.seats, user_id=booking.user.id)
         messages.error(request, 'Payment window expired. Please try again.')
         return redirect('select_seats', showtime_id=booking.showtime.id)
     
@@ -383,23 +333,8 @@ def payment_page(request, booking_id):
 @login_required
 def payment_success(request, booking_id):
     """
-    🎉 PAYMENT SUCCESS HANDLER: Called after Razorpay confirms payment
-    
-    FLOW:
-    1. Razorpay redirects user to this URL with payment details
-    2. We extract payment_id, order_id, and signature from URL
-    3. Verify signature using Razorpay secret key (prevents forgery)
-    4. Check if order_id matches our database (prevents payment hijacking)
-    5. Check if payment arrived before seat window expired (prevents late payments)
-    6. Check if seats still available (prevents booking collision)
-    7. Mark booking as CONFIRMED and send confirmation email
-    
-    🛡️ CRITICAL GUARDS:
-    - Signature verification: Ensures Razorpay sent this, not attacker
-    - Order ID matching: Ensures payment is for this specific booking
-    - Expiration check: Ensures payment arrived in time
-    - Seat availability check: Ensures no one stole seats during payment
-    - Atomic guard: payment_received_at prevents duplicate processing
+    🎉 WHY: Razorpay redirects here after a successful transaction.
+    HOW: We verify the signature to ENSURE the payment was real.
     """
     booking = get_object_or_404(Booking, id=booking_id, user=request.user)
     
@@ -489,10 +424,13 @@ def payment_success(request, booking_id):
             booking.payment_id = razorpay_payment_id
             booking.save()
             
-            # 2. LOG it
+            # 2. Release the seats we had reserved
+            SeatManager.release_seats(booking.showtime.id, booking.seats, user_id=booking.user.id)
+            
+            # 3. LOG it
             print(f"❌ BOOKING COLLISION: Payment received for {booking.booking_number} but seats were taken!")
             
-            # 3. Inform user (In a real app, you'd trigger a Razorpay refund here)
+            # 4. Inform user (In a real app, you'd trigger a Razorpay refund here)
             messages.error(request, 'Oh no! The seats were taken while you were paying. We have initiated an automatic refund.')
             return redirect('my_bookings')
 
@@ -554,6 +492,10 @@ def payment_failed(request, booking_id):
         booking.failure_email_sent = False  # Reset flag before saving
         booking.save()
         
+        # 🛡️ CRITICAL: Release seats immediately when payment fails
+        # Both from Redis cache and clear user reservation key
+        SeatManager.release_seats(booking.showtime.id, booking.seats, user_id=booking.user.id)
+        
         # Send payment failed email (Async) - only if not already sent
         if not booking.failure_email_sent:
             from .email_utils import send_payment_failed_email
@@ -562,30 +504,15 @@ def payment_failed(request, booking_id):
     messages.error(request, 'Payment was unsuccessful. Your seats have been released.')
     return redirect('select_seats', showtime_id=booking.showtime.id)
 
-# ============================================================================
-# 📌 RAZORPAY WEBHOOK ENDPOINT
-# PURPOSE: Background notification handler from Razorpay payment gateway
-# WHY: Users might close browser before returning from Razorpay, so we need
-#      Razorpay to notify us directly about payment status
-# ============================================================================
+@csrf_exempt
 @csrf_exempt
 def razorpay_webhook(request):
     """
-    🤖 WEBHOOK HANDLER: Receives payment notifications from Razorpay
+    🤖 WHY: Background notification from Razorpay.
+    If the user closes their browser before returning to 'payment_success', 
+    Razorpay tells the server directly via this webhook.
     
-    TRIGGERS WHEN:
-    1. User completes payment but closes browser before redirect
-    2. Payment confirmed on Razorpay side
-    3. Razorpay automatically notifies our endpoint
-    
-    SECURITY:
-    - csrf_exempt: Razorpay doesn't have CSRF token, so we exempt this endpoint
-    - In production, verify webhook signature to ensure it's really Razorpay
-    
-    LATE PAYMENT CHECK:
-    - Validate that payment arrived before booking window expired
-    - If expired: Reject payment and queue refund email
-    - If valid: Confirm booking and send confirmation email
+    🔐 ALSO: Validate late payments - reject if payment arrives after expiration
     """
     if request.method != 'POST':
         return HttpResponse(status=405)
@@ -616,6 +543,9 @@ def razorpay_webhook(request):
                     booking.payment_id = payment_id
                     booking.payment_received_at = payment_received_at
                     booking.save()
+                    
+                    # 🛡️ CRITICAL: Release seats immediately when payment is late
+                    SeatManager.release_seats(booking.showtime.id, booking.seats, user_id=booking.user.id)
                     
                     logger.warning(
                         f"⏰ WEBHOOK LATE PAYMENT DETECTED: {booking.booking_number}\n"
@@ -765,8 +695,8 @@ def cancel_booking_api(request, booking_id):
         send_payment_failed_email.delay(booking.id)
         
         # 🛡️ CRITICAL: Release seats from Redis using the BOOKING's seats
-        # WHY: We must pass the actual seat_ids, not just user_id, to ensure proper cleanup
-        SeatManager.release_seats(showtime_id, booking.seats, request.user.id)
+        # WHY: We must pass both seat_ids AND user_id to ensure proper cleanup
+        SeatManager.release_seats(showtime_id, booking.seats, user_id=request.user.id)
         
         # Clear session reservation data
         if 'seat_reservation' in request.session:
@@ -840,7 +770,8 @@ def release_booking_beacon(request, booking_id):
         from .email_utils import send_payment_failed_email
         send_payment_failed_email.delay(booking.id)
         
-        SeatManager.release_seats(booking.showtime.id, booking.seats, booking.user.id)
+        # 🛡️ CRITICAL: Release seats from both Redis cache and user reservation key
+        SeatManager.release_seats(booking.showtime.id, booking.seats, user_id=booking.user.id)
         
         logger.info(
             f"BEACON: Booking {booking.booking_number} released. "
