@@ -462,8 +462,8 @@ Project Link: [https://github.com/9bishal/movie-booking-system](https://github.c
 | Movie & show listing | ✅ Completed |
 | Seat selection logic | ✅ Completed |
 | Redis seat locking | ✅ Completed |
-| Payment gateway integration | 🚧 In Progress |
-| Email & ticket generation | 🚧 In Progress |
+| Payment gateway integration | ✅ Completed |
+| Email & ticket generation | ✅ Completed |
 | Docker & cloud deployment | 🚧 Planned |
 | Mobile app (React Native) | 🚧 Future |
 

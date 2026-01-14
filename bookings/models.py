@@ -114,12 +114,39 @@ class Booking(models.Model):
             return timezone.now() > self.expires_at
         return False
 
-    def generate_qr_code(self):
-        """Generate QR code for confirmed booking"""
+    def generate_qr_code(self, force=False):
+        """
+        Generate QR code for confirmed booking.
+        
+        🔐 CRITICAL: QR CODE IS PERMANENT AND IMMUTABLE
+        
+        The QR code is generated EXACTLY ONCE when the booking is confirmed
+        and stored permanently in the database. It will NEVER be regenerated
+        (unless force=True is explicitly passed by admin).
+        
+        This ensures:
+        - The same QR code is displayed in the UI every time
+        - The same QR code is sent in all confirmation emails
+        - The QR code can be verified at the theater consistently
+        - No race conditions or inconsistencies between different views
+        
+        Args:
+            force: Only pass True for admin/debug purposes to regenerate QR
+        
+        Returns:
+            ImageField reference or None
+        """
+        # 🛡️ Don't generate if not confirmed
         if self.status != 'CONFIRMED':
             return None
         
-        # Create QR code data
+        # 🛡️ IMMUTABILITY CHECK: Never regenerate if already exists
+        # This is the critical safeguard for permanent QR codes
+        if self.qr_code and not force:
+            return self.qr_code
+        
+        # Create QR code data with booking information
+        # This data is PERMANENT and should NOT change after generation
         qr_data = f"""MovieBooking Ticket
 Booking: {self.booking_number}
 Movie: {self.showtime.movie.title}
@@ -129,7 +156,8 @@ Date: {self.showtime.date.strftime('%d/%m/%Y')}
 Time: {self.showtime.start_time.strftime('%I:%M %p')}
 Seats: {self.get_seats_display()}
 Amount: ₹{self.total_amount}
-Status: {self.get_status_display()}"""
+Status: CONFIRMED
+Generated: {timezone.now().strftime('%Y-%m-%d %H:%M:%S')}"""
         
         # Generate QR code
         qr = qrcode.QRCode(
@@ -149,54 +177,65 @@ Status: {self.get_status_display()}"""
         qr_img.save(buffer, format='PNG')
         qr_image_data = buffer.getvalue()
         
-        # Save to model
+        # Save to model (permanently stored in media/booking_qrcodes/)
         filename = f'qr_{self.booking_number}.png'
         self.qr_code.save(
             filename,
             ContentFile(qr_image_data),
-            save=False
+            save=False  # Don't save model yet, caller will save
         )
         
         return self.qr_code
 
     def get_qr_code_base64(self):
-        """Get QR code as base64 string for embedding in templates"""
-        if not self.qr_code:
-            self.generate_qr_code()
-            self.save()
+        """
+        Get QR code as base64 string for embedding in templates/emails.
         
+        🔐 CRITICAL: This method returns the PERMANENTLY STORED QR code.
+        
+        The QR code is generated once at payment confirmation and stored
+        in the database/media storage. This method reads from that storage.
+        
+        If the QR code file is somehow missing (e.g., storage corruption),
+        it will regenerate and save it. But under normal operation,
+        this just reads the existing file.
+        
+        Returns:
+            Base64-encoded string of the QR code image, or None
+        """
+        import logging
+        logger = logging.getLogger(__name__)
+        
+        # 🛡️ PRIMARY PATH: Return stored QR code
         if self.qr_code:
             try:
                 with self.qr_code.open('rb') as qr_file:
                     qr_data = qr_file.read()
+                    logger.debug(f"Retrieved stored QR code for {self.booking_number}")
                     return base64.b64encode(qr_data).decode('utf-8')
-            except:
-                # Generate inline QR if file access fails
-                return self._generate_inline_qr_base64()
-        return None
-
-    def _generate_inline_qr_base64(self):
-        """Generate QR code as base64 without saving to file"""
-        if self.status != 'CONFIRMED':
-            return None
+            except FileNotFoundError:
+                # File reference exists but file is missing from storage
+                logger.warning(f"QR code file missing from storage for {self.booking_number}, will regenerate")
+            except Exception as e:
+                logger.error(f"Error reading QR code for {self.booking_number}: {e}")
+        
+        # 🛡️ FALLBACK: Generate QR code only if confirmed but file missing
+        # This should rarely happen - only if storage is corrupted
+        if self.status == 'CONFIRMED':
+            logger.info(f"Generating QR code for confirmed booking {self.booking_number} (fallback)")
+            self.generate_qr_code()
+            self.save(update_fields=['qr_code'])
             
-        qr_data = f"""MovieBooking Ticket
-{self.booking_number}
-{self.showtime.movie.title}
-{self.showtime.screen.theater.name}
-{self.showtime.date.strftime('%d/%m/%Y')} {self.showtime.start_time.strftime('%I:%M %p')}
-{self.get_seats_display()}
-₹{self.total_amount}"""
+            # Try to read the newly saved file
+            if self.qr_code:
+                try:
+                    with self.qr_code.open('rb') as qr_file:
+                        qr_data = qr_file.read()
+                        return base64.b64encode(qr_data).decode('utf-8')
+                except Exception as e:
+                    logger.error(f"Failed to read regenerated QR code for {self.booking_number}: {e}")
         
-        qr = qrcode.QRCode(version=1, box_size=8, border=2)
-        qr.add_data(qr_data)
-        qr.make(fit=True)
-        
-        qr_img = qr.make_image(fill_color="black", back_color="white")
-        buffer = BytesIO()
-        qr_img.save(buffer, format='PNG')
-        
-        return base64.b64encode(buffer.getvalue()).decode('utf-8')
+        return None
 
 # ========== TRANSACTION MODEL ==========
 class Transaction(models.Model):

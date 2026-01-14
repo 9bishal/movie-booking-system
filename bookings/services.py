@@ -180,6 +180,12 @@ class BookingService:
             booking.payment_id = payment_id
             booking.confirmed_at = timezone.now()
             booking.payment_method = 'RAZORPAY'
+            booking.payment_received_at = timezone.now()  # Mark payment received
+            
+            # 🎫 GENERATE QR CODE PERMANENTLY
+            # QR code is generated once and stored in the database
+            # This ensures it remains static and consistent for all future uses
+            booking.generate_qr_code()
             booking.save()
             
             # Permanently mark seats as booked

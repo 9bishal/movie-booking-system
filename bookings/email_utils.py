@@ -77,23 +77,27 @@ def send_booking_confirmation_email(booking_id):
         # Rest of the email sending happens OUTSIDE the transaction lock
         logger.info(f"📧 Generating confirmation email for booking {booking.booking_number}")
         
-        # Generate QR Code
-        qr_data = (f"Booking ID: {booking.booking_number}\n"
-                   f"Movie: {booking.showtime.movie.title}\n"
-                   f"Theater: {booking.showtime.screen.theater.name}\n"
-                   f"Date: {booking.showtime.date}\n"
-                   f"Time: {booking.showtime.start_time}\n"
-                   f"Seats: {booking.get_seats_display()}")
+        # Use the standardized QR code from the booking model
+        try:
+            qr_base64 = booking.get_qr_code_base64()
+            if not qr_base64:
+                # Fallback: generate QR code inline if model method fails
+                logger.warning(f"QR code generation failed for booking {booking.booking_number}, using fallback")
+                qr_base64 = booking._generate_inline_qr_base64()
+        except Exception as e:
+            logger.error(f"QR code generation error for booking {booking.booking_number}: {str(e)}")
+            # Generate simple fallback QR code
+            qr_data = f"Booking: {booking.booking_number}\nMovie: {booking.showtime.movie.title}"
+            qr = qrcode.QRCode(version=1, box_size=10, border=5)
+            qr.add_data(qr_data)
+            qr.make(fit=True)
+            img = qr.make_image(fill_color="black", back_color="white")
+            buffer = BytesIO()
+            img.save(buffer, format="PNG")
+            qr_base64 = base64.b64encode(buffer.getvalue()).decode()
         
-        qr = qrcode.QRCode(version=1, box_size=10, border=5)
-        qr.add_data(qr_data)
-        qr.make(fit=True)
-        img = qr.make_image(fill_color="black", back_color="white")
-        
-        buffer = BytesIO()
-        img.save(buffer, format="PNG")
-        qr_image = buffer.getvalue()
-        qr_base64 = base64.b64encode(qr_image).decode()
+        # Convert base64 back to bytes for email attachment
+        qr_image_bytes = base64.b64decode(qr_base64)
         
         context = {
             'booking': booking,
@@ -114,7 +118,7 @@ def send_booking_confirmation_email(booking_id):
         
         email = EmailMultiAlternatives(subject, text_content, from_email, to_email)
         email.attach_alternative(html_content, "text/html")
-        email.attach(f'booking_{booking.booking_number}.png', qr_image, 'image/png')
+        email.attach(f'booking_{booking.booking_number}.png', qr_image_bytes, 'image/png')
         
         email.send()
         

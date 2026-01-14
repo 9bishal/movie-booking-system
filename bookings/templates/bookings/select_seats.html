@@ -48,15 +48,32 @@
                     <div class="seat-layout mb-4 overflow-auto">
                         {% for row_data in seat_layout %}
                         <div class="d-flex justify-content-center mb-2">
-                            <div class="row-label me-3 text-muted fw-bold d-flex align-items-center">{{ row_data.0.row }}</div>
+                            <!-- Row label - use first seat's row letter -->
+                            {% with first_seat=row_data.0 %}
+                            {% if first_seat %}
+                                <div class="row-label me-3 text-muted fw-bold d-flex align-items-center">{{ first_seat.row }}</div>
+                            {% else %}
+                                <!-- If first element is walkway, get row from second seat -->
+                                {% with second_seat=row_data.1 %}
+                                {% if second_seat %}
+                                    <div class="row-label me-3 text-muted fw-bold d-flex align-items-center">{{ second_seat.row }}</div>
+                                {% endif %}
+                                {% endwith %}
+                            {% endif %}
+                            {% endwith %}
                             <div class="d-flex gap-2">
                                 {% for seat in row_data %}
-                                <div class="seat {{ seat.status }} cursor-pointer" 
+                                {% if seat %}
+                                <div class="seat {{ seat.status }}" 
                                      data-seat-id="{{ seat.seat_id }}" 
                                      data-price="{{ showtime.price }}"
                                      title="Seat {{ seat.seat_id }} (₹{{ showtime.price }})">
                                     {{ seat.number }}
                                 </div>
+                                {% else %}
+                                <!-- Walkway gap -->
+                                <div class="walkway"></div>
+                                {% endif %}
                                 {% endfor %}
                             </div>
                         </div>
@@ -133,13 +150,13 @@
         transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         user-select: none;
     }
-    .seat.available { background: #fff; border: 1px solid #dee2e6; color: #6c757d; }
+    .seat.available { background: #fff; border: 1px solid #dee2e6; color: #6c757d; cursor: pointer; }
     .seat.available:hover { background: #e7f1ff; border-color: #0d6efd; color: #0d6efd; transform: scale(1.1); }
-    .seat.selected { background: #0d6efd; border-color: #0d6efd; color: #fff; box-shadow: 0 0 10px rgba(13, 110, 253, 0.4); transform: scale(1.1); }
+    .seat.selected { background: #0d6efd; border-color: #0d6efd; color: #fff; box-shadow: 0 0 10px rgba(13, 110, 253, 0.4); transform: scale(1.1); cursor: pointer; }
     .seat.booked { background: #dee2e6; border-color: #dee2e6; color: #adb5bd; cursor: not-allowed !important; }
     .seat.reserved { background: #ffc107; border-color: #ffc107; color: #000; cursor: not-allowed !important; }
     .row-label { width: 25px; }
-    .cursor-pointer { cursor: pointer; }
+    .walkway { width: 20px; } /* Walkway gap between seat sections */
 </style>
 
 <script>

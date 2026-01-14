@@ -2,13 +2,13 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import csrf_exempt, csrf_protect
+from django.views.decorators.http import require_http_methods, require_POST
 from django.utils import timezone
 import json
 import logging
 from .razorpay_utils import razorpay_client
 from .email_utils import send_booking_confirmation_email
-from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
 from movies.models import Movie
 from movies.theater_models import Showtime
@@ -78,12 +78,9 @@ def select_seats(request, showtime_id):
 # Instead of returning a full HTML page, this returns DATA (JSON).
 # This is used for AJAX requests (background calls) from the Browser's JavaScript.
 @login_required
-@csrf_exempt
+@require_POST
 def reserve_seats(request, showtime_id):
     """API endpoint to store seat selection in session (Optimistic Locking Phase 1)"""
-    if request.method != 'POST':
-        return JsonResponse({'error': 'Invalid request method'}, status=400)
-    
     try:
         data = json.loads(request.body)
         seat_ids = data.get('seat_ids', [])
@@ -108,11 +105,12 @@ def reserve_seats(request, showtime_id):
         })
             
     except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
+        logger.error(f"Error reserving seats for showtime {showtime_id}: {str(e)}")
+        return JsonResponse({'error': 'Failed to reserve seats. Please try again.'}, status=500)
 
 # ========== RELEASE SEATS API ==========
 @login_required
-@csrf_exempt
+@require_POST
 def release_seats(request, showtime_id):
     """API endpoint to release seats if user cancels selection"""
     try:
@@ -125,7 +123,8 @@ def release_seats(request, showtime_id):
             
         return JsonResponse({'success': True, 'message': 'Seats released'})
     except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
+        logger.error(f"Error releasing seats for showtime {showtime_id}: {str(e)}")
+        return JsonResponse({'error': 'Failed to release seats.'}, status=500)
 
 # ========== SEAT STATUS API (for real-time updates) ==========
 def get_seat_status(request, showtime_id):
@@ -154,7 +153,8 @@ def get_seat_status(request, showtime_id):
             'available_count': len(available_seats)
         })
     except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+        logger.error(f"Error getting seat status for showtime {showtime_id}: {str(e)}")
+        return JsonResponse({'success': False, 'error': 'Failed to get seat status.'}, status=500)
 
 # ========== BOOKING SUMMARY VIEW ==========
 @login_required
@@ -199,20 +199,30 @@ def booking_summary(request, showtime_id):
 
 # ========== CREATE BOOKING VIEW ==========
 @login_required
-@csrf_exempt
+@require_POST
 def create_booking(request, showtime_id):
     """
     🏗️ WHY: This is the 'Handshake'. 
     The user is ready to pay, so we officially 'Lock' the seats in the database records.
     """
-    if request.method != 'POST':
-        return JsonResponse({'error': 'Invalid method'}, status=400)
-    
     try:
         showtime = get_object_or_404(Showtime, id=showtime_id)
         # 📥 HOW: Get data from the browser (JavaScript)
         data = json.loads(request.body)
         seat_ids = data.get('seat_ids', [])
+        
+        # 🧹 CLEANUP: Cancel any existing PENDING bookings for this user/showtime
+        # This handles the case where user goes back and tries to book again
+        existing_pending = Booking.objects.filter(
+            user=request.user,
+            showtime=showtime,
+            status='PENDING'
+        )
+        for old_booking in existing_pending:
+            logger.info(f"🧹 Cancelling existing PENDING booking {old_booking.booking_number} before creating new one")
+            old_booking.status = 'CANCELLED'
+            old_booking.save()
+            SeatManager.release_seats(showtime_id, old_booking.seats, user_id=request.user.id)
         
         # 🟢 WHY: Optimistic Locking (Phase 2).
         # We officially 'Lock' the seats in Redis here.
@@ -284,20 +294,55 @@ def create_booking(request, showtime_id):
         })
         
     except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
+        logger.error(f"Error creating booking for showtime {showtime_id}: {str(e)}")
+        return JsonResponse({'error': 'Failed to create booking. Please try again.'}, status=500)
 
 @login_required
 def payment_page(request, booking_id):
     """Show the payment landing page with a countdown timer and Razorpay integration."""
     booking = get_object_or_404(Booking, id=booking_id, user=request.user)
     
-    # 🕵️ Cleanup: If user takes too long to pay, expire the booking.
+    # � REFRESH DETECTION: Check if this is a page refresh
+    # If the user already visited this payment page and is refreshing,
+    # we should cancel the booking and redirect to seat selection
+    session_key = f'payment_page_visited_{booking_id}'
+    
+    if request.session.get(session_key):
+        # User is refreshing the payment page - cancel booking and release seats
+        if booking.status == 'PENDING' and not booking.payment_received_at:
+            logger.info(f"🔄 Payment page refresh detected for booking {booking.booking_number}. Cancelling and releasing seats.")
+            booking.status = 'CANCELLED'
+            booking.save()
+            
+            # Release seats immediately
+            SeatManager.release_seats(booking.showtime.id, booking.seats, user_id=booking.user.id)
+            
+            # Clear session data
+            del request.session[session_key]
+            if 'seat_reservation' in request.session:
+                reservation = request.session.get('seat_reservation', {})
+                if str(booking.showtime.id) in reservation:
+                    del reservation[str(booking.showtime.id)]
+                    request.session['seat_reservation'] = reservation
+            
+            messages.warning(request, 'Your previous booking was cancelled due to page refresh. Please select seats again.')
+            return redirect('select_seats', showtime_id=booking.showtime.id)
+    
+    # Mark this page as visited (for refresh detection)
+    request.session[session_key] = True
+    
+    # �🕵️ Cleanup: If user takes too long to pay, expire the booking.
     if booking.is_expired():
         booking.status = 'EXPIRED'
         booking.save()
         # 🛡️ CRITICAL: Free the seats from both Redis cache and user reservation key
         # This ensures the seats are immediately available for other users
         SeatManager.release_seats(booking.showtime.id, booking.seats, user_id=booking.user.id)
+        
+        # Clear session marker
+        if session_key in request.session:
+            del request.session[session_key]
+        
         messages.error(request, 'Payment window expired. Please try again.')
         return redirect('select_seats', showtime_id=booking.showtime.id)
     
@@ -312,7 +357,9 @@ def payment_page(request, booking_id):
     
     if not order_data['success']:
         # 🛡️ WHY: Fail gracefully. If the gateway is down, we don't want a 500 error.
-        messages.error(request, f"Payment Gateway Error: {order_data['error']}")
+        # SECURITY: Don't expose internal error details to users
+        logger.error(f"Payment gateway error for booking {booking.booking_number}: {order_data.get('error', 'Unknown error')}")
+        messages.error(request, "Payment gateway is temporarily unavailable. Please try again later.")
         return redirect('booking_summary', showtime_id=booking.showtime.id)
 
     context = {
@@ -444,10 +491,22 @@ def payment_success(request, booking_id):
         booking.payment_method = 'RAZORPAY'
         booking.status = 'CONFIRMED'
         booking.confirmed_at = timezone.now()
+        
+        # 🎫 GENERATE QR CODE PERMANENTLY
+        # QR code is generated once and stored in the database
+        # This ensures it remains static and consistent for all future uses
+        booking.generate_qr_code()
         booking.save()
+        
+        logger.info(f"✅ Booking {booking.booking_number} confirmed with QR code generated")
         
         # Confirm seats in Redis (after atomic transaction)
         SeatManager.confirm_seats(booking.showtime.id, booking.seats)
+        
+        # 🧹 Clean up session markers
+        session_key = f'payment_page_visited_{booking.id}'
+        if session_key in request.session:
+            del request.session[session_key]
         
         # Send confirmation email (Async) - only after status is CONFIRMED
         from .email_utils import send_booking_confirmation_email
@@ -505,7 +564,7 @@ def payment_failed(request, booking_id):
     return redirect('select_seats', showtime_id=booking.showtime.id)
 
 @csrf_exempt
-@csrf_exempt
+@require_POST
 def razorpay_webhook(request):
     """
     🤖 WHY: Background notification from Razorpay.
@@ -513,11 +572,23 @@ def razorpay_webhook(request):
     Razorpay tells the server directly via this webhook.
     
     🔐 ALSO: Validate late payments - reject if payment arrives after expiration
-    """
-    if request.method != 'POST':
-        return HttpResponse(status=405)
     
+    SECURITY: This endpoint is csrf_exempt because Razorpay can't send CSRF tokens.
+    We verify authenticity using webhook signature verification.
+    """
     try:
+        # Verify webhook signature (if configured)
+        webhook_secret = getattr(settings, 'RAZORPAY_WEBHOOK_SECRET', None)
+        if webhook_secret:
+            webhook_signature = request.headers.get('X-Razorpay-Signature', '')
+            if not razorpay_client.client.utility.verify_webhook_signature(
+                request.body.decode('utf-8'),
+                webhook_signature,
+                webhook_secret
+            ):
+                logger.warning("Webhook signature verification failed")
+                return HttpResponse(status=400)
+        
         webhook_body = request.body.decode('utf-8')
         webhook_data = json.loads(webhook_body)
         
@@ -638,7 +709,7 @@ def booking_detail(request, booking_id):
 
 # ========== CANCEL BOOKING API ==========
 @login_required
-@csrf_exempt
+@require_POST
 def cancel_booking_api(request, booking_id):
     """
     🚫 WHY: Cancel a PENDING booking and release seats immediately
@@ -647,9 +718,6 @@ def cancel_booking_api(request, booking_id):
     2. User closes Razorpay modal (payment abandoned)
     3. User explicitly cancels booking
     """
-    if request.method != 'POST':
-        return JsonResponse({'error': 'Invalid method'}, status=400)
-    
     try:
         booking = get_object_or_404(Booking, id=booking_id, user=request.user)
         
@@ -721,7 +789,7 @@ def cancel_booking_api(request, booking_id):
         logger.error(f"Error cancelling booking {booking_id}: {e}")
         return JsonResponse({
             'success': False,
-            'error': str(e)
+            'error': 'Failed to cancel booking. Please try again.'
         }, status=500)
 
 # ========== BEACON-FRIENDLY SEAT RELEASE API ==========

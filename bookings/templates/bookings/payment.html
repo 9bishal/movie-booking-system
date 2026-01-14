@@ -382,29 +382,43 @@
     };
 
     // ============================================================
-    // 🚪 TAB CLOSE DETECTION - Release seats immediately
+    // 🚪 TAB CLOSE / REFRESH DETECTION - Release seats immediately
     // ============================================================
+    
+    // Track if user is navigating away (for refresh detection)
+    let isNavigatingAway = false;
+    
+    // Set flag when any link is clicked or form is submitted
+    document.addEventListener('click', function(e) {
+        if (e.target.tagName === 'A' || e.target.closest('a')) {
+            isNavigatingAway = true;
+        }
+    });
+    
     window.addEventListener('beforeunload', function(e) {
         // 🛡️ CRITICAL: Only send beacon if payment was NOT successful
         // If paymentSuccessful is true, the booking is being confirmed on the backend
         // and we should NOT send a release beacon
-        if (!paymentInProgress && !paymentSuccessful) {
-            // Send beacon to server (guaranteed delivery even if page closes)
-            const data = JSON.stringify({
-                booking_id: {{ booking.id }},
-                reason: 'tab_closed',
-                timestamp: new Date().toISOString()
-            });
-            
-            navigator.sendBeacon(
-                '{% url "release_booking_beacon" booking.id %}',
-                new Blob([data], { type: 'application/json' })
-            );
-            
-            console.log('🚪 Tab closing - notifying server to release seats');
-        } else if (paymentSuccessful) {
+        if (paymentSuccessful) {
             console.log('✅ Payment successful - NOT sending release beacon');
+            return;
         }
+        
+        // Send beacon to server for ALL cases (refresh, close, navigate away)
+        // The server will handle the cancellation
+        const data = JSON.stringify({
+            booking_id: {{ booking.id }},
+            reason: isNavigatingAway ? 'navigation' : (paymentInProgress ? 'tab_closed_during_payment' : 'page_refresh_or_close'),
+            timestamp: new Date().toISOString()
+        });
+        
+        navigator.sendBeacon(
+            '{% url "release_booking_beacon" booking.id %}',
+            new Blob([data], { type: 'application/json' })
+        );
+        
+        console.log('🚪 Page unload - notifying server to release seats. Reason:', 
+            isNavigatingAway ? 'navigation' : (paymentInProgress ? 'tab_closed_during_payment' : 'page_refresh_or_close'));
     });
     
     console.log('✅ Payment page initialized with tab close detection');

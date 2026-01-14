@@ -85,21 +85,15 @@ class RazorpayClient:
         HOW: We use Razorpay's HMAC-SHA256 verification algorithm.
         WHEN: Triggers on the payment_success redirect.
         """
+        # Validate inputs - prevent None/empty values
+        if not all([razorpay_order_id, razorpay_payment_id, razorpay_signature]):
+            return False
+        
         if self.is_mock:
             # 🎭 WHY: Smooth Development. 
             # We don't want to fail tests just because we don't have a live API key.
+            # SECURITY: Mock mode only works when Razorpay keys are placeholders
             return True
-        
-        # 🧪 FOR TESTING: Allow mock signatures in test/development
-        # If the signature looks like a mock signature (contains "mock" or is "sig_mock_verified"),
-        # allow it for testing purposes. In production with real Razorpay keys, 
-        # real signatures will be used instead.
-        if 'mock' in razorpay_signature.lower() or razorpay_signature == 'sig_mock_verified':
-            # Only allow in development (non-production) environments
-            import sys
-            if 'test' in sys.argv or 'pytest' in sys.modules or 'manage.py' in sys.argv:
-                print(f"⚠️ DEBUG: Allowing mock signature in testing environment: {razorpay_signature}")
-                return True
 
         params_dict = {
             'razorpay_order_id': razorpay_order_id,
@@ -112,8 +106,11 @@ class RazorpayClient:
             # This is where Razorpay checks if the secret key matches the signature.
             self.client.utility.verify_payment_signature(params_dict)
             return True
-        except:
+        except Exception as e:
             # 🚨 TAMPERING DETECTED: The signature doesn't match!
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(f"Payment signature verification failed: {str(e)}")
             return False
     
     def fetch_payment(self, payment_id):
