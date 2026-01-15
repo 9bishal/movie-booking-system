@@ -34,7 +34,16 @@ SECRET_KEY = "django-insecure-%ejejq7abc9^3iy8@#2x-9d#*cr&$lnau%!y@2e)+84d73z(_b
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
+# Handle ALLOWED_HOSTS properly
+_allowed_hosts = os.environ.get('ALLOWED_HOSTS', '*')
+if _allowed_hosts == '*':
+    ALLOWED_HOSTS = ['*']
+else:
+    ALLOWED_HOSTS = [h.strip() for h in _allowed_hosts.split(',')]
+
+# Add Railway domain if not already present
+if not any('railway.app' in host or host == '*' for host in ALLOWED_HOSTS):
+    ALLOWED_HOSTS.append('moviebookingapp-production-0bce.up.railway.app')
 
 # Application definition
 
@@ -51,6 +60,7 @@ INSTALLED_APPS = [
     "django_celery_beat",
     "django_celery_results",
     "embed_video",
+    "custom_admin",
 ]
 
 # Optional Apps
@@ -90,6 +100,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'django.middleware.csrf.csrf_input',  # Make CSRF token available in templates
             ],
             'loaders': [
                 ('django.template.loaders.cached.Loader', [
@@ -111,16 +122,28 @@ WSGI_APPLICATION = "moviebooking.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+# Use PostgreSQL in production (Railway), SQLite in development
+if os.environ.get('DATABASE_URL'):
+    # Production: Use PostgreSQL via DATABASE_URL (Railway)
+    import dj_database_url
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=os.environ.get('DATABASE_URL'),
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
     }
-}
+else:
+    # Development: Use SQLite
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
 
 if not DEBUG:
-    DATABASES['default']['CONN_MAX_AGE'] = 60
+    DATABASES['default']['CONN_MAX_AGE'] = 600
 CACHES = {
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
@@ -136,16 +159,37 @@ CACHES = {
 }
 
 
+# CSRF Configuration
+# Allow CSRF from Railway domain and trusted origins
+CSRF_TRUSTED_ORIGINS = [
+    'https://moviebookingapp-production-0bce.up.railway.app',
+    'https://*.railway.app',
+    'https://*.up.railway.app',
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+]
+
+# CSRF Cookie settings
+CSRF_COOKIE_SECURE = not DEBUG  # Secure only in production
+CSRF_COOKIE_HTTPONLY = False   # Must be False so JavaScript can read it for AJAX
+CSRF_COOKIE_SAMESITE = 'Lax'   # Allows same-site form submissions
+
+# Session Cookie settings  
+SESSION_COOKIE_SECURE = not DEBUG  # Secure only in production
+SESSION_COOKIE_HTTPONLY = True     # Prevent JavaScript access to session cookies
+SESSION_COOKIE_SAMESITE = 'Lax'    # Allow same-site requests
+
 # Security headers
 if not DEBUG:
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
-    SECURE_HSTS_SECONDS = 31536000  # 1 year
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
-    SECURE_SSL_REDIRECT = True
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
+    # Disable SECURE_SSL_REDIRECT for Railway (handles HTTPS at proxy level)
+    SECURE_SSL_REDIRECT = False
+    SECURE_HSTS_SECONDS = 0  # Disable HSTS to prevent redirect loops
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = False
+    SECURE_HSTS_PRELOAD = False
+    # Trust Railway's X-Forwarded-Proto header for HTTPS detection
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 
 # ========== DEBUG TOOLBAR ==========
