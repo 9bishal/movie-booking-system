@@ -100,7 +100,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'django.middleware.csrf.csrf_input',  # Make CSRF token available in templates
+                'django.template.context_processors.csrf',  # Make CSRF token available in templates
             ],
             'loaders': [
                 ('django.template.loaders.cached.Loader', [
