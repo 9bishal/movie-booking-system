@@ -119,24 +119,6 @@ class AuthEmailService:
         except Exception as e:
             logger.error(f"❌ Failed to send password reset email to {user.email}: {str(e)}", exc_info=True)
             return False
-            
-            # Create email
-            email = EmailMultiAlternatives(
-                subject=subject,
-                body=text_message,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                to=[user.email]
-            )
-            email.attach_alternative(html_message, "text/html")
-            
-            email.send(fail_silently=False)
-            
-            logger.info(f"✅ Password reset email sent to {user.email}")
-            return True
-            
-        except Exception as e:
-            logger.error(f"❌ Failed to send password reset email to {user.email}: {str(e)}")
-            return False
 
     @staticmethod
     def send_email_verification_email(user):

@@ -140,6 +140,7 @@ def login_view(request):
                 logger.info(f"Created profile for existing user: {user.username}")
             
             # Successful login
+            user.backend = 'django.contrib.auth.backends.ModelBackend'
             login(request, user)
             welcome_name = user.first_name or user.username
             messages.success(request, 
@@ -203,7 +204,8 @@ def verify_otp(request):
             # Clear session
             del request.session['pending_user_id']
             
-            # Auto-login
+            # Auto-login with backend specified (required when multiple backends are configured)
+            user.backend = 'django.contrib.auth.backends.ModelBackend'
             login(request, user)
             
             # Send welcome email
