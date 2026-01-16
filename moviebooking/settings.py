@@ -133,13 +133,30 @@ if os.environ.get('DATABASE_URL'):
         )
     }
 else:
-    # Development: Use SQLite
+    # Development: Use SQLite with improved concurrency settings
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
             "NAME": BASE_DIR / "db.sqlite3",
+            "OPTIONS": {
+                "timeout": 20,  # Wait up to 20 seconds for locks to be released
+            },
         }
     }
+    # Enable WAL mode for SQLite (better concurrency)
+    # This is done via signal instead of OPTIONS since init_command is not valid for SQLite
+    from django.db.backends.signals import connection_created
+    from django.dispatch import receiver
+    
+    @receiver(connection_created)
+    def setup_sqlite_pragmas(sender, connection, **kwargs):
+        """Enable Write-Ahead Logging mode for SQLite for better concurrency."""
+        if connection.vendor == 'sqlite':
+            cursor = connection.cursor()
+            cursor.execute('PRAGMA journal_mode=WAL;')
+            cursor.execute('PRAGMA synchronous=NORMAL;')  # Faster writes with WAL
+            cursor.execute('PRAGMA busy_timeout=20000;')  # 20 second timeout
+            cursor.close()
 
 if not DEBUG:
     DATABASES['default']['CONN_MAX_AGE'] = 600
@@ -312,20 +329,22 @@ RAZORPAY_KEY_ID = os.environ.get('RAZORPAY_KEY_ID', '')
 RAZORPAY_KEY_SECRET = os.environ.get('RAZORPAY_KEY_SECRET', '')
 
 # Email Configuration
-# Development: Use console backend to log emails instead of sending
-# Production: Use SMTP for actual email sending
-if DEBUG:
-    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-else:
-    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-    EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
-    EMAIL_PORT = int(os.environ.get('EMAIL_PORT', '587'))
-    EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'
-    EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
-    EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+# Use MailerSend API for email sending via django-anymail
+MAILERSEND_API_KEY = os.environ.get('MAILERSEND_API_KEY', '')
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
 
-# Use EMAIL_HOST_USER as default if DEFAULT_FROM_EMAIL not explicitly set
-_default_from = os.environ.get('DEFAULT_FROM_EMAIL') or os.environ.get('EMAIL_HOST_USER', 'noreply@moviebooking.com')
+if MAILERSEND_API_KEY:
+    # Use Anymail with MailerSend backend
+    EMAIL_BACKEND = 'anymail.backends.mailersend.EmailBackend'
+    ANYMAIL = {
+        'MAILERSEND_API_TOKEN': MAILERSEND_API_KEY,
+    }
+else:
+    # Fallback to console backend if no API key
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# Use your verified domain email
+_default_from = os.environ.get('DEFAULT_FROM_EMAIL') or 'noreply@test-dnvo4d9eq86g5r86.mlsender.net'
 DEFAULT_FROM_EMAIL = _default_from
 
 SITE_URL = os.environ.get('SITE_URL', 'http://localhost:8000')
