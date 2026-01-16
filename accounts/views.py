@@ -40,10 +40,18 @@ def register(request):
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             try:
+                email = form.cleaned_data.get('email')
+                
+                # Check if email already exists
+                if User.objects.filter(email=email).exists():
+                    messages.error(request, 
+                        f'❌ An account with email "{email}" already exists. Please use a different email or try logging in.')
+                    return render(request, 'registration/register.html', {'form': form})
+                
                 # Create user but don't activate yet
                 user = form.save(commit=False)
                 user.is_active = False  # Account inactive until email verified
-                user.email = form.cleaned_data.get('email')
+                user.email = email
                 user.save()
                 
                 # Create or get user profile
@@ -75,8 +83,13 @@ def register(request):
                 
             except Exception as e:
                 logger.error(f"Registration error for {form.cleaned_data.get('email', 'unknown')}: {e}")
-                messages.error(request, 
-                    '❌ Registration failed due to a system error. Please try again or contact support if the problem persists.')
+                # Check if it's a duplicate username/email error
+                if 'unique' in str(e).lower() or 'duplicate' in str(e).lower():
+                    messages.error(request, 
+                        '❌ This email or username is already taken. Please use a different one or try logging in.')
+                else:
+                    messages.error(request, 
+                        '❌ Registration failed due to a system error. Please try again or contact support if the problem persists.')
         else:
             # Enhanced form error messages
             error_messages = []
@@ -84,6 +97,16 @@ def register(request):
                 for error in errors:
                     if field == '__all__':
                         error_messages.append(f"❌ {error}")
+                    elif field == 'email':
+                        if 'already exists' in str(error).lower() or 'taken' in str(error).lower():
+                            error_messages.append(f"❌ This email is already registered. Please login or use a different email.")
+                        else:
+                            error_messages.append(f"❌ Email: {error}")
+                    elif field == 'username':
+                        if 'already exists' in str(error).lower() or 'taken' in str(error).lower():
+                            error_messages.append(f"❌ This username is already taken. Please choose a different one.")
+                        else:
+                            error_messages.append(f"❌ Username: {error}")
                     else:
                         field_name = field.replace('_', ' ').title()
                         error_messages.append(f"❌ {field_name}: {error}")
@@ -113,8 +136,18 @@ def login_view(request):
         password = request.POST.get('password')
         
         if not email or not password:
-            messages.error(request, 'Please enter both email and password.')
+            messages.error(request, '❌ Please enter both email and password.')
             return render(request, 'registration/login.html')
+        
+        # Check if user exists first
+        try:
+            user_exists = User.objects.filter(email=email).exists()
+            if not user_exists:
+                messages.error(request, 
+                    f'❌ No account found with email "{email}". Please check your email or sign up for a new account.')
+                return render(request, 'registration/login.html')
+        except Exception as e:
+            logger.error(f"Error checking user existence: {e}")
         
         # Use custom authentication backend that supports email
         user = authenticate(request, username=email, password=password)
@@ -123,23 +156,38 @@ def login_view(request):
             # Check if user account is active
             if not user.is_active:
                 messages.error(request, 
-                    'Your account is not activated. Please check your email for the activation link.')
+                    '❌ Your account is not activated. Please check your email for the verification code.')
                 return render(request, 'registration/login.html')
             
-            # Check if user has verified email
-            try:
-                profile = user.profile
-                if not profile.is_email_verified:
-                    messages.warning(request, 
-                        '📧 Please verify your email address before logging in. Check your inbox for the verification code.')
-                    request.session['pending_user_id'] = user.id
-                    return redirect('verify_otp')
-            except UserProfile.DoesNotExist:
-                # Create profile if doesn't exist (for existing users)
-                UserProfile.objects.create(user=user, is_email_verified=True)
-                logger.info(f"Created profile for existing user: {user.username}")
+            # Skip email verification for superusers and staff
+            if not user.is_superuser and not user.is_staff:
+                # Check if user has verified email (regular users only)
+                try:
+                    profile = user.profile
+                    if not profile.is_email_verified:
+                        # DO NOT log in the user - redirect to verification page
+                        messages.warning(request, 
+                            '📧 Please verify your email address before logging in. Check your inbox for the verification code.')
+                        request.session['pending_user_id'] = user.id
+                        # Important: Return here WITHOUT calling login()
+                        return redirect('verify_otp')
+                except UserProfile.DoesNotExist:
+                    # Create profile if doesn't exist (for existing users)
+                    UserProfile.objects.create(user=user, is_email_verified=True)
+                    logger.info(f"Created profile for existing user: {user.username}")
+            else:
+                # Ensure admin/staff have profile with email verified
+                try:
+                    profile = user.profile
+                    if not profile.is_email_verified:
+                        profile.is_email_verified = True
+                        profile.save()
+                        logger.info(f"Auto-verified email for admin/staff: {user.username}")
+                except UserProfile.DoesNotExist:
+                    UserProfile.objects.create(user=user, is_email_verified=True)
+                    logger.info(f"Created verified profile for admin/staff: {user.username}")
             
-            # Successful login
+            # Successful login - ONLY reached if email is verified or user is admin/staff
             user.backend = 'django.contrib.auth.backends.ModelBackend'
             login(request, user)
             welcome_name = user.first_name or user.username
@@ -151,8 +199,9 @@ def login_view(request):
             logger.info(f"User {user.username} logged in successfully")
             return redirect(next_page)
         else:
+            # User exists but password is wrong
             messages.error(request, 
-                '❌ Invalid email or password. Please check your credentials and try again.')
+                '❌ Incorrect password. Please try again or use "Forgot Password" to reset it.')
     
     return render(request, 'registration/login.html')
 
@@ -227,7 +276,7 @@ def verify_otp(request):
                 return redirect('resend_verification')
     
     context = {
-        'user': user,
+        'pending_user': user,  # Changed from 'user' to avoid overriding request.user
         'otp_attempts': profile.otp_attempts,
     }
     return render(request, 'accounts/verify_otp.html', context)
@@ -273,7 +322,7 @@ def resend_verification_email(request):
 def forgot_password(request):
     """
     🔒 Forgot Password - Send Reset Email
-    Enhanced with better feedback and loading states
+    Shows accurate user feedback based on database check
     """
     if request.method == 'POST':
         email = request.POST.get('email', '').strip()
@@ -283,28 +332,36 @@ def forgot_password(request):
             return render(request, 'accounts/forgot_password.html')
         
         try:
-            user = User.objects.get(email=email, is_active=True)
+            user = User.objects.get(email=email)
+            
+            # Check if user is active
+            if not user.is_active:
+                messages.error(request, 
+                    f'❌ Account with {email} is deactivated. Please contact support.')
+                logger.warning(f"Password reset attempted for inactive user: {email}")
+                return redirect('login')
             
             # Send password reset email (generates token internally)
             email_sent = AuthEmailService.send_password_reset_email(user)
             
             if email_sent:
                 messages.success(request, 
-                    f'🔐 Password reset instructions have been sent to {email}. Please check your inbox (and spam folder) and follow the link to reset your password. The link will expire in 24 hours.')
+                    f'✅ Password reset link has been sent to {email}. Please check your inbox and spam folder. The link expires in 24 hours.')
                 logger.info(f"Password reset email sent to: {email}")
             else:
                 messages.error(request, 
-                    '❌ Failed to send password reset email. Please try again or contact support if the problem persists.')
+                    '❌ Failed to send password reset email. Please try again or contact support.')
                 logger.error(f"Failed to send password reset email to: {email}")
                 
             return redirect('login')
             
         except User.DoesNotExist:
-            # Don't reveal whether email exists or not for security
-            messages.success(request, 
-                f'🔐 If an account with {email} exists, password reset instructions have been sent. Please check your inbox. If you don\'t receive an email, the address may not be registered.')
+            # User doesn't exist - show clear message
+            messages.error(request, 
+                f'❌ No account found with email {email}. Please check the email address or sign up for a new account.')
             logger.info(f"Password reset attempted for non-existent email: {email}")
-            return redirect('login')
+            return redirect('forgot_password')
+            
         except Exception as e:
             logger.error(f"Password reset error for {email}: {e}")
             messages.error(request, 
@@ -351,10 +408,13 @@ def reset_password(request, uidb64, token):
         messages.error(request, 'Password reset link is invalid or has expired.')
         return render(request, 'accounts/reset_password.html', {'validlink': False})
 
-@login_required
+from accounts.decorators import email_verified_required
+
+@email_verified_required
 def profile(request):
     """
     👤 User Profile View
+    Requires email verification to access.
     """
     try:
         profile = request.user.profile
@@ -367,10 +427,11 @@ def profile(request):
     }
     return render(request, 'accounts/profile.html', context)
 
-@login_required
+@email_verified_required
 def change_password(request):
     """
     🔒 Change Password View
+    Requires email verification to access.
     """
     if request.method == 'POST':
         form = PasswordChangeForm(request.user, request.POST)

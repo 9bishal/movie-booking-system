@@ -15,9 +15,19 @@ from movies.theater_models import Showtime
 from .models import Booking, Transaction
 from .utils import SeatManager, PriceCalculator
 from django.conf import settings
+from accounts.decorators import email_verified_required
 
 # Initialize logger
 logger = logging.getLogger(__name__)
+
+# Helper function to check if database supports row-level locking
+def supports_select_for_update():
+    """
+    Check if the current database backend supports SELECT FOR UPDATE.
+    SQLite has limited support and can cause 'database is locked' errors.
+    """
+    db_engine = settings.DATABASES['default']['ENGINE']
+    return 'sqlite3' not in db_engine
 
 # ==============================================================================
 # ❓ THE BOOKING WORKFLOW (Step-by-Step)
@@ -33,12 +43,13 @@ logger = logging.getLogger(__name__)
 # ❓ @login_required: 
 # This is a Django Decorator. It ensures that only logged-in users can access this page.
 # Anonymous users will be redirected to the login page automatically.
-@login_required
+@email_verified_required
 def select_seats(request, showtime_id):
     """
     🎨 WHY: This is the interactive part of the booking.
     HOW: We get the movie and time (showtime), and then check Redis to see 
     which seats are already taken. We pass this to the HTML to draw the map.
+    Requires email verification to book tickets.
     """
     showtime = get_object_or_404(Showtime, id=showtime_id, is_active=True)
     
@@ -272,9 +283,9 @@ def create_booking(request, showtime_id):
             }, status=500)
 
         # 🔗 SYNC: Save the order ID to the booking record for verification later.
-        # WHY: Security Anchor. This ensures we only accept a success response
-        # that specifically matches this created order, preventing payment hijacking.
-        # WHEN: Triggers immediately after Razorpay confirms order creation.
+        #WHY: Security Anchor. This ensures we only accept a success response
+        #that specifically matches this created order, preventing payment hijacking.
+        #WHEN: Triggers immediately after Razorpay confirms order creation.
         # 🔐 ALSO: Record when payment was initiated for timeout checks
         booking.razorpay_order_id = order_data['order_id']
         booking.payment_initiated_at = timezone.now()
@@ -482,22 +493,39 @@ def payment_success(request, booking_id):
             return redirect('my_bookings')
 
         # ✅ ALL CLEAR: Proceed with confirmation
-        # 🛡️ CRITICAL: Set payment_received_at FIRST (atomic guard)
-        # Once payment_received_at is set, no failure email will ever be sent
-        # This is the critical protection against race conditions
-        payment_received_at = timezone.now()
-        booking.payment_received_at = payment_received_at
-        booking.payment_id = razorpay_payment_id
-        booking.payment_method = 'RAZORPAY'
-        booking.status = 'CONFIRMED'
-        booking.confirmed_at = timezone.now()
+        # 🛡️ CRITICAL: Use atomic transaction to prevent race conditions
+        # This ensures payment_received_at is set ATOMICALLY before any other code can check it
+        from django.db import transaction
         
-        # 🎫 GENERATE QR CODE PERMANENTLY
-        # QR code is generated once and stored in the database
-        # This ensures it remains static and consistent for all future uses
-        booking.generate_qr_code()
-        booking.save()
+        with transaction.atomic():
+            # Refresh booking from DB with optional lock to prevent concurrent modifications
+            # Use select_for_update only if database supports it (PostgreSQL, MySQL)
+            # SQLite has limited locking support and can cause "database is locked" errors
+            if supports_select_for_update():
+                booking = Booking.objects.select_for_update().get(id=booking.id)
+            else:
+                booking = Booking.objects.get(id=booking.id)
+            
+            # Double-check: If already confirmed, don't process again
+            if booking.status == 'CONFIRMED':
+                logger.info(f"Booking {booking.booking_number} already confirmed, skipping duplicate processing")
+                messages.success(request, f'Booking {booking.booking_number} confirmed!')
+                return redirect('booking_detail', booking_id=booking.id)
+            
+            # Set payment_received_at FIRST (atomic guard)
+            # Once payment_received_at is set, no failure email will ever be sent
+            payment_received_at = timezone.now()
+            booking.payment_received_at = payment_received_at
+            booking.payment_id = razorpay_payment_id
+            booking.payment_method = 'RAZORPAY'
+            booking.status = 'CONFIRMED'
+            booking.confirmed_at = timezone.now()
+            
+            # 🎫 GENERATE QR CODE PERMANENTLY
+            booking.generate_qr_code()
+            booking.save()
         
+        # ALL CODE BELOW RUNS AFTER TRANSACTION COMMITS
         logger.info(f"✅ Booking {booking.booking_number} confirmed with QR code generated")
         
         # Confirm seats in Redis (after atomic transaction)
@@ -508,7 +536,8 @@ def payment_success(request, booking_id):
         if session_key in request.session:
             del request.session[session_key]
         
-        # Send confirmation email (Async) - only after status is CONFIRMED
+        # Send confirmation email (Async) - Called AFTER transaction commits
+        # This avoids "database is locked" errors in SQLite development mode
         from .email_utils import send_booking_confirmation_email
         send_booking_confirmation_email.delay(booking.id)
         
@@ -548,7 +577,6 @@ def payment_failed(request, booking_id):
     # Only mark as FAILED if not already in a terminal state
     if booking.status == 'PENDING':
         booking.status = 'FAILED'
-        booking.failure_email_sent = False  # Reset flag before saving
         booking.save()
         
         # 🛡️ CRITICAL: Release seats immediately when payment fails
@@ -556,6 +584,7 @@ def payment_failed(request, booking_id):
         SeatManager.release_seats(booking.showtime.id, booking.seats, user_id=booking.user.id)
         
         # Send payment failed email (Async) - only if not already sent
+        # The email utility has its own idempotency check - don't reset the flag here
         if not booking.failure_email_sent:
             from .email_utils import send_payment_failed_email
             send_payment_failed_email.delay(booking.id)
@@ -678,9 +707,11 @@ def razorpay_webhook(request):
         return HttpResponse(status=400)
 
 @login_required
+@email_verified_required
 def my_bookings(request):
     """
     📜 WHY: History - Users need to see their past and upcoming tickets.
+    Requires email verification to access.
     """
     bookings = Booking.objects.filter(user=request.user).order_by('-created_at')
     
@@ -691,10 +722,11 @@ def my_bookings(request):
     
     return render(request, 'bookings/my_bookings.html', context)
 
-@login_required
+@email_verified_required
 def booking_detail(request, booking_id):
     """
     🎫 WHY: Digital Ticket - This is the actual ticket the user shows at the theater.
+    Requires email verification to access.
     """
     booking = get_object_or_404(Booking, id=booking_id, user=request.user)
     
@@ -719,51 +751,55 @@ def cancel_booking_api(request, booking_id):
     3. User explicitly cancels booking
     """
     try:
-        booking = get_object_or_404(Booking, id=booking_id, user=request.user)
+        from django.db import transaction
         
-        # Only cancel PENDING bookings
-        if booking.status != 'PENDING':
-            return JsonResponse({
-                'success': False,
-                'error': f'Cannot cancel booking with status: {booking.status}'
-            }, status=400)
+        # 🛡️ ATOMIC: Use transaction to prevent race conditions
+        with transaction.atomic():
+            # Lock the row during the entire check-and-update process (if supported)
+            if supports_select_for_update():
+                booking = get_object_or_404(
+                    Booking.objects.select_for_update(), 
+                    id=booking_id, 
+                    user=request.user
+                )
+            else:
+                booking = get_object_or_404(
+                    Booking, 
+                    id=booking_id, 
+                    user=request.user
+                )
+            
+            # Only cancel PENDING bookings
+            if booking.status != 'PENDING':
+                return JsonResponse({
+                    'success': False,
+                    'error': f'Cannot cancel booking with status: {booking.status}'
+                }, status=400)
+            
+            # 🛡️ CRITICAL CHECK: If payment was already received, don't cancel
+            if booking.payment_received_at:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Payment already received - booking cannot be cancelled',
+                    'booking_id': booking.id
+                }, status=400)
+            
+            # Get reason from request
+            data = json.loads(request.body) if request.body else {}
+            reason = data.get('reason', 'User cancelled booking')
+            showtime_id = booking.showtime.id
+            
+            # Mark as FAILED (payment was abandoned/cancelled)
+            booking.status = 'FAILED'
+            booking.save()
         
-        # 🛡️ CRITICAL CHECK: If payment was already received, don't cancel
-        # This prevents sending failure email after successful payment
-        if booking.payment_received_at:
-            return JsonResponse({
-                'success': False,
-                'error': 'Payment already received - booking cannot be cancelled',
-                'booking_id': booking.id
-            }, status=400)
-        
-        # Reload fresh from DB to double-check
-        booking.refresh_from_db()
-        if booking.payment_received_at:
-            return JsonResponse({
-                'success': False,
-                'error': 'Payment already received - booking cannot be cancelled',
-                'booking_id': booking.id
-            }, status=400)
-        
-        # Get reason from request
-        data = json.loads(request.body) if request.body else {}
-        reason = data.get('reason', 'User cancelled booking')
-        showtime_id = booking.showtime.id  # Always use the booking's showtime
-        
-        # 🛡️ Mark as FAILED (payment was abandoned/cancelled)
-        # WHY: This differentiates from user-requested cancellations vs payment failures
-        booking.status = 'FAILED'
-        booking.failure_email_sent = False  # Reset flag before saving
-        booking.save()
-        
+        # Email sending happens OUTSIDE the transaction
         # Send payment failed email (Async) - Modal was closed/abandoned
-        # Email task itself has idempotency checks, but we still call it
-        from .email_utils import send_payment_failed_email
-        send_payment_failed_email.delay(booking.id)
+        if not booking.failure_email_sent:
+            from .email_utils import send_payment_failed_email
+            send_payment_failed_email.delay(booking.id)
         
-        # 🛡️ CRITICAL: Release seats from Redis using the BOOKING's seats
-        # WHY: We must pass both seat_ids AND user_id to ensure proper cleanup
+        # 🛡️ CRITICAL: Release seats from Redis
         SeatManager.release_seats(showtime_id, booking.seats, user_id=request.user.id)
         
         # Clear session reservation data
@@ -808,35 +844,48 @@ def release_booking_beacon(request, booking_id):
         return HttpResponse(status=405)
     
     try:
+        from django.db import transaction
+        
         # Parse the beacon data
         data = json.loads(request.body) if request.body else {}
         reason = data.get('reason', 'Tab closed (beacon)')
         
-        # Get booking - don't require login since beacon may not have session
-        booking = Booking.objects.filter(id=booking_id, status='PENDING').first()
+        # 🛡️ ATOMIC: Use transaction with row lock to prevent race conditions
+        with transaction.atomic():
+            # Use select_for_update to lock the row during check (if supported)
+            if supports_select_for_update():
+                booking = Booking.objects.select_for_update().filter(
+                    id=booking_id, 
+                    status='PENDING'
+                ).first()
+            else:
+                booking = Booking.objects.filter(
+                    id=booking_id, 
+                    status='PENDING'
+                ).first()
+            
+            if not booking:
+                # Booking doesn't exist, already processed, or already confirmed
+                return HttpResponse(status=200)
+            
+            # 🛡️ CRITICAL CHECK: If payment was already received, DON'T mark as failed
+            # This prevents race condition where payment success is being processed
+            if booking.payment_received_at:
+                logger.info(
+                    f"BEACON IGNORED: Booking {booking.booking_number} already has payment_received_at. "
+                    f"Payment confirmation is in progress - not sending failure email."
+                )
+                return HttpResponse(status=200)
+            
+            # Mark as FAILED (only if still PENDING and no payment received)
+            booking.status = 'FAILED'
+            booking.save()
         
-        if not booking:
-            # Booking doesn't exist, already processed, or already confirmed - that's OK
-            return HttpResponse(status=200)
-        
-        # 🛡️ CRITICAL CHECK: If payment was already received, don't send failure email
-        # This prevents race condition where payment success is being processed
-        # while beacon is also being sent
-        if booking.payment_received_at:
-            logger.info(
-                f"BEACON IGNORED: Booking {booking.booking_number} already has payment_received_at. "
-                f"Payment confirmation is in progress - not sending failure email."
-            )
-            return HttpResponse(status=200)
-        
-        # Mark as FAILED and release seats (only if still PENDING)
-        booking.status = 'FAILED'
-        booking.failure_email_sent = False  # Reset flag before saving
-        booking.save()
-        
+        # Email sending happens OUTSIDE the transaction
         # Send payment failed email (Async) - Tab was closed during payment
-        from .email_utils import send_payment_failed_email
-        send_payment_failed_email.delay(booking.id)
+        if not booking.failure_email_sent:
+            from .email_utils import send_payment_failed_email
+            send_payment_failed_email.delay(booking.id)
         
         # 🛡️ CRITICAL: Release seats from both Redis cache and user reservation key
         SeatManager.release_seats(booking.showtime.id, booking.seats, user_id=booking.user.id)

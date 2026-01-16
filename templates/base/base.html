@@ -949,6 +949,18 @@
                 
                 <ul class="navbar-nav align-items-center">
                     {% if user.is_authenticated %}
+                    
+                    <!-- Email Verification Warning (if not verified) -->
+                    {% if not user.profile.is_email_verified %}
+                    <li class="nav-item me-2">
+                        <a href="{% url 'verify_otp' %}" class="btn btn-warning btn-sm" title="Verify your email to access all features">
+                            <i class="fas fa-exclamation-triangle me-1"></i>
+                            <span class="d-none d-md-inline">Verify Email</span>
+                            <span class="d-md-none">Verify</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                    
                     {% comment %}
                     <!-- Wishlist link (FEATURE DISABLED) -->
                     <li class="nav-item me-3">
@@ -965,16 +977,30 @@
                             <span class="d-none d-lg-inline user-name-text">{{ user.username|truncatechars:10 }}</span>
                             <span class="d-lg-none d-none d-sm-inline">{{ user.username|truncatechars:6 }}</span>
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-end bg-white border-0 shadow-lg" style="min-width: 160px;">
+                        <ul class="dropdown-menu dropdown-menu-end bg-white border-0 shadow-lg" style="min-width: 200px;">
                             <li class="px-3 py-2 border-bottom">
                                 <small class="text-muted">Signed in as</small><br>
                                 <strong class="text-dark" style="font-size: 0.9rem;">{{ user.username }}</strong>
+                                {% if user.profile.is_email_verified %}
+                                <br><small class="text-success"><i class="fas fa-check-circle"></i> Verified</small>
+                                {% else %}
+                                <br><small class="text-warning"><i class="fas fa-exclamation-triangle"></i> Not Verified</small>
+                                {% endif %}
                             </li>
+                            {% if user.profile.is_email_verified %}
                             <li>
                                 <a class="dropdown-item py-2" href="{% url 'my_bookings' %}">
                                     <i class="fas fa-ticket-alt me-2 text-primary"></i>My Bookings
                                 </a>
                             </li>
+                            {% else %}
+                            <li>
+                                <a class="dropdown-item py-2 text-muted" href="{% url 'verify_otp' %}" title="Verify email to access bookings">
+                                    <i class="fas fa-ticket-alt me-2"></i>My Bookings
+                                    <small class="d-block text-warning"><i class="fas fa-lock me-1"></i>Verify email first</small>
+                                </a>
+                            </li>
+                            {% endif %}
                             <li><hr class="dropdown-divider"></li>
                             <li>
                                 <a class="dropdown-item py-2" href="{% url 'logout' %}">
