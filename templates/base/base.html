@@ -950,8 +950,8 @@
                 <ul class="navbar-nav align-items-center">
                     {% if user.is_authenticated %}
                     
-                    <!-- Email Verification Warning (if not verified) -->
-                    {% if not user.profile.is_email_verified %}
+                    <!-- Email Verification Warning (if not verified and not staff) -->
+                    {% if not user.is_staff and not user.is_superuser and not user.profile.is_email_verified %}
                     <li class="nav-item me-2">
                         <a href="{% url 'verify_otp' %}" class="btn btn-warning btn-sm" title="Verify your email to access all features">
                             <i class="fas fa-exclamation-triangle me-1"></i>
@@ -981,13 +981,27 @@
                             <li class="px-3 py-2 border-bottom">
                                 <small class="text-muted">Signed in as</small><br>
                                 <strong class="text-dark" style="font-size: 0.9rem;">{{ user.username }}</strong>
-                                {% if user.profile.is_email_verified %}
+                                {% if user.is_staff or user.is_superuser %}
+                                <br><small class="text-primary"><i class="fas fa-shield-alt"></i> Admin</small>
+                                {% elif user.profile.is_email_verified %}
                                 <br><small class="text-success"><i class="fas fa-check-circle"></i> Verified</small>
                                 {% else %}
                                 <br><small class="text-warning"><i class="fas fa-exclamation-triangle"></i> Not Verified</small>
                                 {% endif %}
                             </li>
-                            {% if user.profile.is_email_verified %}
+                            
+                            <!-- Admin Dashboard Link (staff only) -->
+                            {% if user.is_staff %}
+                            <li>
+                                <a class="dropdown-item py-2" href="{% url 'custom_admin:dashboard' %}">
+                                    <i class="fas fa-tachometer-alt me-2 text-primary"></i>Admin Dashboard
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            {% endif %}
+                            
+                            <!-- My Bookings (always accessible for staff, requires verification for regular users) -->
+                            {% if user.is_staff or user.is_superuser or user.profile.is_email_verified %}
                             <li>
                                 <a class="dropdown-item py-2" href="{% url 'my_bookings' %}">
                                     <i class="fas fa-ticket-alt me-2 text-primary"></i>My Bookings

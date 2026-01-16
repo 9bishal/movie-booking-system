@@ -11,6 +11,9 @@ def email_verified_required(view_func):
     """
     Decorator to ensure user has verified their email before accessing a view.
     
+    Staff and superusers bypass this check (they don't need email verification).
+    Regular users must verify their email.
+    
     Usage:
         @email_verified_required
         def my_view(request):
@@ -21,6 +24,10 @@ def email_verified_required(view_func):
     @wraps(view_func)
     @login_required
     def wrapper(request, *args, **kwargs):
+        # Staff and superusers bypass email verification
+        if request.user.is_staff or request.user.is_superuser:
+            return view_func(request, *args, **kwargs)
+        
         # Check if user has a profile
         if not hasattr(request.user, 'profile'):
             messages.error(request, '⚠️ Please complete your profile setup.')
