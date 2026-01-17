@@ -135,7 +135,7 @@ class AuthEmailService:
             profile, created = UserProfile.objects.get_or_create(user=user)
             otp = profile.generate_otp()
             
-            subject = "✉️ Your Email Verification OTP - MovieBooking"
+            subject = "✉️ Your Email Verification Code - MovieBooking"
             
             context = {
                 'user': user,
@@ -145,32 +145,29 @@ class AuthEmailService:
                 'site_url': settings.SITE_URL or 'http://localhost:8000',
             }
             
-            # Simple text email with OTP
-            message = f"""
-Hello {user.first_name or user.username},
-
-Welcome to MovieBooking! 🎬
-
-Please verify your email address using the OTP below:
-
-    {otp}
-
-This OTP will expire in 5 minutes.
-
-If you didn't create an account, please ignore this email.
-
-Happy watching!
-MovieBooking Team
-            """
+            # Render HTML and text versions
+            html_message = render_to_string('auth/email_verification_otp.html', context)
+            text_message = render_to_string('auth/email_verification_otp.txt', context)
+            
+            # Create email with both versions
+            email = EmailMultiAlternatives(
+                subject=subject,
+                body=text_message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to=[user.email]
+            )
+            email.attach_alternative(html_message, "text/html")
             
             # Send the email
-            result = send_mail(
-                subject=subject,
-                message=message,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[user.email],
-                fail_silently=False,
-            )
+            try:
+                result = email.send(fail_silently=False)
+            except Exception as e:
+                logger.error(f"❌ Failed to send email to {user.email}: {e}")
+                # In production with email failures, log OTP and continue
+                if not settings.DEBUG:
+                    logger.warning(f"⚠️ OTP for {user.email}: {otp} (Email delivery failed)")
+                    return True  # Don't block user flow
+                return False
             
             logger.info(f"✅ Email verification OTP sent to {user.email} | OTP: {otp} | Result: {result}")
             print("\n" + "="*60)

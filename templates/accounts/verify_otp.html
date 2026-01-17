@@ -16,9 +16,9 @@
                         <h1 class="h2 mb-2">
                             <i class="fas fa-shield-alt text-success"></i> Verify Your Email
                         </h1>
-                        {% if user.email %}
+                        {% if pending_user.email %}
                         <p class="text-muted">Enter the 6-digit OTP sent to</p>
-                        <p class="fw-bold text-primary">{{ user.email }}</p>
+                        <p class="fw-bold text-primary">{{ pending_user.email }}</p>
                         {% else %}
                         <p class="text-muted">Enter the 6-digit OTP sent to your email</p>
                         {% endif %}

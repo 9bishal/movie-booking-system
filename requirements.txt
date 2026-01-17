@@ -23,6 +23,7 @@ razorpay==2.0.0
 
 # Email
 django-anymail==10.2
+resend==2.19.0
 
 # File Storage
 django-storages==1.14.2

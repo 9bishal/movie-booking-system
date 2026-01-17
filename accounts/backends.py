@@ -34,20 +34,25 @@ class EmailBackend(ModelBackend):
         
         try:
             # Try to find user by email first, then by username
-            user = User.objects.get(
+            # Use filter().first() to handle duplicate users gracefully
+            user = User.objects.filter(
                 Q(email__iexact=username) | Q(username__iexact=username)
-            )
-        except User.DoesNotExist:
-            # Run the default password hasher once to reduce the timing
-            # difference between an existing and a non-existing user
-            User().set_password(password)
+            ).order_by('-date_joined').first()
+            
+            if user is None:
+                # Run the default password hasher once to reduce the timing
+                # difference between an existing and a non-existing user
+                User().set_password(password)
+                return None
+            
+            # Check if password is correct
+            if user.check_password(password) and self.user_can_authenticate(user):
+                return user
+            
             return None
-        
-        # Check if password is correct
-        if user.check_password(password) and self.user_can_authenticate(user):
-            return user
-        
-        return None
+        except Exception:
+            # Handle any unexpected errors
+            return None
     
     def get_user(self, user_id):
         """

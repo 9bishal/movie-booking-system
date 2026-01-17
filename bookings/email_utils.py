@@ -120,6 +120,7 @@ def send_booking_confirmation_email(booking_id):
         email.attach_alternative(html_content, "text/html")
         email.attach(f'booking_{booking.booking_number}.png', qr_image_bytes, 'image/png')
         
+        # Send email
         email.send()
         
         logger.info(f"✅ Confirmation email sent to {user.email}")
