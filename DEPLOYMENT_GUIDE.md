@@ -581,19 +581,145 @@ git push origin main
 
 ---
 
-## Rollback
+## 🔐 Admin Access Setup (IMPORTANT)
 
-### If Deployment Fails:
+### After First Deployment - Create Admin User
+
+Once Railway deployment is complete, you MUST create an admin user to access both Django Admin and Custom Admin panels.
+
+### Method 1: Using Railway CLI (Recommended - Fastest)
 
 ```bash
-# In Railway dashboard:
-# 1. Go to "Deployments" tab
-# 2. Find the previous successful deployment
-# 3. Click "Redeploy" to rollback
-# 4. Confirm the action
+# Install Railway CLI (if not installed)
+npm i -g @railway/cli
+
+# Login to Railway
+railway login
+
+# Link to your project
+railway link
+
+# Create admin user with secure credentials
+railway run python manage.py create_admin --username admin --email admin@yourdomain.com --password YOUR_SECURE_PASSWORD --reset
 ```
+
+### Method 2: Using Railway Web Dashboard
+
+1. Go to https://railway.app/
+2. Select your project: `movie-booking-system`
+3. Click on your Django service
+4. Click "Terminal" tab (wait for connection)
+5. Run this command:
+   ```bash
+   python manage.py create_admin --username admin --email admin@yourdomain.com --password YOUR_SECURE_PASSWORD --reset
+   ```
+
+### Method 3: Using the Automated Script
+
+```bash
+# Make script executable
+chmod +x setup_railway_admin.sh
+
+# Run the interactive setup script
+./setup_railway_admin.sh
+# Follow the prompts to create your admin user
+```
+
+### What This Command Does
+
+The `create_admin` management command:
+- ✅ Creates or resets admin user
+- ✅ Sets `is_staff=True` (required for Django Admin)
+- ✅ Sets `is_superuser=True` (full permissions)
+- ✅ Sets `is_active=True` (can login)
+- ✅ Creates UserProfile with `is_email_verified=True`
+- ✅ Bypasses email verification for staff/superusers
+- ✅ Shows credentials and access URLs
+
+### Verify Admin Access
+
+After creating the admin user, test access to both panels:
+
+1. **Django Admin** (Built-in)
+   - URL: `https://your-app.railway.app/admin/`
+   - Features: Full Django admin with all models
+   - Login with your admin credentials
+
+2. **Custom Admin Dashboard** (Beautiful UI)
+   - URL: `https://your-app.railway.app/custom-admin/`
+   - Features: Analytics, charts, booking management
+   - Login with the same admin credentials
+
+### Admin Command Options
+
+```bash
+# Create admin with defaults (username: admin, password: admin123)
+python manage.py create_admin
+
+# Create admin with custom credentials
+python manage.py create_admin --username myadmin --email admin@example.com --password securepass123
+
+# Reset existing admin user (update password/email)
+python manage.py create_admin --username admin --password newpassword --reset
+
+# Get help
+python manage.py create_admin --help
+```
+
+### Security Best Practices
+
+⚠️ **IMPORTANT**: Change default credentials in production!
+
+```bash
+# Use strong passwords:
+railway run python manage.py create_admin --username myadmin --email admin@yourdomain.com --password "MySecureP@ss2026!" --reset
+```
+
+**Recommended practices:**
+- Use unique username (not "admin")
+- Use strong password (12+ characters, mixed case, numbers, symbols)
+- Use your domain email for better tracking
+- Regularly audit staff/admin user list
+- Remove unused admin accounts
+
+### Troubleshooting Admin Access
+
+**Issue: Can't login to Django Admin**
+```bash
+# Check user status
+railway run python manage.py shell -c "from django.contrib.auth.models import User; u = User.objects.get(username='admin'); print(f'Staff: {u.is_staff}, Super: {u.is_superuser}, Active: {u.is_active}')"
+
+# Reset the admin user
+railway run python manage.py create_admin --reset
+```
+
+**Issue: "User already exists" error**
+```bash
+# Use the --reset flag to update existing user
+railway run python manage.py create_admin --reset
+```
+
+**Issue: Email verification blocking access**
+- Admin/staff users automatically bypass email verification
+- The `@email_verified_required` decorator checks `user.is_staff`
+- Management command sets `is_email_verified=True` for admin profiles
+
+### Verify All Admin Users
+
+```bash
+# List all staff users
+railway run python manage.py shell -c "from django.contrib.auth.models import User; [print(f'{u.username} - {u.email} - Staff: {u.is_staff}') for u in User.objects.filter(is_staff=True)]"
+
+# Verify admin emails for all staff
+railway run python manage.py verify_admin_emails
+```
+
+### Additional Resources
+
+- **Complete Admin Setup Guide**: See `ADMIN_SETUP_GUIDE.md`
+- **Management Command Code**: `accounts/management/commands/create_admin.py`
+- **Setup Script**: `setup_railway_admin.sh`
 
 ---
 
-**Last Updated**: 8 January 2026
-**Status**: ✅ Ready for Railway Deployment
+## Rollback
