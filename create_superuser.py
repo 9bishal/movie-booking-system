@@ -43,8 +43,10 @@ except User.DoesNotExist:
         password=password
     )
     
-    # Create verified profile
-    UserProfile.objects.create(user=user, is_email_verified=True)
+    # Create verified profile (use get_or_create to avoid duplicates from signals)
+    profile, created = UserProfile.objects.get_or_create(user=user)
+    profile.is_email_verified = True
+    profile.save()
     
     print(f"✅ Superuser created successfully!")
     print(f"   Username: {username}")
