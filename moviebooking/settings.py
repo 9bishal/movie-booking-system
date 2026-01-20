@@ -334,33 +334,24 @@ RAZORPAY_KEY_ID = os.environ.get('RAZORPAY_KEY_ID', '')
 RAZORPAY_KEY_SECRET = os.environ.get('RAZORPAY_KEY_SECRET', '')
 
 # Email Configuration
-# Try Resend API first (works well on cloud platforms), fallback to SMTP
-RESEND_API_KEY = os.environ.get('RESEND_API_KEY', '')
+# Use Gmail SMTP (most reliable for production)
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 
-if RESEND_API_KEY:
-    # Use Resend API for sending emails (best for Railway/cloud)
-    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-    EMAIL_HOST = 'smtp.resend.com'
-    EMAIL_PORT = 587
-    EMAIL_USE_TLS = True
-    EMAIL_HOST_USER = 'resend'
-    EMAIL_HOST_PASSWORD = RESEND_API_KEY
-    DEFAULT_FROM_EMAIL = 'MovieBooking <onboarding@resend.dev>'
-elif EMAIL_HOST_USER and EMAIL_HOST_PASSWORD:
-    # Fallback to Gmail SMTP
+if EMAIL_HOST_USER and EMAIL_HOST_PASSWORD:
+    # Use Gmail SMTP
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
     EMAIL_HOST = 'smtp.gmail.com'
     EMAIL_PORT = 587
     EMAIL_USE_TLS = True
+    EMAIL_USE_SSL = False
     DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 else:
     # Fallback to console backend if no credentials
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
     DEFAULT_FROM_EMAIL = 'noreply@moviebooking.com'
 
-EMAIL_TIMEOUT = 10  # 10 second timeout for email connections
+EMAIL_TIMEOUT = 30  # 30 second timeout for email connections
 
 SITE_URL = os.environ.get('SITE_URL', 'http://localhost:8000')
 
