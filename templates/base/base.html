@@ -175,6 +175,52 @@
             }
         }
 
+        /* Mobile Menu Toggle Button - Hamburger Icon */
+        .navbar-toggler {
+            border: 2px solid rgba(255,255,255,0.5);
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .navbar-toggler:focus {
+            box-shadow: 0 0 0 3px rgba(248, 68, 100, 0.5);
+            outline: none;
+        }
+
+        .navbar-toggler-icon {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 1%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+            width: 28px;
+            height: 28px;
+        }
+
+        /* Mobile Menu Collapsed Styles */
+        @media (max-width: 991.98px) {
+            .navbar-collapse {
+                background: linear-gradient(135deg, var(--secondary-blue) 0%, var(--dark-bg) 100%);
+                padding: 20px;
+                border-radius: 0 0 15px 15px;
+                margin-top: 10px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            }
+
+            .navbar-nav {
+                flex-direction: column;
+                gap: 10px !important;
+            }
+
+            .nav-link-bms {
+                padding: 12px 20px !important;
+                margin: 0 !important;
+                border-radius: 8px;
+                font-size: 1rem !important;
+            }
+
+            .nav-link-bms:hover {
+                background: rgba(255,255,255,0.1);
+            }
+        }
+
         .btn-bms-primary {
             background-color: var(--primary-red);
             color: var(--white);
