@@ -12,6 +12,7 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from django.utils import timezone
 import logging
+import threading
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +24,24 @@ except ImportError:
         def decorator(func):
             return func
         return decorator
+
+
+def send_email_async(email):
+    """
+    Send email in a background thread to avoid blocking the request.
+    This is used when Celery workers are not available.
+    """
+    def _send():
+        try:
+            email.send(fail_silently=True)
+            logger.info(f"✅ Email sent to {email.to}")
+        except Exception as e:
+            logger.error(f"❌ Failed to send email: {e}")
+    
+    thread = threading.Thread(target=_send)
+    thread.daemon = True
+    thread.start()
+    return True
 
 
 class AuthEmailService:
@@ -61,9 +80,10 @@ class AuthEmailService:
             )
             email.attach_alternative(html_message, "text/html")
             
-            result = email.send(fail_silently=False)
+            # Send in background thread to avoid blocking
+            send_email_async(email)
             
-            logger.info(f"✅ Welcome email sent to {user.email} | Result: {result}")
+            logger.info(f"✅ Welcome email queued for {user.email}")
             return True
             
         except Exception as e:
@@ -111,9 +131,10 @@ class AuthEmailService:
             )
             email.attach_alternative(html_message, "text/html")
             
-            result = email.send(fail_silently=False)
+            # Send in background thread to avoid blocking
+            send_email_async(email)
             
-            logger.info(f"✅ Password reset email sent to {user.email} | Result: {result}")
+            logger.info(f"✅ Password reset email queued for {user.email}")
             return True
             
         except Exception as e:
@@ -158,20 +179,12 @@ class AuthEmailService:
             )
             email.attach_alternative(html_message, "text/html")
             
-            # Send the email
-            try:
-                result = email.send(fail_silently=False)
-            except Exception as e:
-                logger.error(f"❌ Failed to send email to {user.email}: {e}")
-                # In production with email failures, log OTP and continue
-                if not settings.DEBUG:
-                    logger.warning(f"⚠️ OTP for {user.email}: {otp} (Email delivery failed)")
-                    return True  # Don't block user flow
-                return False
+            # Send the email in background thread
+            send_email_async(email)
             
-            logger.info(f"✅ Email verification OTP sent to {user.email} | OTP: {otp} | Result: {result}")
+            logger.info(f"✅ Email verification OTP queued for {user.email} | OTP: {otp}")
             print("\n" + "="*60)
-            print("📧 OTP VERIFICATION EMAIL SENT")
+            print("📧 OTP VERIFICATION EMAIL QUEUED")
             print("="*60)
             print(f"   Email: {user.email}")
             print(f"   OTP: {otp}")
@@ -217,9 +230,10 @@ class AuthEmailService:
             )
             email.attach_alternative(html_message, "text/html")
             
-            result = email.send(fail_silently=False)
+            # Send in background thread
+            send_email_async(email)
             
-            logger.info(f"✅ Password changed confirmation sent to {user.email} | Result: {result}")
+            logger.info(f"✅ Password changed confirmation queued for {user.email}")
             return True
             
         except Exception as e:
@@ -259,9 +273,10 @@ class AuthEmailService:
             )
             email.attach_alternative(html_message, "text/html")
             
-            result = email.send(fail_silently=False)
+            # Send in background thread
+            send_email_async(email)
             
-            logger.info(f"✅ Account deactivation email sent to {user.email} | Result: {result}")
+            logger.info(f"✅ Account deactivation email queued for {user.email}")
             return True
             
         except Exception as e:

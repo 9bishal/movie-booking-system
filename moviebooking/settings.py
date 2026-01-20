@@ -73,6 +73,7 @@ except ImportError:
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",  # Serve static files in production
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -167,8 +168,9 @@ CACHES = {
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
             'COMPRESSOR': 'django_redis.compressors.zlib.ZlibCompressor',
-            'SOCKET_CONNECT_TIMEOUT': 5,
-            'SOCKET_TIMEOUT': 5,
+            'SOCKET_CONNECT_TIMEOUT': 2,  # Faster timeout
+            'SOCKET_TIMEOUT': 2,
+            'IGNORE_EXCEPTIONS': True,  # Don't crash if Redis is down
         },
         'KEY_PREFIX': 'moviebooking',
     }
@@ -290,6 +292,9 @@ STATICFILES_DIRS = [
 ]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
+# Whitenoise for serving static files in production
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
@@ -329,23 +334,24 @@ RAZORPAY_KEY_ID = os.environ.get('RAZORPAY_KEY_ID', '')
 RAZORPAY_KEY_SECRET = os.environ.get('RAZORPAY_KEY_SECRET', '')
 
 # Email Configuration
-# Use MailerSend API for email sending via django-anymail
-MAILERSEND_API_KEY = os.environ.get('MAILERSEND_API_KEY', '')
+# Use Gmail SMTP for sending emails
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
+EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'
+EMAIL_USE_SSL = os.environ.get('EMAIL_USE_SSL', 'False') == 'True'
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+EMAIL_TIMEOUT = 10  # 10 second timeout for email connections
 
-if MAILERSEND_API_KEY:
-    # Use Anymail with MailerSend backend
-    EMAIL_BACKEND = 'anymail.backends.mailersend.EmailBackend'
-    ANYMAIL = {
-        'MAILERSEND_API_TOKEN': MAILERSEND_API_KEY,
-    }
+# Choose email backend based on configuration
+if EMAIL_HOST_USER and EMAIL_HOST_PASSWORD:
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 else:
-    # Fallback to console backend if no API key
+    # Fallback to console backend if no credentials
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-# Use your verified domain email
-_default_from = os.environ.get('DEFAULT_FROM_EMAIL') or 'noreply@test-dnvo4d9eq86g5r86.mlsender.net'
-DEFAULT_FROM_EMAIL = _default_from
+# Default sender email
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER or 'noreply@moviebooking.com')
 
 SITE_URL = os.environ.get('SITE_URL', 'http://localhost:8000')
 

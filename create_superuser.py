@@ -21,19 +21,19 @@ try:
     user = User.objects.get(username=username)
     print(f"✅ Superuser '{username}' already exists")
     
-    # Ensure user is superuser and staff
-    if not user.is_superuser or not user.is_staff:
-        user.is_superuser = True
-        user.is_staff = True
-        user.save()
-        print(f"   Updated to superuser status")
+    # Always ensure user is superuser and staff
+    user.is_superuser = True
+    user.is_staff = True
+    user.is_active = True
+    user.set_password(password)  # Reset password to ensure it works
+    user.save()
+    print(f"   Updated: is_staff=True, is_superuser=True, password reset")
     
     # Ensure profile exists with verified email
     profile, created = UserProfile.objects.get_or_create(user=user)
-    if not profile.is_email_verified:
-        profile.is_email_verified = True
-        profile.save()
-        print(f"   Email verified")
+    profile.is_email_verified = True
+    profile.save()
+    print(f"   Email verified")
     
 except User.DoesNotExist:
     # Create new superuser
