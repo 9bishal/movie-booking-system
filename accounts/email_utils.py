@@ -28,25 +28,19 @@ except ImportError:
 
 def send_email_async(email):
     """
-    Send email in a background thread to avoid blocking the request.
-    This is used when Celery workers are not available.
+    Send email synchronously with proper error handling.
+    Background threads have network issues on Railway, so we send directly.
     """
-    def _send():
-        try:
-            # Use fail_silently=False to capture actual SMTP errors
-            result = email.send(fail_silently=False)
-            if result:
-                logger.info(f"✅ Email successfully sent to {email.to}")
-            else:
-                logger.warning(f"⚠️ Email sending returned 0 for {email.to}")
-        except Exception as e:
-            logger.error(f"❌ Failed to send email to {email.to}: {type(e).__name__}: {e}", exc_info=True)
-    
-    thread = threading.Thread(target=_send)
-    thread.daemon = True
-    thread.start()
-    logger.info(f"📧 Email queued in background thread for {email.to}")
-    return True
+    try:
+        result = email.send(fail_silently=False)
+        if result:
+            logger.info(f"✅ Email successfully sent to {email.to}")
+        else:
+            logger.warning(f"⚠️ Email sending returned 0 for {email.to}")
+        return result
+    except Exception as e:
+        logger.error(f"❌ Failed to send email to {email.to}: {type(e).__name__}: {e}", exc_info=True)
+        return False
 
 
 class AuthEmailService:
