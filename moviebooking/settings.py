@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "anymail",
     "accounts",
     "movies",
     "bookings",
@@ -334,21 +335,31 @@ RAZORPAY_KEY_ID = os.environ.get('RAZORPAY_KEY_ID', '')
 RAZORPAY_KEY_SECRET = os.environ.get('RAZORPAY_KEY_SECRET', '')
 
 # Email Configuration
-# Use Gmail SMTP for sending emails
-EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
+# Using MailerSend SMTP (works on Railway where Gmail SMTP is blocked)
+EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.mailersend.net')
 EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
 EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True').lower() in ('true', '1', 'yes')
 EMAIL_USE_SSL = os.environ.get('EMAIL_USE_SSL', 'False').lower() in ('true', '1', 'yes')
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
-EMAIL_TIMEOUT = 30  # 30 second timeout for email connections
+EMAIL_TIMEOUT = 30
 
 if EMAIL_HOST_USER and EMAIL_HOST_PASSWORD:
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-    DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
+    DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@test-dnvo4d9eq86g5r86.mlsender.net')
 else:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
     DEFAULT_FROM_EMAIL = 'noreply@moviebooking.com'
+
+# --- COMMENTED OUT: MailerSend HTTP API approach (keep for fallback) ---
+# MAILERSEND_API_KEY = os.environ.get('MAILERSEND_API_KEY', '')
+# if MAILERSEND_API_KEY:
+#     EMAIL_BACKEND = 'anymail.backends.mailersend.EmailBackend'
+#     ANYMAIL = {
+#         'MAILERSEND_API_TOKEN': MAILERSEND_API_KEY,
+#     }
+#     DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@test-dnvo4d9eq86g5r86.mlsender.net')
+# --- END COMMENTED OUT ---
 
 SITE_URL = os.environ.get('SITE_URL', 'http://localhost:8000')
 
