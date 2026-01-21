@@ -33,14 +33,19 @@ def send_email_async(email):
     """
     def _send():
         try:
-            email.send(fail_silently=True)
-            logger.info(f"✅ Email sent to {email.to}")
+            # Use fail_silently=False to capture actual SMTP errors
+            result = email.send(fail_silently=False)
+            if result:
+                logger.info(f"✅ Email successfully sent to {email.to}")
+            else:
+                logger.warning(f"⚠️ Email sending returned 0 for {email.to}")
         except Exception as e:
-            logger.error(f"❌ Failed to send email: {e}")
+            logger.error(f"❌ Failed to send email to {email.to}: {type(e).__name__}: {e}", exc_info=True)
     
     thread = threading.Thread(target=_send)
     thread.daemon = True
     thread.start()
+    logger.info(f"📧 Email queued in background thread for {email.to}")
     return True
 
 
