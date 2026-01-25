@@ -329,21 +329,24 @@ RAZORPAY_KEY_ID = os.environ.get('RAZORPAY_KEY_ID', '')
 RAZORPAY_KEY_SECRET = os.environ.get('RAZORPAY_KEY_SECRET', '')
 
 # Email Configuration
-# Use MailerSend SMTP
-EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.mailersend.net')
-EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
-EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True').lower() in ('true', '1', 'yes')
-EMAIL_USE_SSL = os.environ.get('EMAIL_USE_SSL', 'False').lower() in ('true', '1', 'yes')
+# Use MailerSend API for email sending via django-anymail
+MAILERSEND_API_KEY = os.environ.get('MAILERSEND_API_KEY', '')
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
-EMAIL_TIMEOUT = int(os.environ.get('EMAIL_TIMEOUT', 60))  # Increased from 30 to 60 seconds
 
-if EMAIL_HOST_USER and EMAIL_HOST_PASSWORD:
-    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# Email Configuration - SendGrid API (HTTP-based, works on Railway)
+SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY', '')
+
+if SENDGRID_API_KEY:
+    # Use SendGrid HTTP API (more reliable than SMTP on Railway)
+    EMAIL_BACKEND = 'anymail.backends.sendgrid.EmailBackend'
+    ANYMAIL = {
+        'SENDGRID_API_TOKEN': SENDGRID_API_KEY,
+    }
     DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@shahbishal.com.np')
 else:
+    # Fallback to console backend if no API key
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-    DEFAULT_FROM_EMAIL = 'noreply@moviebooking.com'
+    DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@moviebooking.com')
 
 SITE_URL = os.environ.get('SITE_URL', 'http://localhost:8000')
 

@@ -12,7 +12,6 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from django.utils import timezone
 import logging
-import time
 
 logger = logging.getLogger(__name__)
 
@@ -24,31 +23,6 @@ except ImportError:
         def decorator(func):
             return func
         return decorator
-
-
-def send_email_with_retry(email, max_retries=3, delay=2):
-    """
-    Send email with retry logic for timeout handling.
-    Railway sometimes has slow SMTP connections, so we retry with exponential backoff.
-    """
-    for attempt in range(max_retries):
-        try:
-            result = email.send(fail_silently=False)
-            logger.info(f"✅ Email sent to {email.to} on attempt {attempt + 1}")
-            return result
-        except (TimeoutError, ConnectionError, OSError) as e:
-            if attempt < max_retries - 1:
-                wait_time = delay * (2 ** attempt)  # Exponential backoff: 2s, 4s, 8s
-                logger.warning(f"⚠️ Email send timeout for {email.to}, retrying in {wait_time}s... (attempt {attempt + 1}/{max_retries})")
-                time.sleep(wait_time)
-            else:
-                logger.error(f"❌ Failed to send email to {email.to} after {max_retries} attempts: {e}")
-                raise
-        except Exception as e:
-            logger.error(f"❌ Failed to send email to {email.to}: {e}")
-            raise
-    
-    return False
 
 
 class AuthEmailService:
@@ -87,7 +61,7 @@ class AuthEmailService:
             )
             email.attach_alternative(html_message, "text/html")
             
-            result = send_email_with_retry(email)
+            result = email.send(fail_silently=False)
             
             logger.info(f"✅ Welcome email sent to {user.email} | Result: {result}")
             return True
@@ -137,7 +111,7 @@ class AuthEmailService:
             )
             email.attach_alternative(html_message, "text/html")
             
-            result = send_email_with_retry(email)
+            result = email.send(fail_silently=False)
             
             logger.info(f"✅ Password reset email sent to {user.email} | Result: {result}")
             return True
@@ -186,7 +160,7 @@ class AuthEmailService:
             
             # Send the email
             try:
-                result = send_email_with_retry(email)
+                result = email.send(fail_silently=False)
             except Exception as e:
                 logger.error(f"❌ Failed to send email to {user.email}: {e}")
                 # In production with email failures, log OTP and continue
@@ -243,7 +217,7 @@ class AuthEmailService:
             )
             email.attach_alternative(html_message, "text/html")
             
-            result = send_email_with_retry(email)
+            result = email.send(fail_silently=False)
             
             logger.info(f"✅ Password changed confirmation sent to {user.email} | Result: {result}")
             return True
@@ -285,7 +259,7 @@ class AuthEmailService:
             )
             email.attach_alternative(html_message, "text/html")
             
-            result = send_email_with_retry(email)
+            result = email.send(fail_silently=False)
             
             logger.info(f"✅ Account deactivation email sent to {user.email} | Result: {result}")
             return True

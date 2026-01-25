@@ -4,7 +4,6 @@ djangorestframework==3.14.0
 django-cors-headers==4.3.1
 django-ratelimit==4.1.0
 django-filter==24.1
-django-anymail[mailersend]==10.2
 
 # Database
 psycopg2-binary==2.9.9
