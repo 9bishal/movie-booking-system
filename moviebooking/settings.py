@@ -54,7 +54,6 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "anymail",
     "accounts",
     "movies",
     "bookings",
@@ -74,7 +73,6 @@ except ImportError:
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",  # Serve static files in production
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -169,9 +167,8 @@ CACHES = {
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
             'COMPRESSOR': 'django_redis.compressors.zlib.ZlibCompressor',
-            'SOCKET_CONNECT_TIMEOUT': 2,  # Faster timeout
-            'SOCKET_TIMEOUT': 2,
-            'IGNORE_EXCEPTIONS': True,  # Don't crash if Redis is down
+            'SOCKET_CONNECT_TIMEOUT': 5,
+            'SOCKET_TIMEOUT': 5,
         },
         'KEY_PREFIX': 'moviebooking',
     }
@@ -293,9 +290,6 @@ STATICFILES_DIRS = [
 ]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-# Whitenoise for serving static files in production
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
@@ -335,7 +329,7 @@ RAZORPAY_KEY_ID = os.environ.get('RAZORPAY_KEY_ID', '')
 RAZORPAY_KEY_SECRET = os.environ.get('RAZORPAY_KEY_SECRET', '')
 
 # Email Configuration
-# Using MailerSend SMTP (works on Railway where Gmail SMTP is blocked)
+# Use MailerSend SMTP
 EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.mailersend.net')
 EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
 EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True').lower() in ('true', '1', 'yes')
@@ -346,20 +340,10 @@ EMAIL_TIMEOUT = 30
 
 if EMAIL_HOST_USER and EMAIL_HOST_PASSWORD:
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-    DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@test-dnvo4d9eq86g5r86.mlsender.net')
+    DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@shahbishal.com.np')
 else:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
     DEFAULT_FROM_EMAIL = 'noreply@moviebooking.com'
-
-# --- COMMENTED OUT: MailerSend HTTP API approach (keep for fallback) ---
-# MAILERSEND_API_KEY = os.environ.get('MAILERSEND_API_KEY', '')
-# if MAILERSEND_API_KEY:
-#     EMAIL_BACKEND = 'anymail.backends.mailersend.EmailBackend'
-#     ANYMAIL = {
-#         'MAILERSEND_API_TOKEN': MAILERSEND_API_KEY,
-#     }
-#     DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@test-dnvo4d9eq86g5r86.mlsender.net')
-# --- END COMMENTED OUT ---
 
 SITE_URL = os.environ.get('SITE_URL', 'http://localhost:8000')
 
