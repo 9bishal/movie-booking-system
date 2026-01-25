@@ -27,8 +27,8 @@ try:
     result = send_mail(
         subject='🎬 Test 1: Simple Email',
         message='This is a simple text email. If you receive this, basic email works!',
-        from_email=settings.EMAIL_HOST_USER,
-        recipient_list=[settings.EMAIL_HOST_USER],
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=['shahvishal.9090@gmail.com'],
         fail_silently=False,
     )
     print(f"✅ Simple email sent! (result: {result})")
@@ -72,8 +72,8 @@ try:
     email = EmailMultiAlternatives(
         subject='🎬 Test 2: HTML Email',
         body='Plain text version',
-        from_email=settings.EMAIL_HOST_USER,
-        to=[settings.EMAIL_HOST_USER]
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        to=['shahvishal.9090@gmail.com']
     )
     email.attach_alternative(html_content, "text/html")
     email.send()
@@ -126,8 +126,8 @@ try:
     email = EmailMultiAlternatives(
         subject='🎫 Test 3: Booking with QR Code',
         body='Plain text version with QR code attached',
-        from_email=settings.EMAIL_HOST_USER,
-        to=[settings.EMAIL_HOST_USER]
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        to=['shahvishal.9090@gmail.com']
     )
     email.attach_alternative(html_with_qr, "text/html")
     email.attach('ticket_qr_code.png', qr_image, 'image/png')
@@ -140,7 +140,7 @@ except Exception as e:
 print("\n" + "=" * 70)
 print("  ✅ ALL TESTS COMPLETED!")
 print("=" * 70)
-print(f"\n📬 Check your inbox: {settings.EMAIL_HOST_USER}")
+print(f"\n📬 Check your inbox: shahvishal.9090@gmail.com")
 print("\nYou should have received 3 emails:")
 print("  1. ✅ Simple text email")
 print("  2. ✅ Beautiful HTML email with styling")
