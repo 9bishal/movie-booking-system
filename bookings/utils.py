@@ -211,10 +211,6 @@ class SeatManager:
         # Save the updated list back to cache
         cache.set(cache_key, reserved_seats, timeout=settings.SEAT_RESERVATION_TIMEOUT)
         return True
-        
-        # Save the updated list back to cache
-        cache.set(cache_key, reserved_seats, timeout=settings.SEAT_RESERVATION_TIMEOUT)
-        return True
     
     @staticmethod
     def confirm_seats(showtime_id, seat_ids):
