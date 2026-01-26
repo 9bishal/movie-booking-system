@@ -323,10 +323,13 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'Asia/Kolkata'
 
-# Development mode: Execute tasks synchronously (no worker needed)
-if DEBUG:
-    CELERY_TASK_ALWAYS_EAGER = True
-    CELERY_TASK_EAGER_PROPAGATES = True
+# 🚀 CRITICAL: Execute tasks synchronously (no worker/beat services needed)
+# WHY: Railway free tier has limited memory. Without workers, we run sync.
+# HOW: CELERY_TASK_ALWAYS_EAGER makes .delay() calls run immediately
+# WHEN: Always on, both development and production
+# NOTE: This works fine for small-scale apps (emails, notifications)
+CELERY_TASK_ALWAYS_EAGER = True
+CELERY_TASK_EAGER_PROPAGATES = True
 
 # Razorpay Configuration
 RAZORPAY_KEY_ID = os.environ.get('RAZORPAY_KEY_ID', '')
