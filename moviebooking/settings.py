@@ -347,8 +347,19 @@ if SENDGRID_API_KEY:
         'SENDGRID_API_TOKEN': SENDGRID_API_KEY,
     }
     DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@shahbishal.com.np')
+elif not DEBUG:
+    # Production: Log error if no email backend configured
+    # This will help us debug email issues
+    import warnings
+    warnings.warn(
+        "⚠️  WARNING: SENDGRID_API_KEY not set in production! "
+        "Emails will use console backend (no emails will be sent). "
+        "Please set SENDGRID_API_KEY environment variable."
+    )
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@moviebooking.com')
 else:
-    # Fallback to console backend if no API key
+    # Development: Use console backend for testing
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
     DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@moviebooking.com')
 
