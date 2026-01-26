@@ -219,13 +219,24 @@ class SeatManager:
         SeatManager.release_seats(showtime_id, seat_ids)
         
         # 2. Permanently remove from the 'Available' list on our "Clipboard"
+        # 🔐 CRITICAL BUG FIX: Don't update cache if it doesn't exist
+        # WHY: If cache expired or doesn't exist, we should rebuild from DB instead
+        # of saving an empty list which would mark ALL seats as booked!
+        # HOW: Only update the cache if it exists in memory
         cache_key = f"available_seats_{showtime_id}"
-        available_seats = cache.get(cache_key) or []
-        for sid in seat_ids:
-            if sid in available_seats: available_seats.remove(sid)
+        available_seats = cache.get(cache_key)
         
-        # Save the updated 'Available' list so others see these seats as taken
-        cache.set(cache_key, available_seats, timeout=3600)
+        # Only update the cache if it was previously set (exists in Redis/Cache)
+        # If cache is None/missing, let get_available_seats() rebuild it from DB on next call
+        if available_seats is not None:
+            # Cache exists, update it by removing the confirmed seats
+            for sid in seat_ids:
+                if sid in available_seats: 
+                    available_seats.remove(sid)
+            # Save the updated 'Available' list so others see these seats as taken
+            cache.set(cache_key, available_seats, timeout=3600)
+        # else: Cache doesn't exist, skip update. It will be rebuilt from DB on next call
+        
         return True
 
     @staticmethod
