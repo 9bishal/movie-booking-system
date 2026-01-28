@@ -583,23 +583,11 @@ def payment_failed(request, booking_id):
         # Both from Redis cache and clear user reservation key
         SeatManager.release_seats(booking.showtime.id, booking.seats, user_id=booking.user.id)
         
-        # 🛡️ CRITICAL: Only queue failure email AFTER confirming payment_received_at is still NOT set
-        # This prevents race condition where webhook sets payment_received_at after we check but before email task runs
-        # Re-check one more time AFTER marking as FAILED and AFTER releasing seats
-        booking.refresh_from_db()
-        if not booking.payment_received_at and not booking.failure_email_sent:
+        # Send payment failed email (Async) - only if not already sent
+        # The email utility has its own idempotency check - don't reset the flag here
+        if not booking.failure_email_sent:
             from .email_utils import send_payment_failed_email
             send_payment_failed_email.delay(booking.id)
-        elif booking.payment_received_at:
-            # Payment succeeded in the meantime - don't send failure email
-            logger.warning(
-                f"⚠️ Race condition detected: payment_received_at was set after we marked FAILED for {booking.booking_number}. "
-                f"Marking as CONFIRMED instead."
-            )
-            booking.status = 'CONFIRMED'
-            booking.save()
-            messages.success(request, 'Ticket booked successfully!')
-            return redirect('booking_detail', booking_id=booking.id)
     
     messages.error(request, 'Payment was unsuccessful. Your seats have been released.')
     return redirect('select_seats', showtime_id=booking.showtime.id)
@@ -806,18 +794,10 @@ def cancel_booking_api(request, booking_id):
             booking.save()
         
         # Email sending happens OUTSIDE the transaction
-        # 🛡️ CRITICAL: Re-check one more time BEFORE queuing failure email
-        # Prevents race condition where webhook sets payment_received_at after transaction commits
-        booking.refresh_from_db()
-        if not booking.payment_received_at and not booking.failure_email_sent:
+        # Send payment failed email (Async) - Modal was closed/abandoned
+        if not booking.failure_email_sent:
             from .email_utils import send_payment_failed_email
             send_payment_failed_email.delay(booking.id)
-        elif booking.payment_received_at:
-            # Payment succeeded in the meantime - don't queue failure email
-            logger.warning(
-                f"⚠️ Race condition detected: payment succeeded after we marked FAILED for {booking.booking_number}. "
-                f"Status will be corrected by webhook."
-            )
         
         # 🛡️ CRITICAL: Release seats from Redis
         SeatManager.release_seats(showtime_id, booking.seats, user_id=request.user.id)
@@ -902,19 +882,10 @@ def release_booking_beacon(request, booking_id):
             booking.save()
         
         # Email sending happens OUTSIDE the transaction
-        # 🛡️ CRITICAL: Re-check one more time BEFORE queuing failure email
-        # Prevents race condition where webhook sets payment_received_at after transaction commits
-        booking.refresh_from_db()
-        if not booking.payment_received_at and not booking.failure_email_sent:
-            from .email_utils import send_payment_failed_email
-            send_payment_failed_email.delay(booking.id)
-        elif booking.payment_received_at:
-            # Payment succeeded in the meantime - don't queue failure email
-            logger.warning(
-                f"⚠️ Race condition detected: payment succeeded after we marked FAILED for {booking.booking_number} via beacon. "
-                f"Status will be corrected by webhook."
-            )
-            return HttpResponse(status=200)
+        # Send payment failed email (Async) - Tab was closed during payment
+        # if not booking.failure_email_sent:
+        #     from .email_utils import send_payment_failed_email
+        #     send_payment_failed_email.delay(booking.id)
         
         # 🛡️ CRITICAL: Release seats from both Redis cache and user reservation key
         SeatManager.release_seats(booking.showtime.id, booking.seats, user_id=booking.user.id)
