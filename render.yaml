@@ -1,0 +1,31 @@
+# Render deployment configuration for Movie Booking System
+# To deploy on Render, push this file and use the Render CLI or dashboard.
+# For Railway, comment out this file and use your existing Railway setup.
+
+services:
+  - type: web
+    name: movie-booking-system
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn moviebooking.wsgi:application
+    plan: free
+    envVars:
+      - key: SECRET_KEY
+        sync: false
+      - key: DEBUG
+        value: "False"
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
+      - key: SENDGRID_API_KEY
+        sync: false
+      - key: DEFAULT_FROM_EMAIL
+        sync: false
+      - key: SITE_URL
+        sync: false
+# To use Railway, comment out this file and use your Railway dashboard or CLI.
