@@ -161,6 +161,13 @@ class AuthEmailService:
             # Send the email
             try:
                 result = email.send(fail_silently=False)
+                if result == 0:
+                    # Email send returned 0 (no emails sent)
+                    logger.error(f"❌ Failed to send email to {user.email}: Email backend returned 0")
+                    if not settings.DEBUG:
+                        logger.warning(f"⚠️ OTP for {user.email}: {otp} (Email delivery failed)")
+                        return True  # Don't block user flow
+                    return False
             except Exception as e:
                 logger.error(f"❌ Failed to send email to {user.email}: {e}")
                 # In production with email failures, log OTP and continue
