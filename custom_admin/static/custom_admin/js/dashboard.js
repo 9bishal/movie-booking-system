@@ -53,16 +53,50 @@ class AdminDashboard {
     }
 
     /**
-     * Initialize dashboard by loading all data
+     * Get CSRF token from cookie
+     * Required for Django POST requests
+     */
+    getCsrfToken() {
+        const name = 'csrftoken';
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    /**
+     * Get fetch headers with CSRF token for API calls
+     */
+    getFetchHeaders() {
+        return {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': this.getCsrfToken() || '',
+        };
+    }
+
+    /**
+     * Initialize dashboard by loading all data and setting up filters
      * 
      * Called automatically on page load via DOMContentLoaded event.
      * Loads stats, revenue data, bookings, and theaters in parallel.
+     * Sets up filter event listeners.
      */
     async init() {
         if (this.isLoading) return;
         this.isLoading = true;
         
         try {
+            // Setup filter event listeners
+            this.setupFilters();
+            
             // Load all data concurrently
             await Promise.all([
                 this.loadStats(),
@@ -78,6 +112,130 @@ class AdminDashboard {
     }
 
     /**
+     * Setup filter event listeners
+     * Attaches handlers to date range, movie, and theater filters
+     */
+    setupFilters() {
+        const self = this;
+        const applyFiltersBtn = document.getElementById('applyFiltersBtn');
+        const resetFiltersBtn = document.getElementById('resetFiltersBtn');
+        const dateFromEl = document.getElementById('dateFrom');
+        const dateToEl = document.getElementById('dateTo');
+        const movieEl = document.getElementById('movieFilter');
+        const theaterEl = document.getElementById('theaterFilter');
+        
+        // Bind apply filters button
+        if (applyFiltersBtn) {
+            applyFiltersBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('Apply filters button clicked');
+                self.applyFilters();
+            });
+        } else {
+            console.warn('Apply filters button not found');
+        }
+        
+        // Bind reset filters button
+        if (resetFiltersBtn) {
+            resetFiltersBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('Reset filters button clicked');
+                self.resetFilters();
+            });
+        } else {
+            console.warn('Reset filters button not found');
+        }
+        
+        // Allow Enter key to apply filters
+        if (dateFromEl) {
+            dateFromEl.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    self.applyFilters();
+                }
+            });
+        }
+        
+        if (dateToEl) {
+            dateToEl.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    self.applyFilters();
+                }
+            });
+        }
+        
+        // Auto-apply filters when dropdown changes
+        if (movieEl) {
+            movieEl.addEventListener('change', function() {
+                self.applyFilters();
+            });
+        }
+        
+        if (theaterEl) {
+            theaterEl.addEventListener('change', function() {
+                self.applyFilters();
+            });
+        }
+        
+        // Load movies and theaters into dropdowns
+        this.loadFilterDropdowns();
+        
+        console.log('Filter event listeners setup complete');
+    }
+
+    /**
+     * Apply filters and reload dashboard
+     */
+    async applyFilters() {
+        const dateFrom = document.getElementById('dateFrom')?.value || '';
+        const dateTo = document.getElementById('dateTo')?.value || '';
+        const movieId = document.getElementById('movieFilter')?.value || '';
+        const theaterId = document.getElementById('theaterFilter')?.value || '';
+        
+        console.log('Applying filters:', { dateFrom, dateTo, movieId, theaterId });
+        
+        if (this.isLoading) {
+            console.warn('Dashboard is already loading, please wait...');
+            return;
+        }
+        this.isLoading = true;
+        
+        try {
+            console.log('Loading stats, revenue, and bookings with filters...');
+            await Promise.all([
+                this.loadStats(dateFrom, dateTo, movieId, theaterId),
+                this.loadRevenue(dateFrom, dateTo, movieId, theaterId),
+                this.loadBookings(dateFrom, dateTo, movieId, theaterId)
+            ]);
+            console.log('All dashboard data loaded successfully');
+        } catch (error) {
+            console.error('Error applying filters:', error);
+            this.showError('Failed to apply filters. Please try again.');
+        } finally {
+            this.isLoading = false;
+        }
+    }
+
+    /**
+     * Reset all filters and reload dashboard
+     */
+    async resetFilters() {
+        const dateFromEl = document.getElementById('dateFrom');
+        const dateToEl = document.getElementById('dateTo');
+        const movieEl = document.getElementById('movieFilter');
+        const theaterEl = document.getElementById('theaterFilter');
+        
+        if (dateFromEl) dateFromEl.value = '';
+        if (dateToEl) dateToEl.value = '';
+        if (movieEl) movieEl.value = '';
+        if (theaterEl) theaterEl.value = '';
+        
+        console.log('Filters reset, reloading data...');
+        await this.applyFilters();
+    }
+
+    /**
      * Load and display summary statistics
      * 
      * Fetches: Total revenue, today's revenue, total bookings, today's bookings
@@ -85,15 +243,31 @@ class AdminDashboard {
      * 
      * API: GET /custom-admin/api/stats/
      * Returns: {total_revenue, today_revenue, total_bookings, today_bookings}
+     * 
+     * @param {string} dateFrom - Start date filter (YYYY-MM-DD)
+     * @param {string} dateTo - End date filter (YYYY-MM-DD)
+     * @param {string} movieId - Movie ID filter
+     * @param {string} theaterId - Theater ID filter
      */
-    async loadStats() {
+    async loadStats(dateFrom = '', dateTo = '', movieId = '', theaterId = '') {
         try {
-            const response = await fetch(`${this.apiBaseUrl}/stats/`);
+            const params = new URLSearchParams();
+            if (dateFrom) params.append('date_from', dateFrom);
+            if (dateTo) params.append('date_to', dateTo);
+            if (movieId) params.append('movie_id', movieId);
+            if (theaterId) params.append('theater_id', theaterId);
+            
+            const queryString = params.toString() ? `?${params.toString()}` : '';
+            const url = `${this.apiBaseUrl}/stats/${queryString}`;
+            console.log('Fetching stats from:', url);
+            
+            const response = await fetch(url);
             if (!response.ok) {
                 throw new Error(`Stats API error: ${response.status}`);
             }
             
             const data = await response.json();
+            console.log('Stats data received:', data);
             
             // Validate data
             if (typeof data.total_revenue !== 'number' || 
@@ -146,15 +320,32 @@ class AdminDashboard {
      * 
      * API: GET /custom-admin/api/revenue/?days=30
      * Returns: {dates: [...], revenues: [...]}
+     * 
+     * @param {string} dateFrom - Start date filter (YYYY-MM-DD)
+     * @param {string} dateTo - End date filter (YYYY-MM-DD)
+     * @param {string} movieId - Movie ID filter
+     * @param {string} theaterId - Theater ID filter
      */
-    async loadRevenue() {
+    async loadRevenue(dateFrom = '', dateTo = '', movieId = '', theaterId = '') {
         try {
-            const response = await fetch(`${this.apiBaseUrl}/revenue/?days=30`);
+            const params = new URLSearchParams();
+            params.append('days', '30');
+            if (dateFrom) params.append('date_from', dateFrom);
+            if (dateTo) params.append('date_to', dateTo);
+            if (movieId) params.append('movie_id', movieId);
+            if (theaterId) params.append('theater_id', theaterId);
+            
+            const queryString = params.toString() ? `?${params.toString()}` : '';
+            const url = `${this.apiBaseUrl}/revenue/${queryString}`;
+            console.log('Fetching revenue from:', url);
+            
+            const response = await fetch(url);
             if (!response.ok) {
                 throw new Error(`Revenue API error: ${response.status}`);
             }
             
             const data = await response.json();
+            console.log('Revenue data received:', data);
             
             // Validate data
             if (!Array.isArray(data.dates) || !Array.isArray(data.revenues)) {
@@ -181,12 +372,30 @@ class AdminDashboard {
      * 
      * API: GET /custom-admin/api/bookings/
      * Returns: {movies: [...], bookings: [...]}
+     * 
+     * @param {string} dateFrom - Start date filter (YYYY-MM-DD)
+     * @param {string} dateTo - End date filter (YYYY-MM-DD)
+     * @param {string} movieId - Movie ID filter
+     * @param {string} theaterId - Theater ID filter
      */
-    async loadBookings() {
+    async loadBookings(dateFrom = '', dateTo = '', movieId = '', theaterId = '') {
         try {
+            const params = new URLSearchParams();
+            if (dateFrom) params.append('date_from', dateFrom);
+            if (dateTo) params.append('date_to', dateTo);
+            if (movieId) params.append('movie_id', movieId);
+            if (theaterId) params.append('theater_id', theaterId);
+            
+            const queryString = params.toString() ? `?${params.toString()}` : '';
+            const bookingsUrl = `${this.apiBaseUrl}/bookings/${queryString}`;
+            const theatersUrl = `${this.apiBaseUrl}/theaters/${queryString}`;
+            
+            console.log('Fetching bookings from:', bookingsUrl);
+            console.log('Fetching theaters from:', theatersUrl);
+            
             const [bookingsResponse, theatersResponse] = await Promise.all([
-                fetch(`${this.apiBaseUrl}/bookings/`),
-                fetch(`${this.apiBaseUrl}/theaters/`)
+                fetch(bookingsUrl),
+                fetch(theatersUrl)
             ]);
             
             if (!bookingsResponse.ok) {
@@ -194,6 +403,7 @@ class AdminDashboard {
             }
             
             const bookingsData = await bookingsResponse.json();
+            console.log('Bookings data received:', bookingsData);
             
             // Validate bookings data
             if (!Array.isArray(bookingsData.movies) || !Array.isArray(bookingsData.bookings)) {
@@ -201,6 +411,7 @@ class AdminDashboard {
             }
             
             // Render top movies bar chart
+            console.log('About to render movies chart with:', bookingsData.movies);
             this.renderMoviesChart(bookingsData.movies);
             // Populate recent bookings table
             this.renderBookingsTable(bookingsData.bookings);
@@ -208,14 +419,103 @@ class AdminDashboard {
             // Handle theaters data if available
             if (theatersResponse.ok) {
                 const theatersData = await theatersResponse.json();
+                console.log('Theaters data received:', theatersData);
                 if (Array.isArray(theatersData.theaters)) {
+                    console.log('About to render theaters chart with:', theatersData.theaters);
                     this.renderTheatersChart(theatersData.theaters);
+                } else {
+                    console.warn('Theaters data is not an array:', theatersData);
                 }
+            } else {
+                console.error('Theaters API failed:', theatersResponse.status);
             }
         } catch (error) {
             console.error('Error loading bookings:', error);
             this.showError('Failed to load bookings and theater data.');
         }
+    }
+
+    /**
+     * Load movies and theaters into filter dropdowns
+     */
+    async loadFilterDropdowns() {
+        console.log('[loadFilterDropdowns] Starting...');
+        
+        // Load movies list
+        console.log('[loadFilterDropdowns] Fetching movies...');
+        const moviesUrl = `${this.apiBaseUrl}/movies-list/`;
+        console.log('[loadFilterDropdowns] Movies URL:', moviesUrl);
+        
+        try {
+            const moviesResponse = await fetch(moviesUrl);
+            console.log('[loadFilterDropdowns] Movies response received, status:', moviesResponse.status);
+            
+            if (moviesResponse.ok) {
+                const moviesData = await moviesResponse.json();
+                console.log('[loadFilterDropdowns] Movies data:', moviesData);
+                
+                const movieSelect = document.getElementById('movieFilter');
+                console.log('[loadFilterDropdowns] Movie select element:', movieSelect);
+                
+                if (movieSelect && Array.isArray(moviesData.movies)) {
+                    console.log('[loadFilterDropdowns] Found', moviesData.movies.length, 'movies');
+                    
+                    moviesData.movies.forEach(movie => {
+                        console.log('[loadFilterDropdowns] Creating option for movie:', movie);
+                        const option = document.createElement('option');
+                        option.value = String(movie.id);
+                        option.textContent = String(movie.title);
+                        movieSelect.appendChild(option);
+                        console.log('[loadFilterDropdowns] Option added for:', movie.title);
+                    });
+                    
+                    console.log('[loadFilterDropdowns] Finished adding movies. Total options:', movieSelect.options.length);
+                }
+            } else {
+                console.error('[loadFilterDropdowns] Movies API returned status:', moviesResponse.status);
+            }
+        } catch (error) {
+            console.error('[loadFilterDropdowns] Error fetching movies:', error);
+        }
+
+        // Load theaters list
+        console.log('[loadFilterDropdowns] Fetching theaters...');
+        const theatersUrl = `${this.apiBaseUrl}/theaters-list/`;
+        console.log('[loadFilterDropdowns] Theaters URL:', theatersUrl);
+        
+        try {
+            const theatersResponse = await fetch(theatersUrl);
+            console.log('[loadFilterDropdowns] Theaters response received, status:', theatersResponse.status);
+            
+            if (theatersResponse.ok) {
+                const theatersData = await theatersResponse.json();
+                console.log('[loadFilterDropdowns] Theaters data:', theatersData);
+                
+                const theaterSelect = document.getElementById('theaterFilter');
+                console.log('[loadFilterDropdowns] Theater select element:', theaterSelect);
+                
+                if (theaterSelect && Array.isArray(theatersData.theaters)) {
+                    console.log('[loadFilterDropdowns] Found', theatersData.theaters.length, 'theaters');
+                    
+                    theatersData.theaters.forEach(theater => {
+                        console.log('[loadFilterDropdowns] Creating option for theater:', theater);
+                        const option = document.createElement('option');
+                        option.value = String(theater.id);
+                        option.textContent = String(theater.name);
+                        theaterSelect.appendChild(option);
+                        console.log('[loadFilterDropdowns] Option added for:', theater.name);
+                    });
+                    
+                    console.log('[loadFilterDropdowns] Finished adding theaters. Total options:', theaterSelect.options.length);
+                }
+            } else {
+                console.error('[loadFilterDropdowns] Theaters API returned status:', theatersResponse.status);
+            }
+        } catch (error) {
+            console.error('[loadFilterDropdowns] Error fetching theaters:', error);
+        }
+        
+        console.log('[loadFilterDropdowns] Complete');
     }
 
     /**
@@ -234,15 +534,24 @@ class AdminDashboard {
         const ctx = document.getElementById('revenueChart');
         if (!ctx) return;
         
+        // Destroy previous chart instance
+        if (this.charts.revenue) {
+            this.charts.revenue.destroy();
+        }
+        
         // Validate chart data
         if (!data || !data.dates || !data.revenues || data.dates.length === 0) {
             console.warn('No revenue data to render');
+            ctx.parentElement.innerHTML = '<div class="text-center text-muted py-5"><em>No revenue data available</em></div>';
             return;
         }
         
-        // Destroy previous chart instance to prevent memory leaks
-        if (this.charts.revenue) {
-            this.charts.revenue.destroy();
+        // Check if there's any actual revenue data (not all zeros)
+        const hasData = data.revenues.some(v => v > 0);
+        if (!hasData) {
+            console.warn('No revenue data (all zeros)');
+            ctx.parentElement.innerHTML = '<div class="text-center text-muted py-5"><em>No revenue data available for the selected filters</em></div>';
+            return;
         }
 
         try {
@@ -348,15 +657,24 @@ class AdminDashboard {
         const ctx = document.getElementById('moviesChart');
         if (!ctx) return;
         
-        // Validate movie data
-        if (!Array.isArray(movies) || movies.length === 0) {
-            console.warn('No movie data to render');
-            return;
-        }
-        
         // Clean up previous instance
         if (this.charts.movies) {
             this.charts.movies.destroy();
+        }
+        
+        // Validate movie data
+        if (!Array.isArray(movies) || movies.length === 0) {
+            console.warn('No movie data to render');
+            ctx.parentElement.innerHTML = '<div class="text-center text-muted py-5"><em>No movie data available</em></div>';
+            return;
+        }
+        
+        // Check if there's any actual booking data (not all zeros)
+        const hasData = movies.some(m => m.bookings > 0);
+        if (!hasData) {
+            console.warn('No movie data (all zeros)');
+            ctx.parentElement.innerHTML = '<div class="text-center text-muted py-5"><em>No movie data available for the selected filters</em></div>';
+            return;
         }
 
         try {
@@ -443,15 +761,24 @@ class AdminDashboard {
         const ctx = document.getElementById('theatersChart');
         if (!ctx) return;
         
-        // Validate theater data
-        if (!Array.isArray(theaters) || theaters.length === 0) {
-            console.warn('No theater data to render');
-            return;
-        }
-        
         // Clean up previous instance
         if (this.charts.theaters) {
             this.charts.theaters.destroy();
+        }
+        
+        // Validate theater data
+        if (!Array.isArray(theaters) || theaters.length === 0) {
+            console.warn('No theater data to render');
+            ctx.parentElement.innerHTML = '<div class="text-center text-muted py-5"><em>No theater data available</em></div>';
+            return;
+        }
+        
+        // Check if there's any actual revenue data (not all zeros)
+        const hasData = theaters.some(t => t.revenue > 0);
+        if (!hasData) {
+            console.warn('No theater data (all zeros)');
+            ctx.parentElement.innerHTML = '<div class="text-center text-muted py-5"><em>No theater data available for the selected filters</em></div>';
+            return;
         }
 
         try {

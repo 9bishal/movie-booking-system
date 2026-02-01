@@ -1,31 +1,54 @@
 # Render deployment configuration for Movie Booking System
-# To deploy on Render, push this file and use the Render CLI or dashboard.
-# For Railway, comment out this file and use your existing Railway setup.
 
 services:
+  # PostgreSQL Database
+  - type: pserv
+    name: movie-booking-db
+    env: docker
+    plan: free
+    region: oregon
+    
+  # Redis Cache
+  - type: redis
+    name: movie-booking-redis
+    plan: free
+    region: oregon
+    maxmemoryPolicy: allkeys-lru
+
+  # Web Service
   - type: web
     name: movie-booking-system
     env: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn moviebooking.wsgi:application
+    region: oregon
     plan: free
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn moviebooking.wsgi:application"
     envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.0"
       - key: SECRET_KEY
-        sync: false
+        generateValue: true
       - key: DEBUG
         value: "False"
       - key: DATABASE_URL
-        sync: false
+        fromDatabase:
+          name: movie-booking-db
+          property: connectionString
       - key: REDIS_URL
-        sync: false
+        fromService:
+          name: movie-booking-redis
+          type: redis
+          property: connectionString
       - key: RAZORPAY_KEY_ID
         sync: false
       - key: RAZORPAY_KEY_SECRET
         sync: false
-      - key: SENDGRID_API_KEY
+      - key: MAILERSEND_API_KEY
         sync: false
       - key: DEFAULT_FROM_EMAIL
-        sync: false
+        value: "noreply@yourdomain.com"
       - key: SITE_URL
-        sync: false
-# To use Railway, comment out this file and use your Railway dashboard or CLI.
+        value: "https://movie-booking-system.onrender.com"
+      - key: ALLOWED_HOSTS
+        value: ".onrender.com"
+
