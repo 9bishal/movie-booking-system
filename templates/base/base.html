@@ -14,6 +14,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Mobile Responsive Styles -->
+    <link rel="stylesheet" href="{% static 'css/mobile-responsive.css' %}">
     
     <style>
         /* Modernized Cinematic Palette */
@@ -109,69 +111,42 @@
             white-space: nowrap;
         }
 
-        /* Improved mobile responsiveness */
-        @media (max-width: 1200px) {
+        .user-name-display {
+            max-width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Hide nav text on horizontal navbar for small screens */
+        @media (min-width: 992px) and (max-width: 1200px) {
             .user-name-text {
+                max-width: 100px;
+            }
+            .user-name-display {
                 max-width: 100px;
             }
         }
 
-        /* Compact navigation for smaller screens */
-        @media (max-width: 992px) {
-            .nav-link-bms {
-                margin: 0 4px;
-                padding: 8px 12px !important;
-                font-size: 0.9rem;
-            }
-            
-            .navbar-brand-bms {
-                font-size: 1.6rem;
-            }
-            
-            .user-name-text {
-                max-width: 80px;
-            }
-
-            .navbar-nav {
-                gap: 0.1rem;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .nav-link-bms {
-                margin: 0 2px;
-                padding: 8px 8px !important;
-                font-size: 0.85rem;
-            }
-            
-            .navbar-brand-bms {
-                font-size: 1.4rem;
-            }
-            
-            .navbar-brand-bms i {
-                font-size: 1.6rem;
-                margin-right: 8px;
-            }
-            
-            /* Hide text on small screens, keep icons */
-            .nav-text-hide-sm {
+        /* Compact navigation for smaller screens - hide text, keep icons */
+        @media (max-width: 991px) {
+            /* When navbar is NOT collapsed (horizontal), hide text */
+            .navbar-collapse:not(.show) .nav-text {
                 display: none;
             }
-
-            .navbar-nav {
-                gap: 0;
-            }
-        }
-
-        @media (max-width: 576px) {
-            .navbar-brand-bms {
-                font-size: 1.2rem;
+            
+            .navbar-collapse:not(.show) .user-name-display {
+                display: none;
             }
             
-            .nav-link-bms {
-                margin: 0 1px;
-                padding: 6px 6px !important;
-                font-size: 0.8rem;
+            /* When navbar IS collapsed (vertical menu), show text */
+            .navbar-collapse.show .nav-text {
+                display: inline !important;
+            }
+            
+            .navbar-collapse.show .user-name-display {
+                display: inline !important;
+                max-width: none;
             }
         }
 
@@ -971,23 +946,23 @@
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
                         <a class="nav-link-bms nav-link {% if request.path == '/' %}active{% endif %}" href="{% url 'home' %}">
-                            <i class="fas fa-home me-1"></i><span class="d-none d-sm-inline">Home</span>
+                            <i class="fas fa-home me-2"></i><span class="nav-text">Home</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link-bms nav-link {% if 'movies' in request.path %}active{% endif %}" href="{% url 'movie_list' %}">
-                            <i class="fas fa-ticket-alt me-1"></i><span class="d-none d-sm-inline">Movies</span>
+                            <i class="fas fa-ticket-alt me-2"></i><span class="nav-text">Movies</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link-bms nav-link" href="#">
-                            <!-- <i class="fas fa-video me-1"></i><span class="nav-text-hide-sm">Stream</span> -->
+                            <!-- <i class="fas fa-video me-2"></i><span class="nav-text">Stream</span> -->
                         </a>
                     </li>
                     {% comment %}
                     <li class="nav-item">
                         <a class="nav-link-bms nav-link" href="#">
-                            <i class="fas fa-calendar-alt me-1"></i><span class="nav-text-hide-sm">Events</span>
+                            <i class="fas fa-calendar-alt me-2"></i><span class="nav-text">Events</span>
                         </a>
                     </li>
                     {% endcomment %}
@@ -1019,9 +994,8 @@
                     <!-- User Profile Section (RESPONSIVE DROPDOWN) -->
                     <li class="nav-item dropdown">
                         <a class="nav-link-bms nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-user-circle me-1" style="font-size: 1.1rem;"></i>
-                            <span class="d-none d-lg-inline user-name-text">{{ user.username|truncatechars:10 }}</span>
-                            <span class="d-lg-none d-none d-sm-inline">{{ user.username|truncatechars:6 }}</span>
+                            <i class="fas fa-user-circle me-2" style="font-size: 1.1rem;"></i>
+                            <span class="user-name-display">{{ user.username|truncatechars:12 }}</span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end bg-white border-0 shadow-lg" style="min-width: 200px;">
                             <li class="px-3 py-2 border-bottom">
@@ -1072,12 +1046,12 @@
                     {% else %}
                     <li class="nav-item">
                         <a class="nav-link-bms nav-link" href="{% url 'login' %}">
-                            <i class="fas fa-sign-in-alt me-1"></i>Sign In
+                            <i class="fas fa-sign-in-alt me-2"></i><span class="nav-text">Sign In</span>
                         </a>
                     </li>
-                    <li class="nav-item ms-2">
+                    <li class="nav-item">
                         <a class="btn btn-bms-primary" href="{% url 'register' %}">
-                            <i class="fas fa-user-plus me-1"></i>Sign Up
+                            <i class="fas fa-user-plus me-2"></i><span class="nav-text">Sign Up</span>
                         </a>
                     </li>
                     {% endif %}
