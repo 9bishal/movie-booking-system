@@ -17,8 +17,8 @@ redis==5.0.1
 celery==5.4.0
 django-celery-beat==2.5.0
 
-# Email (optional)
-sendgrid==6.11.0
+# Email - SendGrid via django-anymail (already in requirements.txt)
+# No additional packages needed
 
 # Error tracking (optional)
 sentry-sdk==2.49.0

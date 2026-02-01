@@ -122,7 +122,7 @@ WSGI_APPLICATION = "moviebooking.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# Use PostgreSQL in production (Railway), SQLite in development
+# Use PostgreSQL in production (Railway) and development (local)
 if os.environ.get('DATABASE_URL'):
     # Production: Use PostgreSQL via DATABASE_URL (Railway)
     import dj_database_url
@@ -134,30 +134,22 @@ if os.environ.get('DATABASE_URL'):
         )
     }
 else:
-    # Development: Use SQLite with improved concurrency settings
+    # Development: Use PostgreSQL locally (same as production for consistency)
     DATABASES = {
         "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db.sqlite3",
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": "moviebooking_local",
+            "USER": os.environ.get('DB_USER', 'bishalkumarshah'),
+            "PASSWORD": os.environ.get('DB_PASSWORD', ''),
+            "HOST": os.environ.get('DB_HOST', 'localhost'),
+            "PORT": os.environ.get('DB_PORT', '5432'),
+            "ATOMIC_REQUESTS": False,
+            "CONN_MAX_AGE": 600,
             "OPTIONS": {
-                "timeout": 20,  # Wait up to 20 seconds for locks to be released
+                "connect_timeout": 10,
             },
         }
     }
-    # Enable WAL mode for SQLite (better concurrency)
-    # This is done via signal instead of OPTIONS since init_command is not valid for SQLite
-    from django.db.backends.signals import connection_created
-    from django.dispatch import receiver
-    
-    @receiver(connection_created)
-    def setup_sqlite_pragmas(sender, connection, **kwargs):
-        """Enable Write-Ahead Logging mode for SQLite for better concurrency."""
-        if connection.vendor == 'sqlite':
-            cursor = connection.cursor()
-            cursor.execute('PRAGMA journal_mode=WAL;')
-            cursor.execute('PRAGMA synchronous=NORMAL;')  # Faster writes with WAL
-            cursor.execute('PRAGMA busy_timeout=20000;')  # 20 second timeout
-            cursor.close()
 
 if not DEBUG:
     DATABASES['default']['CONN_MAX_AGE'] = 600
@@ -336,18 +328,15 @@ RAZORPAY_KEY_ID = os.environ.get('RAZORPAY_KEY_ID', '')
 RAZORPAY_KEY_SECRET = os.environ.get('RAZORPAY_KEY_SECRET', '')
 
 # Email Configuration
-# Use MailerSend API for email sending via django-anymail
-MAILERSEND_API_KEY = os.environ.get('MAILERSEND_API_KEY', '')
+# Use SendGrid API for email sending via django-anymail
+SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY', '')
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
 
-# Email Configuration - SendGrid API (HTTP-based, works on Railway)
-SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY', '')
-
 if SENDGRID_API_KEY:
-    # Use SendGrid HTTP API (more reliable than SMTP on Railway)
+    # Use SendGrid HTTP API (reliable for production)
     EMAIL_BACKEND = 'anymail.backends.sendgrid.EmailBackend'
     ANYMAIL = {
-        'SENDGRID_API_TOKEN': SENDGRID_API_KEY,
+        'SENDGRID_API_KEY': SENDGRID_API_KEY,
     }
     DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@shahbishal.com.np')
 elif not DEBUG:

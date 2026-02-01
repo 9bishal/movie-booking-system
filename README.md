@@ -454,6 +454,12 @@ This project is for **educational purposes only**. See the [LICENSE](LICENSE) fi
 Project Link: [https://github.com/9bishal/movie-booking-system](https://github.com/9bishal/movie-booking-system)
 
 ---
+**used Beacon v2.0.7** as modern web api
+this is how Beacon is used in the project:```javascript
+const url = 'https://example.com/analytics';
+const data = JSON.stringify({ event: 'page_unload', timestamp: Date.now() });
+// Basic Beacon usage
+navigator.sendBeacon(url, data);
 
 ## 📊 Project Status
 
@@ -471,3 +477,5 @@ Project Link: [https://github.com/9bishal/movie-booking-system](https://github.c
 
 **Happy Coding! 🚀🎬**
 **Last Updated:** June 2024**
+
+

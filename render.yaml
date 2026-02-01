@@ -47,7 +47,7 @@ services:
         sync: false
       - key: RAZORPAY_KEY_SECRET
         sync: false
-      - key: MAILERSEND_API_KEY
+      - key: SENDGRID_API_KEY
         sync: false
       - key: DEFAULT_FROM_EMAIL
         value: "noreply@yourdomain.com"

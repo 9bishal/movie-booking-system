@@ -11,7 +11,7 @@
                     <h2 class="mb-0">Complete Your Payment</h2>
                     <p class="opacity-75">Your seats are reserved - complete payment to confirm</p>
                 </div>
-                
+
                 <div class="card-body p-4">
                     <!-- Info Alert -->
                     <div class="alert alert-info text-center mb-4 border-0 shadow-sm">
@@ -73,7 +73,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="card-footer bg-light text-center py-3 border-0">
                     <p class="text-muted small mb-0">
                         <i class="fas fa-shield-alt text-success me-1"></i>
@@ -88,7 +88,7 @@
 <style>
     .cursor-pointer { cursor: pointer; }
     .transition { transition: all 0.2s ease-in-out; }
-    
+
     @keyframes pulse-animation {
         0% { transform: scale(1); opacity: 1; }
         50% { transform: scale(1.1); opacity: 0.8; }
@@ -106,7 +106,7 @@
     // 🚨 Prevent accidental page refresh during payment
     let paymentInProgress = false;
     let paymentSuccessful = false;  // ✅ NEW: Track if payment succeeded
-    
+
     window.addEventListener('beforeunload', function (e) {
         if (paymentInProgress && !paymentSuccessful) {
             // Modern browsers ignore custom messages, but we still set returnValue
@@ -115,22 +115,22 @@
             return '';
         }
     });
-    
+
     // Note: Refresh handling is now done server-side
     // If user refreshes, they'll be redirected back to seat selection
-    
+
     // ⏰ Countdown Timer
     (function() {
         let timeRemaining = parseInt("{{ time_remaining|default:0 }}");
         const countdownEl = document.getElementById('countdown');
         let razorpayModal = null;  // Store reference to modal for closing
-        
+
         function updateTimer() {
             // ⏰ CRITICAL: Timer expired - booking is no longer valid
             if (timeRemaining <= 0) {
                 // Clear interval
                 clearInterval(timerInterval);
-                
+
                 // ❌ AUTO-DISMISS: Close Razorpay modal if open
                 if (razorpayModal && paymentInProgress) {
                     console.log('⏰ TIME EXPIRED: Auto-closing Razorpay modal');
@@ -141,7 +141,7 @@
                     }
                     paymentInProgress = false;
                 }
-                
+
                 // Disable payment button
                 const payBtn = document.getElementById('razorpay-pay-button');
                 if (payBtn) {
@@ -149,7 +149,7 @@
                     payBtn.innerHTML = '<i class="fas fa-times-circle me-2"></i>Booking Expired';
                     payBtn.className = 'btn btn-danger btn-lg shadow-sm';
                 }
-                
+
                 // Show expiry message
                 if (countdownEl) {
                     countdownEl.textContent = 'EXPIRED';
@@ -166,44 +166,44 @@
                         </a>
                     `;
                 }
-                
+
                 // 📧 Release booking seats, cancel on backend, and send payment failed email
                 releaseSeatsDueToTimeout();
-                
+
                 // Redirect after 5 seconds
                 setTimeout(() => {
                     window.location.href = "{% url 'select_seats' booking.showtime.id %}";
                 }, 5000);
-                
+
                 return;
             }
-            
+
             // Update countdown display
             const mins = Math.floor(timeRemaining / 60);
             const secs = timeRemaining % 60;
             if (countdownEl) {
                 countdownEl.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-                
+
                 // Change to red when less than 1 minute remaining
                 if (timeRemaining < 60) {
                     countdownEl.parentElement.className = 'alert alert-danger text-center mb-4 border-0 shadow-sm animate__animated animate__pulse animate__infinite';
-                    
+
                     // Show warning if less than 30 seconds
                     if (timeRemaining === 30) {
                         console.warn('⚠️ 30 seconds remaining! Close Razorpay modal or payment window will auto-close');
                     }
                 }
             }
-            
+
             timeRemaining--;
         }
-        
+
         updateTimer();
         const timerInterval = setInterval(updateTimer, 1000);
-        
+
         // Clear interval when page unloads
         window.addEventListener('beforeunload', () => clearInterval(timerInterval));
-        
+
         // 🛡️ Function to release seats when timeout occurs
         function releaseSeatsDueToTimeout() {
             fetch('{% url "cancel_booking" booking.id %}', {
@@ -225,11 +225,11 @@
                 console.error('❌ Error releasing seats:', err);
             });
         }
-        
+
         // Export razorpayModal reference for use in button handler
         window.razorpayModalRef = { set: (modal) => { razorpayModal = modal; } };
     })();
-    
+
     // 🚀 Razorpay Checkout Configuration
     // 🎯 KEY POINT: We use MODAL mode (not hosted page) so the handler function works!
     const options = {
@@ -248,19 +248,19 @@
         "handler": function(response) {
             // ✅ Payment successful! Razorpay returns payment details here
             console.log('✅ Payment successful! Response:', response);
-            
+
             // 🛡️ CRITICAL: Set paymentSuccessful IMMEDIATELY before any redirect
             // This prevents beforeunload from sending a cancel/release beacon
             paymentSuccessful = true;
             paymentInProgress = false;
-            
+
             // Show loading state
             const btn = document.getElementById('razorpay-pay-button');
             if (btn) {
                 btn.disabled = true;
                 btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Verifying payment...';
             }
-            
+
             // 🔗 Redirect to backend for verification and ticket display
             const successUrl = `{% url 'payment_success' booking.id %}?razorpay_payment_id=${response.razorpay_payment_id}&razorpay_order_id=${response.razorpay_order_id}&razorpay_signature=${response.razorpay_signature}`;
             console.log('Redirecting to:', successUrl);
@@ -274,7 +274,7 @@
                     console.log('✅ Payment successful - modal ondismiss event ignored');
                     return;  // Don't do anything
                 }
-                
+
                 // Only trigger cancellation if payment was actually in progress (user abandoned it)
                 if (paymentInProgress) {
                     console.log('❌ Payment cancelled by user');
@@ -283,7 +283,7 @@
                 } else {
                     console.log('⏭️  Modal dismissed but payment already processed');
                 }
-                
+
                 // Re-enable the payment button
                 const btn = document.getElementById('razorpay-pay-button');
                 if (btn) {
@@ -295,33 +295,36 @@
             "escape": true,
             // Don't close modal when clicking outside during payment
             "backdropclose": false
-        }
+        },
+        // 🚫 Prevent Razorpay from redirecting to hosted page
+        "redirect": false
     };
-    
+
     document.getElementById('razorpay-pay-button').onclick = function(e) {
         e.preventDefault();
         const btn = this;
-        const isMock = {{ is_mock|yesno:"true,false" }};
-        
+        // Fix: Render as string and compare as string
+        const isMock = '{{ is_mock|yesno:"true,false" }}' === 'true';
+
         console.log('💳 Payment button clicked. Mock mode:', isMock);
         paymentInProgress = true;  // Set flag to prevent page unload warnings
-        
+
         if (isMock) {
             // 🎭 Mock payment for testing (simulates Razorpay)
             console.log('🎭 Using MOCK payment mode');
             btn.disabled = true;
             btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Simulating Secure Payment...';
-            
+
             setTimeout(() => {
                 // 🛡️ CRITICAL: Mark payment as successful BEFORE redirecting
                 paymentSuccessful = true;
                 paymentInProgress = false;
-                
+
                 // Generate mock payment credentials
                 const mockPaymentId = "pay_mock_" + Math.random().toString(36).substr(2, 9);
                 const mockOrderId = "{{ order_id }}";
                 const mockSignature = "sig_mock_verified";
-                
+
                 // Redirect to payment_success with mock parameters
                 const successUrl = `{% url 'payment_success' booking.id %}?razorpay_payment_id=${mockPaymentId}&razorpay_order_id=${mockOrderId}&razorpay_signature=${mockSignature}`;
                 console.log('🎭 Mock payment success! Redirecting to:', successUrl);
@@ -332,15 +335,15 @@
             console.log('🌐 Opening Razorpay MODAL (not hosted page)');
             btn.disabled = true;
             btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Opening Razorpay...';
-            
+
             try {
                 // Create Razorpay instance with modal configuration
                 const rzp = new Razorpay(options);
-                
+
                 // 🔗 Store reference to modal for auto-close on timeout
                 window.razorpayModalRef?.set(rzp);
                 console.log('✅ Razorpay modal reference stored for auto-dismiss');
-                
+
                 // Set up payment failure handler
                 rzp.on('payment.failed', function(response) {
                     console.error('❌ Payment failed:', response.error);
@@ -349,7 +352,7 @@
                     btn.disabled = false;
                     btn.innerHTML = '<i class="fas fa-lock me-2"></i>Pay ₹{{ booking.total_amount }} with Razorpay';
                 });
-                
+
                 // 🚨 Handle modal dismiss (user closes without paying)
                 rzp.on('payment.closed', function() {
                     console.log('⚠️ Payment modal closed by user');
@@ -359,11 +362,11 @@
                         btn.innerHTML = '<i class="fas fa-lock me-2"></i>Pay ₹{{ booking.total_amount }} with Razorpay';
                     }
                 });
-                
+
                 // Open the Razorpay modal (NOT hosted page)
                 console.log('📱 Opening Razorpay modal with order:', "{{ order_id }}");
                 rzp.open();
-                
+
                 // Re-enable button if they close the modal
                 setTimeout(() => {
                     if (btn.disabled && !paymentInProgress) {
@@ -384,10 +387,10 @@
     // ============================================================
     // 🚪 TAB CLOSE / REFRESH DETECTION - Release seats immediately
     // ============================================================
-    
+
     // Track if user is navigating away (for refresh detection)
     let isNavigatingAway = false;
-    
+
     // Set flag when any link is clicked or form is submitted
     document.addEventListener('click', function(e) {
         if (e.target.tagName === 'A' || e.target.closest('a')) {
@@ -403,24 +406,24 @@
             console.log('✅ Payment successful - NOT sending release beacon');
             return;
         }
-        
+
         // Send beacon to server for ALL cases (refresh, close, navigate away)
         // The server will handle the cancellation
         const data = JSON.stringify({
-            booking_id: {{ booking.id }},
+            booking_id: "{{ booking.id }}",
             reason: isNavigatingAway ? 'navigation' : (paymentInProgress ? 'tab_closed_during_payment' : 'page_refresh_or_close'),
             timestamp: new Date().toISOString()
         });
-        
+
         navigator.sendBeacon(
             '{% url "release_booking_beacon" booking.id %}',
             new Blob([data], { type: 'application/json' })
         );
-        
+
         console.log('🚪 Page unload - notifying server to release seats. Reason:', 
             isNavigatingAway ? 'navigation' : (paymentInProgress ? 'tab_closed_during_payment' : 'page_refresh_or_close'));
     });
-    
+
     console.log('✅ Payment page initialized with tab close detection');
 </script>
 {% endblock %}
