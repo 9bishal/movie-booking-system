@@ -123,7 +123,10 @@
 </div>
 
 <style>
-    .screen-container { perspective: 400px; text-align: center; }
+    .screen-container { 
+        perspective: 400px; 
+        text-align: center; 
+    }
     .screen { 
         background: #e9ecef;
         height: 12px;
@@ -149,14 +152,116 @@
         font-weight: 500;
         transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         user-select: none;
+        flex-shrink: 0;
     }
     .seat.available { background: #fff; border: 1px solid #dee2e6; color: #6c757d; cursor: pointer; }
     .seat.available:hover { background: #e7f1ff; border-color: #0d6efd; color: #0d6efd; transform: scale(1.1); }
     .seat.selected { background: #0d6efd; border-color: #0d6efd; color: #fff; box-shadow: 0 0 10px rgba(13, 110, 253, 0.4); transform: scale(1.1); cursor: pointer; }
     .seat.booked { background: #dee2e6; border-color: #dee2e6; color: #adb5bd; cursor: not-allowed !important; }
     .seat.reserved { background: #ffc107; border-color: #ffc107; color: #000; cursor: not-allowed !important; }
-    .row-label { width: 25px; }
-    .walkway { width: 20px; } /* Walkway gap between seat sections */
+    .row-label { width: 25px; flex-shrink: 0; }
+    .walkway { width: 20px; flex-shrink: 0; } /* Walkway gap between seat sections */
+    
+    /* Mobile Responsive Styles */
+    @media (max-width: 768px) {
+        .seat {
+            width: 28px;
+            height: 28px;
+            font-size: 10px;
+        }
+        .row-label {
+            width: 20px;
+            font-size: 12px;
+        }
+        .walkway {
+            width: 15px;
+        }
+        .screen {
+            width: 90%;
+            font-size: 8px;
+            height: 10px;
+        }
+        .card-body {
+            padding: 1rem !important;
+        }
+        .seat-layout {
+            padding: 0 5px;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .seat {
+            width: 24px;
+            height: 24px;
+            font-size: 9px;
+        }
+        .row-label {
+            width: 18px;
+            font-size: 11px;
+        }
+        .walkway {
+            width: 12px;
+        }
+        .screen {
+            width: 95%;
+            font-size: 7px;
+        }
+        /* Make legend compact on mobile */
+        .d-flex.gap-4.mb-5 {
+            gap: 0.5rem !important;
+            margin-bottom: 2rem !important;
+        }
+        .d-flex.gap-4.mb-5 > div {
+            font-size: 0.75rem;
+        }
+        .d-flex.gap-4.mb-5 .seat {
+            width: 20px;
+            height: 20px;
+        }
+    }
+    
+    @media (max-width: 400px) {
+        .seat {
+            width: 22px;
+            height: 22px;
+            font-size: 8px;
+        }
+        .row-label {
+            width: 16px;
+            font-size: 10px;
+        }
+        .walkway {
+            width: 10px;
+        }
+        .d-flex.gap-2 {
+            gap: 0.25rem !important;
+        }
+    }
+    
+    /* Ensure seat layout is scrollable horizontally on very small screens */
+    .seat-layout {
+        overflow-x: auto;
+        overflow-y: visible;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    /* Hide scrollbar but keep functionality */
+    .seat-layout::-webkit-scrollbar {
+        height: 4px;
+    }
+    
+    .seat-layout::-webkit-scrollbar-thumb {
+        background: rgba(0,0,0,0.2);
+        border-radius: 2px;
+    }
+    
+    /* Make sidebar sticky on desktop, but flow normally on mobile */
+    @media (max-width: 991px) {
+        .sticky-top {
+            position: relative !important;
+            top: 0 !important;
+        }
+    }
 </style>
 
 <script>

@@ -41,9 +41,12 @@ if _allowed_hosts == '*':
 else:
     ALLOWED_HOSTS = [h.strip() for h in _allowed_hosts.split(',')]
 
-# Add Railway domain if not already present
+# Add Railway and Render domains if not already present
 if not any('railway.app' in host or host == '*' for host in ALLOWED_HOSTS):
     ALLOWED_HOSTS.append('moviebookingapp-production-0bce.up.railway.app')
+
+if not any('onrender.com' in host or host == '*' for host in ALLOWED_HOSTS):
+    ALLOWED_HOSTS.append('.onrender.com')
 
 # Application definition
 
@@ -169,14 +172,20 @@ CACHES = {
 
 
 # CSRF Configuration
-# Allow CSRF from Railway domain and trusted origins
+# Allow CSRF from Render, Railway domains and trusted origins
 CSRF_TRUSTED_ORIGINS = [
     'https://moviebookingapp-production-0bce.up.railway.app',
     'https://*.railway.app',
     'https://*.up.railway.app',
+    'https://*.onrender.com',
     'http://localhost:8000',
     'http://127.0.0.1:8000',
 ]
+
+# Add specific Render URL from environment if available
+_site_url = os.environ.get('SITE_URL', '')
+if _site_url and _site_url not in CSRF_TRUSTED_ORIGINS:
+    CSRF_TRUSTED_ORIGINS.append(_site_url)
 
 # CSRF Cookie settings
 CSRF_COOKIE_SECURE = not DEBUG  # Secure only in production
