@@ -1,13 +1,14 @@
 # Render deployment configuration for Movie Booking System
 
-services:
+databases:
   # PostgreSQL Database
-  - type: pserv
-    name: movie-booking-db
-    env: docker
+  - name: movie-booking-db
     plan: free
     region: oregon
-    
+    databaseName: moviebooking
+    user: moviebooking
+
+services:
   # Redis Cache
   - type: redis
     name: movie-booking-redis
