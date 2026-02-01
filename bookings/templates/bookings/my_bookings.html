@@ -290,13 +290,35 @@
     
     @media (max-width: 576px) {
         .qr-code-small {
-            width: 50px;
-            height: 50px;
+            width: 55px;
+            height: 55px;
+            display: block !important;
+            visibility: visible !important;
+        }
+        
+        .qr-code-container {
+            display: flex !important;
+            flex-direction: column;
+            align-items: center;
+            visibility: visible !important;
         }
         
         .qr-code-label {
             font-size: 0.6rem;
             margin-top: 3px;
+            display: block !important;
+        }
+        
+        /* Ensure QR is visible in booking cards */
+        .booking-card .d-flex {
+            flex-wrap: wrap !important;
+        }
+    }
+    
+    @media (max-width: 400px) {
+        .qr-code-small {
+            width: 50px;
+            height: 50px;
         }
     }
 </style>
