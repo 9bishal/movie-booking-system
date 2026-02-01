@@ -321,8 +321,8 @@ def resend_verification_email(request):
 
 def forgot_password(request):
     """
-    🔒 Forgot Password - Send Reset Email
-    Shows accurate user feedback based on database check
+    🔒 Forgot Password - Send OTP to Email
+    Uses OTP instead of link-based verification
     """
     if request.method == 'POST':
         email = request.POST.get('email', '').strip()
@@ -341,19 +341,26 @@ def forgot_password(request):
                 logger.warning(f"Password reset attempted for inactive user: {email}")
                 return redirect('login')
             
-            # Send password reset email (generates token internally)
-            email_sent = AuthEmailService.send_password_reset_email(user)
+            # Generate OTP and send email
+            profile, created = UserProfile.objects.get_or_create(user=user)
+            otp = profile.generate_otp()
+            
+            # Send OTP email
+            email_sent = AuthEmailService.send_password_reset_otp(user, otp)
             
             if email_sent:
+                # Store email in session for OTP verification
+                request.session['reset_email'] = email
                 messages.success(request, 
-                    f'✅ Password reset link has been sent to {email}. Please check your inbox and spam folder. The link expires in 24 hours.')
-                logger.info(f"Password reset email sent to: {email}")
+                    f'✅ Password reset code has been sent to {email}. Please check your inbox. Code expires in 5 minutes.')
+                logger.info(f"Password reset OTP sent to: {email}")
+                return redirect('verify_password_reset_otp')
             else:
                 messages.error(request, 
-                    '❌ Failed to send password reset email. Please try again or contact support.')
-                logger.error(f"Failed to send password reset email to: {email}")
+                    '❌ Failed to send password reset code. Please try again or contact support.')
+                logger.error(f"Failed to send password reset OTP to: {email}")
                 
-            return redirect('login')
+            return redirect('forgot_password')
             
         except User.DoesNotExist:
             # User doesn't exist - show clear message
@@ -365,48 +372,114 @@ def forgot_password(request):
         except Exception as e:
             logger.error(f"Password reset error for {email}: {e}")
             messages.error(request, 
-                '❌ Failed to send password reset email due to a system error. Please try again.')
+                '❌ Failed to send password reset code due to a system error. Please try again.')
     
     return render(request, 'accounts/forgot_password.html')
 
-def reset_password(request, uidb64, token):
+def verify_password_reset_otp(request):
     """
-    🔒 Password Reset with Token Validation
+    🔒 Verify OTP for Password Reset
     """
-    try:
-        uid = force_str(urlsafe_base64_decode(uidb64))
-        user = User.objects.get(pk=uid)
-    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
-        user = None
+    reset_email = request.session.get('reset_email')
     
-    if user is not None and default_token_generator.check_token(user, token):
-        if request.method == 'POST':
-            password1 = request.POST.get('password1')  # Changed from new_password1
-            password2 = request.POST.get('password2')  # Changed from new_password2
-            
-            if password1 and password2:
-                if password1 == password2:
-                    user.set_password(password1)
-                    user.save()
-                    
-                    # Send password changed confirmation email
-                    try:
-                        AuthEmailService.send_password_changed_email(user)
-                    except Exception as e:
-                        logger.error(f"Failed to send password changed email: {e}")
-                    
-                    messages.success(request, 
-                        '🔒 Password reset successfully! You can now log in with your new password.')
-                    return redirect('login')
-                else:
-                    messages.error(request, 'Passwords do not match.')
-            else:
-                messages.error(request, 'Please fill in both password fields.')
+    if not reset_email:
+        messages.error(request, '❌ Invalid password reset session. Please start again.')
+        return redirect('forgot_password')
+    
+    if request.method == 'POST':
+        otp = request.POST.get('otp', '').strip()
         
-        return render(request, 'accounts/reset_password.html', {'validlink': True})
-    else:
-        messages.error(request, 'Password reset link is invalid or has expired.')
-        return render(request, 'accounts/reset_password.html', {'validlink': False})
+        if not otp:
+            messages.error(request, '❌ Please enter the OTP code.')
+            return render(request, 'accounts/verify_password_reset_otp.html', {'email': reset_email})
+        
+        try:
+            user = User.objects.get(email=reset_email)
+            profile = user.profile
+            
+            if profile.is_otp_valid(otp):
+                # OTP verified - store in session and redirect to new password form
+                request.session['reset_user_id'] = user.id
+                messages.success(request, '✅ OTP verified! Please set your new password.')
+                logger.info(f"Password reset OTP verified for: {reset_email}")
+                return redirect('set_new_password')
+            else:
+                # Check if OTP expired
+                if profile.otp_created_at:
+                    time_diff = (timezone.now() - profile.otp_created_at).total_seconds()
+                    if time_diff > 300:  # 5 minutes
+                        messages.error(request, '❌ OTP has expired. Please request a new password reset.')
+                        return redirect('forgot_password')
+                
+                messages.error(request, '❌ Invalid OTP code. Please try again.')
+                logger.warning(f"Invalid password reset OTP attempt for: {reset_email}")
+                
+        except User.DoesNotExist:
+            messages.error(request, '❌ User not found. Please start password reset again.')
+            return redirect('forgot_password')
+        except Exception as e:
+            logger.error(f"Password reset OTP verification error: {e}")
+            messages.error(request, '❌ An error occurred. Please try again.')
+    
+    return render(request, 'accounts/verify_password_reset_otp.html', {'email': reset_email})
+
+
+def set_new_password(request):
+    """
+    🔒 Set New Password After OTP Verification
+    """
+    reset_user_id = request.session.get('reset_user_id')
+    
+    if not reset_user_id:
+        messages.error(request, '❌ Invalid password reset session. Please start again.')
+        return redirect('forgot_password')
+    
+    if request.method == 'POST':
+        password1 = request.POST.get('password1')
+        password2 = request.POST.get('password2')
+        
+        if not password1 or not password2:
+            messages.error(request, '❌ Please fill in both password fields.')
+            return render(request, 'accounts/set_new_password.html')
+        
+        if password1 != password2:
+            messages.error(request, '❌ Passwords do not match.')
+            return render(request, 'accounts/set_new_password.html')
+        
+        if len(password1) < 8:
+            messages.error(request, '❌ Password must be at least 8 characters long.')
+            return render(request, 'accounts/set_new_password.html')
+        
+        try:
+            user = User.objects.get(id=reset_user_id)
+            user.set_password(password1)
+            user.save()
+            
+            # Clear session data
+            if 'reset_email' in request.session:
+                del request.session['reset_email']
+            if 'reset_user_id' in request.session:
+                del request.session['reset_user_id']
+            
+            # Send password changed confirmation email
+            try:
+                AuthEmailService.send_password_changed_email(user)
+            except Exception as e:
+                logger.error(f"Failed to send password changed email: {e}")
+            
+            messages.success(request, 
+                '🔒 Password reset successfully! You can now log in with your new password.')
+            logger.info(f"Password reset completed for user: {user.email}")
+            return redirect('login')
+            
+        except User.DoesNotExist:
+            messages.error(request, '❌ User not found. Please start password reset again.')
+            return redirect('forgot_password')
+        except Exception as e:
+            logger.error(f"Password reset error: {e}")
+            messages.error(request, '❌ Failed to reset password. Please try again.')
+    
+    return render(request, 'accounts/set_new_password.html')
 
 from accounts.decorators import email_verified_required
 
