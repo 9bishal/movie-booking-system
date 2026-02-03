@@ -542,16 +542,15 @@ class AdminDashboard {
         // Validate chart data
         if (!data || !data.dates || !data.revenues || data.dates.length === 0) {
             console.warn('No revenue data to render');
-            ctx.parentElement.innerHTML = '<div class="text-center text-muted py-5"><em>No revenue data available</em></div>';
+            // Create empty chart instead of showing message
+            this.createEmptyChart('revenue', ctx, 'line', 'Revenue (₹)');
             return;
         }
         
-        // Check if there's any actual revenue data (not all zeros)
+        // Even if all zeros, still show the chart
         const hasData = data.revenues.some(v => v > 0);
         if (!hasData) {
-            console.warn('No revenue data (all zeros)');
-            ctx.parentElement.innerHTML = '<div class="text-center text-muted py-5"><em>No revenue data available for the selected filters</em></div>';
-            return;
+            console.warn('No revenue data (all zeros) - showing empty chart');
         }
 
         try {
@@ -665,16 +664,14 @@ class AdminDashboard {
         // Validate movie data
         if (!Array.isArray(movies) || movies.length === 0) {
             console.warn('No movie data to render');
-            ctx.parentElement.innerHTML = '<div class="text-center text-muted py-5"><em>No movie data available</em></div>';
+            this.createEmptyChart('movies', ctx, 'bar', 'Bookings');
             return;
         }
         
-        // Check if there's any actual booking data (not all zeros)
+        // Even if all zeros, still show the chart
         const hasData = movies.some(m => m.bookings > 0);
         if (!hasData) {
-            console.warn('No movie data (all zeros)');
-            ctx.parentElement.innerHTML = '<div class="text-center text-muted py-5"><em>No movie data available for the selected filters</em></div>';
-            return;
+            console.warn('No movie data (all zeros) - showing empty chart');
         }
 
         try {
@@ -769,16 +766,14 @@ class AdminDashboard {
         // Validate theater data
         if (!Array.isArray(theaters) || theaters.length === 0) {
             console.warn('No theater data to render');
-            ctx.parentElement.innerHTML = '<div class="text-center text-muted py-5"><em>No theater data available</em></div>';
+            this.createEmptyChart('theaters', ctx, 'bar', 'Revenue (₹)');
             return;
         }
         
-        // Check if there's any actual revenue data (not all zeros)
+        // Even if all zeros, still show the chart
         const hasData = theaters.some(t => t.revenue > 0);
         if (!hasData) {
-            console.warn('No theater data (all zeros)');
-            ctx.parentElement.innerHTML = '<div class="text-center text-muted py-5"><em>No theater data available for the selected filters</em></div>';
-            return;
+            console.warn('No theater data (all zeros) - showing empty chart');
         }
 
         try {
@@ -907,9 +902,58 @@ class AdminDashboard {
         };
         return text.replace(/[&<>"']/g, m => map[m]);
     }
+
+    /**
+     * Create an empty chart with "No data" message
+     */
+    createEmptyChart(chartName, ctx, type, label) {
+        const config = {
+            type: type,
+            data: {
+                labels: ['No Data'],
+                datasets: [{
+                    label: label,
+                    data: [0],
+                    backgroundColor: '#e0e0e0',
+                    borderRadius: 6,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: type === 'bar' ? 'y' : 'x',
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { enabled: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { display: false },
+                        ticks: { display: type !== 'bar' }
+                    },
+                    x: {
+                        beginAtZero: true,
+                        grid: { display: false },
+                        ticks: { display: type === 'bar' }
+                    }
+                }
+            }
+        };
+        
+        this.charts[chartName] = new Chart(ctx.getContext('2d'), config);
+    }
 }
 
-// Initialize dashboard when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
+// Initialize dashboard when DOM is ready OR immediately if already loaded
+function initializeDashboard() {
     new AdminDashboard();
-});
+}
+
+if (document.readyState === 'loading') {
+    // DOM is still loading, wait for it
+    document.addEventListener('DOMContentLoaded', initializeDashboard);
+} else {
+    // DOM is already ready, initialize immediately
+    initializeDashboard();
+}
