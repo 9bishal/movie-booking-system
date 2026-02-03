@@ -26,3 +26,6 @@ if settings.DEBUG:
     except ImportError:
         pass
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+else:
+    # Serve media files in production too
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
