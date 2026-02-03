@@ -16,7 +16,7 @@ urlpatterns = [
     path('', include('movies.urls')),  # Include movies app URLs (handles home page)
 ]
 
-# Serve media files and Debug Toolbar in development
+# .Serve media files and Debug Toolbar in development
 if settings.DEBUG:
     try:
         import debug_toolbar
