@@ -84,173 +84,37 @@ class AdminDashboard {
      * Setup event listeners for filter controls
      */
     setupFilterListeners() {
-        const dateFromInput = document.getElementById('dateFrom');
-        const dateToInput = document.getElementById('dateTo');
-        const movieFilterSelect = document.getElementById('movieFilter');
-        const theaterFilterSelect = document.getElementById('theaterFilter');
-        const applyFiltersBtn = document.getElementById('applyFiltersBtn');
-        const resetFiltersBtn = document.getElementById('resetFiltersBtn');
+        const movieSearch = document.getElementById('movieSearch');
+        const periodFilter = document.getElementById('periodFilter');
+        const theaterFilter = document.getElementById('theaterFilter');
         const bookingsTable = document.getElementById('bookingsTable');
 
-        if (!applyFiltersBtn || !resetFiltersBtn) {
-            console.warn('Filter buttons not found');
-            return;
-        }
+        if (!movieSearch || !periodFilter || !theaterFilter || !bookingsTable) return;
 
-        // Populate movie and theater dropdown options
-        this.populateFilterOptions();
+        const applyFilters = () => {
+            const searchTerm = movieSearch.value.toLowerCase();
+            const period = periodFilter.value;
+            const theater = theaterFilter.value;
 
-        // Use arrow function to preserve 'this' context
-        const applyFilters = async () => {
-            const dateFrom = dateFromInput.value;
-            const dateTo = dateToInput.value;
-            const movie = movieFilterSelect.value;
-            const theater = theaterFilterSelect.value;
-
-            // Show loading state
-            if (bookingsTable) {
-                bookingsTable.innerHTML = '<tr><td colspan="3" class="text-center text-muted"><i class="fas fa-spinner fa-spin me-2"></i>Filtering...</td></tr>';
-            }
-
-            try {
-                // Build query parameters
-                const params = new URLSearchParams();
-                if (dateFrom) params.append('date_from', dateFrom);
-                if (dateTo) params.append('date_to', dateTo);
-                if (movie) params.append('movie', movie);
-                if (theater) params.append('theater', theater);
-
-                // Fetch filtered data from API
-                const queryString = params.toString() ? '?' + params.toString() : '';
-                const response = await fetch(`${this.apiBaseUrl}/dashboard-filtered/${queryString}`);
+            const rows = bookingsTable.querySelectorAll('tr');
+            rows.forEach(row => {
+                const movieCell = row.cells[1]?.textContent.toLowerCase() || '';
+                const userCell = row.cells[0]?.textContent.toLowerCase() || '';
                 
-                if (!response.ok) {
-                    throw new Error(`API error: ${response.status}`);
+                let showRow = true;
+
+                // Movie search filter
+                if (searchTerm && !movieCell.includes(searchTerm) && !userCell.includes(searchTerm)) {
+                    showRow = false;
                 }
 
-                const data = await response.json();
-                
-                console.log('Filtered data received:', data);
-                
-                // Update stats with filtered data
-                this.updateFilteredStats(data);
-                
-                // Destroy old charts before rendering new ones
-                if (this.charts.revenue) this.charts.revenue.destroy();
-                if (this.charts.movies) this.charts.movies.destroy();
-                if (this.charts.theaters) this.charts.theaters.destroy();
-                
-                // Re-render all charts with filtered data
-                if (data.revenue_data) {
-                    this.renderRevenueChart(data.revenue_data);
-                }
-                if (data.top_movies && data.top_movies.length > 0) {
-                    this.renderMoviesChart(data.top_movies);
-                }
-                if (data.top_theaters && data.top_theaters.length > 0) {
-                    this.renderTheatersChart(data.top_theaters);
-                }
-                
-                // Render filtered bookings
-                if (bookingsTable) {
-                    this.renderBookingsTable(data.recent_bookings || []);
-                }
-                
-            } catch (error) {
-                console.error('Error applying filters:', error);
-                if (bookingsTable) {
-                    bookingsTable.innerHTML = '<tr><td colspan="3" class="text-center text-danger"><i class="fas fa-exclamation-circle me-2"></i>Error loading filtered data</td></tr>';
-                }
-            }
+                row.style.display = showRow ? '' : 'none';
+            });
         };
 
-        const resetFilters = async () => {
-            dateFromInput.value = '';
-            dateToInput.value = '';
-            movieFilterSelect.value = '';
-            theaterFilterSelect.value = '';
-            
-            // Reload all data
-            await this.init();
-        };
-
-        // Add event listeners
-        applyFiltersBtn.addEventListener('click', applyFilters);
-        resetFiltersBtn.addEventListener('click', resetFilters);
-        
-        // Also allow Enter key to apply filters
-        dateFromInput.addEventListener('keypress', (e) => e.key === 'Enter' && applyFilters());
-        dateToInput.addEventListener('keypress', (e) => e.key === 'Enter' && applyFilters());
-    }
-
-    /**
-     * Populate filter dropdown options
-     */
-    async populateFilterOptions() {
-        try {
-            const response = await fetch(`${this.apiBaseUrl}/filter-options/`);
-            if (!response.ok) {
-                throw new Error(`API error: ${response.status}`);
-            }
-
-            const data = await response.json();
-            
-            // Populate movies dropdown
-            const movieFilterSelect = document.getElementById('movieFilter');
-            if (movieFilterSelect && data.movies) {
-                data.movies.forEach(movie => {
-                    const option = document.createElement('option');
-                    option.value = movie.id;
-                    option.textContent = movie.title;
-                    movieFilterSelect.appendChild(option);
-                });
-            }
-            
-            // Populate theaters dropdown
-            const theaterFilterSelect = document.getElementById('theaterFilter');
-            if (theaterFilterSelect && data.theaters) {
-                data.theaters.forEach(theater => {
-                    const option = document.createElement('option');
-                    option.value = theater.id;
-                    option.textContent = theater.name;
-                    theaterFilterSelect.appendChild(option);
-                });
-            }
-        } catch (error) {
-            console.error('Error populating filter options:', error);
-        }
-    }
-
-    /**
-     * Update stats based on filtered data
-     */
-    updateFilteredStats(data) {
-        const totalRevenueEl = document.getElementById('totalRevenue');
-        const totalBookingsEl = document.getElementById('totalBookings');
-        const todayRevenueEl = document.getElementById('todayRevenue');
-        const todayBookingsEl = document.getElementById('todayBookings');
-
-        if (totalRevenueEl && data.total_revenue !== undefined) {
-            totalRevenueEl.textContent = '₹' + (data.total_revenue || 0).toLocaleString('en-IN', {
-                maximumFractionDigits: 2,
-                minimumFractionDigits: 0
-            });
-        }
-
-        if (totalBookingsEl && data.total_bookings !== undefined) {
-            totalBookingsEl.textContent = (data.total_bookings || 0).toLocaleString('en-IN');
-        }
-
-        if (todayRevenueEl && data.today_revenue !== undefined) {
-            todayRevenueEl.textContent = '₹' + (data.today_revenue || 0).toLocaleString('en-IN', {
-                maximumFractionDigits: 2,
-                minimumFractionDigits: 0
-            });
-        }
-
-        if (todayBookingsEl && data.today_bookings !== undefined) {
-            todayBookingsEl.textContent = (data.today_bookings || 0).toLocaleString('en-IN');
-        }
+        movieSearch.addEventListener('keyup', applyFilters);
+        periodFilter.addEventListener('change', applyFilters);
+        theaterFilter.addEventListener('change', applyFilters);
     }
 
     /**

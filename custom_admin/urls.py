@@ -17,6 +17,4 @@ urlpatterns = [
     path('api/revenue/', views.api_revenue, name='api_revenue'),
     path('api/bookings/', views.api_bookings, name='api_bookings'),
     path('api/theaters/', views.api_theaters, name='api_theaters'),
-    path('api/filter-options/', views.api_filter_options, name='api_filter_options'),
-    path('api/dashboard-filtered/', views.api_dashboard_filtered, name='api_dashboard_filtered'),
 ]
