@@ -461,11 +461,11 @@ def payment_success(request, booking_id):
                 f"   📧 Action: Refund email queued"
             )
             
-            # Send refund email (Async Celery task) - Only if not already sent
+            # Send refund email (Async with fallback to sync) - Only if not already sent
             if not booking.refund_notification_sent:
-                from .email_utils import send_late_payment_email
-                task = send_late_payment_email.delay(booking.id)
-                logger.info(f"📧 Late payment refund email task queued: {task.id}")
+                from .email_utils import send_late_payment_email, send_email_safe
+                send_email_safe(send_late_payment_email, booking.id)
+                logger.info(f"📧 Late payment refund email task initiated for {booking.booking_number}")
             else:
                 logger.info(f"⏭️  Refund email already sent for booking {booking.booking_number}")
             
@@ -550,10 +550,11 @@ def payment_success(request, booking_id):
         if session_key in request.session:
             del request.session[session_key]
         
-        # Send confirmation email (Async) - Called AFTER transaction commits
+        # Send confirmation email (Async with fallback to sync)
         # This avoids "database is locked" errors in SQLite development mode
-        from .email_utils import send_booking_confirmation_email
-        send_booking_confirmation_email.delay(booking.id)
+        # Uses safe wrapper that handles both Celery and non-Celery environments
+        from .email_utils import send_booking_confirmation_email, send_email_safe
+        send_email_safe(send_booking_confirmation_email, booking.id)
         
         messages.success(request, 'Ticket booked successfully!')
         return redirect('booking_detail', booking_id=booking.id)
@@ -597,11 +598,11 @@ def payment_failed(request, booking_id):
         # Both from Redis cache and clear user reservation key
         SeatManager.release_seats(booking.showtime.id, booking.seats, user_id=booking.user.id)
         
-        # Send payment failed email (Async) - only if not already sent
+        # Send payment failed email (Async with fallback to sync)
         # The email utility has its own idempotency check - don't reset the flag here
         if not booking.failure_email_sent:
-            from .email_utils import send_payment_failed_email
-            send_payment_failed_email.delay(booking.id)
+            from .email_utils import send_payment_failed_email, send_email_safe
+            send_email_safe(send_payment_failed_email, booking.id)
     
     messages.error(request, 'Payment was unsuccessful. Your seats have been released.')
     return redirect('select_seats', showtime_id=booking.showtime.id)
@@ -671,11 +672,11 @@ def razorpay_webhook(request):
                         f"   📧 Action: Refund email queued"
                     )
                     
-                    # Send refund email (Async Celery task) - Only if not already sent
+                    # Send refund email (Async with fallback to sync) - Only if not already sent
                     if not booking.refund_notification_sent:
-                        from .email_utils import send_late_payment_email
-                        task = send_late_payment_email.delay(booking.id)
-                        logger.info(f"📧 Late payment refund email task queued via webhook: {task.id}")
+                        from .email_utils import send_late_payment_email, send_email_safe
+                        send_email_safe(send_late_payment_email, booking.id)
+                        logger.info(f"📧 Late payment refund email task initiated via webhook for {booking.booking_number}")
                     else:
                         logger.info(f"⏭️  Refund email already sent for booking {booking.booking_number} via webhook")
                     
@@ -808,10 +809,10 @@ def cancel_booking_api(request, booking_id):
             booking.save()
         
         # Email sending happens OUTSIDE the transaction
-        # Send payment failed email (Async) - Modal was closed/abandoned
+        # Send payment failed email (Async with fallback to sync)
         if not booking.failure_email_sent:
-            from .email_utils import send_payment_failed_email
-            send_payment_failed_email.delay(booking.id)
+            from .email_utils import send_payment_failed_email, send_email_safe
+            send_email_safe(send_payment_failed_email, booking.id)
         
         # 🛡️ CRITICAL: Release seats from Redis
         SeatManager.release_seats(showtime_id, booking.seats, user_id=request.user.id)
@@ -896,10 +897,10 @@ def release_booking_beacon(request, booking_id):
             booking.save()
         
         # Email sending happens OUTSIDE the transaction
-        # Send payment failed email (Async) - Tab was closed during payment
+        # Send payment failed email (Async with fallback to sync)
         if not booking.failure_email_sent:
-            from .email_utils import send_payment_failed_email
-            send_payment_failed_email.delay(booking.id)
+            from .email_utils import send_payment_failed_email, send_email_safe
+            send_email_safe(send_payment_failed_email, booking.id)
         
         # 🛡️ CRITICAL: Release seats from both Redis cache and user reservation key
         SeatManager.release_seats(booking.showtime.id, booking.seats, user_id=booking.user.id)

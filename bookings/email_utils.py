@@ -17,7 +17,44 @@ from datetime import timedelta
 # Initialize logger for tracking email events
 logger = logging.getLogger(__name__)
 
-
+# ============ SAFE EMAIL SENDING WRAPPER ============
+def send_email_safe(task_func, *args, **kwargs):
+    """
+    🛡️ SAFE EMAIL SENDING: Works in both development (with Celery) and production (without worker)
+    
+    This wrapper tries to send emails asynchronously using Celery.
+    If Celery is not available or fails, it falls back to synchronous sending.
+    
+    This prevents the entire booking flow from breaking if:
+    - Celery worker is not running
+    - Redis connection fails
+    - Email task fails to queue
+    
+    WHY: In production (Render), Celery workers might not be running, 
+    so we need a fallback to synchronous email sending.
+    """
+    try:
+        # Try to send async (requires Celery worker)
+        result = task_func.delay(*args, **kwargs)
+        logger.info(f"✅ Email task queued asynchronously: {task_func.name}")
+        return result
+    except Exception as e:
+        logger.warning(
+            f"⚠️  Async email task failed for {task_func.name}: {str(e)}. "
+            f"Falling back to synchronous sending..."
+        )
+        try:
+            # Fallback: Call the task function synchronously
+            # This executes the actual email logic in the current request
+            result = task_func.apply(*args, **kwargs)
+            logger.info(f"✅ Email sent synchronously: {task_func.name}")
+            return result
+        except Exception as sync_error:
+            logger.error(
+                f"❌ Both async and sync email sending failed for {task_func.name}: {str(sync_error)}. "
+                f"Email NOT sent to user."
+            )
+            return None
 
 @shared_task
 def send_booking_confirmation_email(booking_id):
