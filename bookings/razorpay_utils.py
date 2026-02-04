@@ -7,6 +7,9 @@ Creating Orders and Verifying Signatures.
 import time
 import razorpay
 from django.conf import settings
+import logging
+
+logger = logging.getLogger(__name__)
 
 class RazorpayClient:
     """Razorpay client wrapper"""
@@ -61,21 +64,46 @@ class RazorpayClient:
                 'receipt': receipt
             }
 
-        try:
-            order = self.client.order.create(data=data)
-            return {
-                'success': True,
-                'is_mock': False,
-                'order_id': order['id'],
-                'amount': order['amount'],
-                'currency': order['currency'],
-                'receipt': order['receipt']
-            }
-        except Exception as e:
-            return {
-                'success': False,
-                'error': str(e)
-            }
+        # 🔄 RETRY LOGIC: Attempt up to 3 times with exponential backoff
+        # This handles transient network errors (connection timeouts, temporary disconnects)
+        max_retries = 3
+        retry_count = 0
+        last_error = None
+        
+        while retry_count < max_retries:
+            try:
+                order = self.client.order.create(data=data)
+                logger.info(f"✅ Razorpay order created successfully: {order['id']}")
+                return {
+                    'success': True,
+                    'is_mock': False,
+                    'order_id': order['id'],
+                    'amount': order['amount'],
+                    'currency': order['currency'],
+                    'receipt': order['receipt']
+                }
+            except Exception as e:
+                last_error = str(e)
+                retry_count += 1
+                
+                if retry_count < max_retries:
+                    # Exponential backoff: 1s, 2s, 4s
+                    wait_time = 2 ** (retry_count - 1)
+                    logger.warning(
+                        f"⚠️  Razorpay API error (attempt {retry_count}/{max_retries}): {last_error}. "
+                        f"Retrying in {wait_time}s..."
+                    )
+                    time.sleep(wait_time)
+                else:
+                    logger.error(
+                        f"❌ Razorpay API failed after {max_retries} attempts: {last_error}"
+                    )
+        
+        # All retries failed
+        return {
+            'success': False,
+            'error': f"Payment gateway temporarily unavailable. Please try again in a moment. ({last_error})"
+        }
     
     def verify_payment_signature(self, razorpay_order_id, razorpay_payment_id, razorpay_signature):
         """

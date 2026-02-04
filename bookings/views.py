@@ -357,21 +357,35 @@ def payment_page(request, booking_id):
         messages.error(request, 'Payment window expired. Please try again.')
         return redirect('select_seats', showtime_id=booking.showtime.id)
     
-    # 💳 HOW: Create Razorpay Order
-    # We send the amount and receipt to Razorpay API to get an 'order_id'.
-    # ❓ WHY: This creates a single source of truth for this payment attempt.
-    # It prevents double-charging and allows us to track this specific transaction on Razorpay's dashboard.
-    order_data = razorpay_client.create_order(
-        amount=booking.total_amount,
-        receipt=f"booking_{booking.booking_number}"
-    )
-    
-    if not order_data['success']:
-        # 🛡️ WHY: Fail gracefully. If the gateway is down, we don't want a 500 error.
-        # SECURITY: Don't expose internal error details to users
-        logger.error(f"Payment gateway error for booking {booking.booking_number}: {order_data.get('error', 'Unknown error')}")
-        messages.error(request, "Payment gateway is temporarily unavailable. Please try again later.")
-        return redirect('booking_summary', showtime_id=booking.showtime.id)
+    # 💳 HOW: Reuse existing Razorpay Order
+    # We already created the order in create_booking, so we just use it here
+    # This avoids creating duplicate orders and reduces API calls
+    if not booking.razorpay_order_id:
+        # 🛡️ FALLBACK: If order wasn't created during create_booking, create it now
+        order_data = razorpay_client.create_order(
+            amount=booking.total_amount,
+            receipt=f"booking_{booking.booking_number}"
+        )
+        
+        if not order_data['success']:
+            # 🛡️ WHY: Fail gracefully. If the gateway is down, we don't want a 500 error.
+            # SECURITY: Don't expose internal error details to users
+            logger.error(f"Payment gateway error for booking {booking.booking_number}: {order_data.get('error', 'Unknown error')}")
+            messages.error(request, "Payment gateway is temporarily unavailable. Please try again later.")
+            return redirect('booking_summary', showtime_id=booking.showtime.id)
+        
+        # 🔗 SYNC: Save the order ID to the booking record
+        booking.razorpay_order_id = order_data['order_id']
+        booking.save()
+    else:
+        # ✅ Order already exists from create_booking
+        order_data = {
+            'success': True,
+            'order_id': booking.razorpay_order_id,
+            'amount': int(booking.total_amount * 100),
+            'currency': 'INR',
+            'is_mock': booking.razorpay_order_id.startswith('order_mock_') if booking.razorpay_order_id else False
+        }
 
     context = {
         'booking': booking,
