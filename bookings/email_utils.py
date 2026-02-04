@@ -45,8 +45,8 @@ def send_email_safe(task_func, *args, **kwargs):
         )
         try:
             # Fallback: Call the task function synchronously
-            # This executes the actual email logic in the current request
-            result = task_func.apply(*args, **kwargs)
+            # This executes the actual email logic directly without Celery
+            result = task_func(*args, **kwargs)
             logger.info(f"✅ Email sent synchronously: {task_func.name}")
             return result
         except Exception as sync_error:

@@ -8,7 +8,7 @@ from django.utils import timezone
 import json
 import logging
 from .razorpay_utils import razorpay_client
-from .email_utils import send_booking_confirmation_email
+from .email_utils import send_booking_confirmation_email, send_email_safe
 from django.http import HttpResponse
 from movies.models import Movie
 from movies.theater_models import Showtime
@@ -450,8 +450,8 @@ def payment_success(request, booking_id):
             # Send refund email (Async Celery task) - Only if not already sent
             if not booking.refund_notification_sent:
                 from .email_utils import send_late_payment_email
-                task = send_late_payment_email.delay(booking.id)
-                logger.info(f"📧 Late payment refund email task queued: {task.id}")
+                send_email_safe(send_late_payment_email, booking.id)
+                logger.info(f"📧 Late payment refund email task queued")
             else:
                 logger.info(f"⏭️  Refund email already sent for booking {booking.booking_number}")
             
@@ -539,7 +539,7 @@ def payment_success(request, booking_id):
         # Send confirmation email (Async) - Called AFTER transaction commits
         # This avoids "database is locked" errors in SQLite development mode
         from .email_utils import send_booking_confirmation_email
-        send_booking_confirmation_email.delay(booking.id)
+        send_email_safe(send_booking_confirmation_email, booking.id)
         
         messages.success(request, 'Ticket booked successfully!')
         return redirect('booking_detail', booking_id=booking.id)
@@ -587,7 +587,7 @@ def payment_failed(request, booking_id):
         # The email utility has its own idempotency check - don't reset the flag here
         if not booking.failure_email_sent:
             from .email_utils import send_payment_failed_email
-            send_payment_failed_email.delay(booking.id)
+            send_email_safe(send_payment_failed_email, booking.id)
     
     messages.error(request, 'Payment was unsuccessful. Your seats have been released.')
     return redirect('select_seats', showtime_id=booking.showtime.id)
@@ -660,8 +660,8 @@ def razorpay_webhook(request):
                     # Send refund email (Async Celery task) - Only if not already sent
                     if not booking.refund_notification_sent:
                         from .email_utils import send_late_payment_email
-                        task = send_late_payment_email.delay(booking.id)
-                        logger.info(f"📧 Late payment refund email task queued via webhook: {task.id}")
+                        send_email_safe(send_late_payment_email, booking.id)
+                        logger.info(f"📧 Late payment refund email task queued via webhook")
                     else:
                         logger.info(f"⏭️  Refund email already sent for booking {booking.booking_number} via webhook")
                     
@@ -689,7 +689,7 @@ def razorpay_webhook(request):
                     
                     # Send confirmation email (email task has idempotency checks)
                     from .email_utils import send_booking_confirmation_email
-                    send_booking_confirmation_email.delay(booking.id)
+                    send_email_safe(send_booking_confirmation_email, booking.id)
                     logger.info(f"✅ WEBHOOK: Confirmation email task queued for booking {booking.booking_number}")
                 elif booking.status == 'CONFIRMED':
                     # Already confirmed by payment_success view - don't process again
@@ -797,7 +797,7 @@ def cancel_booking_api(request, booking_id):
         # Send payment failed email (Async) - Modal was closed/abandoned
         if not booking.failure_email_sent:
             from .email_utils import send_payment_failed_email
-            send_payment_failed_email.delay(booking.id)
+            send_email_safe(send_payment_failed_email, booking.id)
         
         # 🛡️ CRITICAL: Release seats from Redis
         SeatManager.release_seats(showtime_id, booking.seats, user_id=request.user.id)
