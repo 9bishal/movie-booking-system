@@ -886,9 +886,9 @@ def release_booking_beacon(request, booking_id):
         
         # Email sending happens OUTSIDE the transaction
         # Send payment failed email (Async) - Tab was closed during payment
-        if not booking.failure_email_sent:
-            from .email_utils import send_payment_failed_email
-            send_payment_failed_email.delay(booking.id)
+        # if not booking.failure_email_sent:
+        #     from .email_utils import send_payment_failed_email
+        #     send_payment_failed_email.delay(booking.id)
         
         # 🛡️ CRITICAL: Release seats from both Redis cache and user reservation key
         SeatManager.release_seats(booking.showtime.id, booking.seats, user_id=booking.user.id)
