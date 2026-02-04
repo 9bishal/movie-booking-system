@@ -324,41 +324,63 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'Asia/Kolkata'
 
-# Development mode: Execute tasks synchronously (no worker needed)
-if DEBUG:
-    CELERY_TASK_ALWAYS_EAGER = True
-    CELERY_TASK_EAGER_PROPAGATES = True
+# Execute tasks synchronously (no Celery worker needed)
+# This ensures emails are sent immediately when bookings are confirmed
+# In production, emails will be sent directly via SendGrid backend
+CELERY_TASK_ALWAYS_EAGER = True
+CELERY_TASK_EAGER_PROPAGATES = True
 
 # Razorpay Configuration
 RAZORPAY_KEY_ID = os.environ.get('RAZORPAY_KEY_ID', '')
 RAZORPAY_KEY_SECRET = os.environ.get('RAZORPAY_KEY_SECRET', '')
 
-# Email Configuration
-# Use SendGrid API for email sending via django-anymail
+# ========== EMAIL CONFIGURATION ==========
+# Sends booking confirmations and password reset emails via SendGrid or console backend
+# 
+# SENDGRID_API_KEY: Required for production email sending
+#   - Free tier limit: 100 emails/day
+#   - If limit exceeded or key not set, emails will NOT be sent
+#   - Set via environment variable: export SENDGRID_API_KEY='your-key-here'
+#
+# Backend Logic:
+#   1. If SENDGRID_API_KEY is set -> Use SendGrid (production)
+#   2. If SENDGRID_API_KEY empty & DEBUG=False -> Fallback to console (development-like mode)
+#   3. If DEBUG=True -> Use console backend for local testing
+#
+# IMPORTANT: Check SendGrid dashboard for:
+#   - API key is valid and not rate-limited
+#   - Account hasn't exceeded free tier limit (100 emails/day)
+#   - Email isn't in spam/bounce list
+# =========================================
+
 SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY', '')
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
 
 if SENDGRID_API_KEY:
-    # Use SendGrid HTTP API (reliable for production)
+    # Production: Use SendGrid HTTP API (reliable, production-ready)
     EMAIL_BACKEND = 'anymail.backends.sendgrid.EmailBackend'
     ANYMAIL = {
         'SENDGRID_API_KEY': SENDGRID_API_KEY,
     }
     DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@moviebooking.com')
+    print("✅ EMAIL: Using SendGrid backend (SENDGRID_API_KEY is set)")
 elif not DEBUG:
-    # Production: Log error if no email backend configured
+    # Production without API key: Fallback to console backend (emails logged, NOT sent)
     import warnings
     warnings.warn(
         "⚠️  WARNING: SENDGRID_API_KEY not set in production! "
-        "Emails will use console backend (no emails will be sent). "
-        "Please set SENDGRID_API_KEY environment variable."
+        "Emails will use console backend (LOGGED ONLY, NOT SENT). "
+        "Please set SENDGRID_API_KEY environment variable. "
+        "Free tier limit: 100 emails/day."
     )
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
     DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@moviebooking.com')
+    print("❌ EMAIL: Using console backend (SENDGRID_API_KEY not set in production)")
 else:
-    # Development: Use console backend for testing
+    # Development: Use console backend for testing (emails logged to stdout)
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
     DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@moviebooking.com')
+    print("🧪 EMAIL: Using console backend (development mode)")
 
 SITE_URL = os.environ.get('SITE_URL', 'http://localhost:8000')
 
@@ -420,7 +442,12 @@ LOGGING = {
         # ===== EMAIL LOGGING - Track all email operations =====
         'bookings.email_utils': {
             'handlers': ['console'],
-            'level': 'INFO',
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'anymail': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
             'propagate': False,
         },
         # ===== PAYMENT LOGGING - Track Razorpay operations =====
