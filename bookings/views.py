@@ -8,7 +8,7 @@ from django.utils import timezone
 import json
 import logging
 from .razorpay_utils import razorpay_client
-from .email_utils import send_booking_confirmation_email, send_email_safe
+from .email_utils import send_booking_confirmation_email
 from django.http import HttpResponse
 from movies.models import Movie
 from movies.theater_models import Showtime
@@ -216,20 +216,11 @@ def create_booking(request, showtime_id):
     🏗️ WHY: This is the 'Handshake'. 
     The user is ready to pay, so we officially 'Lock' the seats in the database records.
     """
-    logger.info(
-        f"🏗️  [CREATE_BOOKING] Started for showtime_id={showtime_id} | User: {request.user.email}"
-    )
-    
     try:
         showtime = get_object_or_404(Showtime, id=showtime_id)
         # 📥 HOW: Get data from the browser (JavaScript)
         data = json.loads(request.body)
         seat_ids = data.get('seat_ids', [])
-        
-        logger.info(
-            f"🏗️  [CREATE_BOOKING] Received seat selection: {seat_ids} | "
-            f"Movie: {showtime.movie.title} | Time: {showtime.date} {showtime.start_time}"
-        )
         
         # 🧹 CLEANUP: Cancel any existing PENDING bookings for this user/showtime
         # This handles the case where user goes back and tries to book again
@@ -314,8 +305,11 @@ def create_booking(request, showtime_id):
         })
         
     except Exception as e:
-        logger.error(f"Error creating booking for showtime {showtime_id}: {str(e)}")
-        return JsonResponse({'error': 'Failed to create booking. Please try again.'}, status=500)
+        logger.error(f"❌ Error creating booking for showtime {showtime_id}: {str(e)}", exc_info=True)
+        import traceback
+        error_trace = traceback.format_exc()
+        print(f"BOOKING ERROR:\n{error_trace}")
+        return JsonResponse({'error': f'Failed to create booking: {str(e)}'}, status=500)
 
 @login_required
 def payment_page(request, booking_id):
@@ -366,35 +360,21 @@ def payment_page(request, booking_id):
         messages.error(request, 'Payment window expired. Please try again.')
         return redirect('select_seats', showtime_id=booking.showtime.id)
     
-    # 💳 HOW: Reuse existing Razorpay Order
-    # We already created the order in create_booking, so we just use it here
-    # This avoids creating duplicate orders and reduces API calls
-    if not booking.razorpay_order_id:
-        # 🛡️ FALLBACK: If order wasn't created during create_booking, create it now
-        order_data = razorpay_client.create_order(
-            amount=booking.total_amount,
-            receipt=f"booking_{booking.booking_number}"
-        )
-        
-        if not order_data['success']:
-            # 🛡️ WHY: Fail gracefully. If the gateway is down, we don't want a 500 error.
-            # SECURITY: Don't expose internal error details to users
-            logger.error(f"Payment gateway error for booking {booking.booking_number}: {order_data.get('error', 'Unknown error')}")
-            messages.error(request, "Payment gateway is temporarily unavailable. Please try again later.")
-            return redirect('booking_summary', showtime_id=booking.showtime.id)
-        
-        # 🔗 SYNC: Save the order ID to the booking record
-        booking.razorpay_order_id = order_data['order_id']
-        booking.save()
-    else:
-        # ✅ Order already exists from create_booking
-        order_data = {
-            'success': True,
-            'order_id': booking.razorpay_order_id,
-            'amount': int(booking.total_amount * 100),
-            'currency': 'INR',
-            'is_mock': booking.razorpay_order_id.startswith('order_mock_') if booking.razorpay_order_id else False
-        }
+    # 💳 HOW: Create Razorpay Order
+    # We send the amount and receipt to Razorpay API to get an 'order_id'.
+    # ❓ WHY: This creates a single source of truth for this payment attempt.
+    # It prevents double-charging and allows us to track this specific transaction on Razorpay's dashboard.
+    order_data = razorpay_client.create_order(
+        amount=booking.total_amount,
+        receipt=f"booking_{booking.booking_number}"
+    )
+    
+    if not order_data['success']:
+        # 🛡️ WHY: Fail gracefully. If the gateway is down, we don't want a 500 error.
+        # SECURITY: Don't expose internal error details to users
+        logger.error(f"Payment gateway error for booking {booking.booking_number}: {order_data.get('error', 'Unknown error')}")
+        messages.error(request, "Payment gateway is temporarily unavailable. Please try again later.")
+        return redirect('booking_summary', showtime_id=booking.showtime.id)
 
     context = {
         'booking': booking,
@@ -417,20 +397,12 @@ def payment_success(request, booking_id):
     🎉 WHY: Razorpay redirects here after a successful transaction.
     HOW: We verify the signature to ENSURE the payment was real.
     """
-    logger.info(f"🎉 [PAYMENT_SUCCESS] Received payment success redirect for booking_id={booking_id} | User: {request.user.email}")
-    
     booking = get_object_or_404(Booking, id=booking_id, user=request.user)
     
     # Get parameters from Razorpay redirect
     razorpay_payment_id = request.GET.get('razorpay_payment_id')
     razorpay_order_id = request.GET.get('razorpay_order_id')
     razorpay_signature = request.GET.get('razorpay_signature')
-    
-    logger.info(
-        f"🎉 [PAYMENT_SUCCESS] Details: Booking={booking.booking_number} | "
-        f"Payment ID={razorpay_payment_id} | Order ID={razorpay_order_id} | "
-        f"Signature present={bool(razorpay_signature)}"
-    )
     
     # 🕵️ SECURITY: Ensure the Order ID matches our database anchor.
     # WHY: Authority Model. Even if Razorpay's modal stays open too long, 
@@ -481,8 +453,8 @@ def payment_success(request, booking_id):
             # Send refund email (Async Celery task) - Only if not already sent
             if not booking.refund_notification_sent:
                 from .email_utils import send_late_payment_email
-                send_email_safe(send_late_payment_email, booking.id)
-                logger.info(f"📧 Late payment refund email task queued")
+                task = send_late_payment_email.delay(booking.id)
+                logger.info(f"📧 Late payment refund email task queued: {task.id}")
             else:
                 logger.info(f"⏭️  Refund email already sent for booking {booking.booking_number}")
             
@@ -570,7 +542,7 @@ def payment_success(request, booking_id):
         # Send confirmation email (Async) - Called AFTER transaction commits
         # This avoids "database is locked" errors in SQLite development mode
         from .email_utils import send_booking_confirmation_email
-        send_email_safe(send_booking_confirmation_email, booking.id)
+        send_booking_confirmation_email.delay(booking.id)
         
         messages.success(request, 'Ticket booked successfully!')
         return redirect('booking_detail', booking_id=booking.id)
@@ -618,7 +590,7 @@ def payment_failed(request, booking_id):
         # The email utility has its own idempotency check - don't reset the flag here
         if not booking.failure_email_sent:
             from .email_utils import send_payment_failed_email
-            send_email_safe(send_payment_failed_email, booking.id)
+            send_payment_failed_email.delay(booking.id)
     
     messages.error(request, 'Payment was unsuccessful. Your seats have been released.')
     return redirect('select_seats', showtime_id=booking.showtime.id)
@@ -691,8 +663,8 @@ def razorpay_webhook(request):
                     # Send refund email (Async Celery task) - Only if not already sent
                     if not booking.refund_notification_sent:
                         from .email_utils import send_late_payment_email
-                        send_email_safe(send_late_payment_email, booking.id)
-                        logger.info(f"📧 Late payment refund email task queued via webhook")
+                        task = send_late_payment_email.delay(booking.id)
+                        logger.info(f"📧 Late payment refund email task queued via webhook: {task.id}")
                     else:
                         logger.info(f"⏭️  Refund email already sent for booking {booking.booking_number} via webhook")
                     
@@ -720,7 +692,7 @@ def razorpay_webhook(request):
                     
                     # Send confirmation email (email task has idempotency checks)
                     from .email_utils import send_booking_confirmation_email
-                    send_email_safe(send_booking_confirmation_email, booking.id)
+                    send_booking_confirmation_email.delay(booking.id)
                     logger.info(f"✅ WEBHOOK: Confirmation email task queued for booking {booking.booking_number}")
                 elif booking.status == 'CONFIRMED':
                     # Already confirmed by payment_success view - don't process again
@@ -828,7 +800,7 @@ def cancel_booking_api(request, booking_id):
         # Send payment failed email (Async) - Modal was closed/abandoned
         if not booking.failure_email_sent:
             from .email_utils import send_payment_failed_email
-            send_email_safe(send_payment_failed_email, booking.id)
+            send_payment_failed_email.delay(booking.id)
         
         # 🛡️ CRITICAL: Release seats from Redis
         SeatManager.release_seats(showtime_id, booking.seats, user_id=request.user.id)
@@ -914,9 +886,9 @@ def release_booking_beacon(request, booking_id):
         
         # Email sending happens OUTSIDE the transaction
         # Send payment failed email (Async) - Tab was closed during payment
-        # if not booking.failure_email_sent:
-        #     from .email_utils import send_payment_failed_email
-        #     send_payment_failed_email.delay(booking.id)
+        if not booking.failure_email_sent:
+            from .email_utils import send_payment_failed_email
+            send_payment_failed_email.delay(booking.id)
         
         # 🛡️ CRITICAL: Release seats from both Redis cache and user reservation key
         SeatManager.release_seats(booking.showtime.id, booking.seats, user_id=booking.user.id)
