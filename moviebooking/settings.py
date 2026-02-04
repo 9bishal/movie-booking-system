@@ -334,23 +334,31 @@ RAZORPAY_KEY_ID = os.environ.get('RAZORPAY_KEY_ID', '')
 RAZORPAY_KEY_SECRET = os.environ.get('RAZORPAY_KEY_SECRET', '')
 
 # Email Configuration
-# Use MailerSend API for email sending via django-anymail
-MAILERSEND_API_KEY = os.environ.get('MAILERSEND_API_KEY', '')
+# Use SendGrid API for email sending via django-anymail
+SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY', '')
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
 
-if MAILERSEND_API_KEY:
-    # Use Anymail with MailerSend backend
-    EMAIL_BACKEND = 'anymail.backends.mailersend.EmailBackend'
+if SENDGRID_API_KEY:
+    # Use SendGrid HTTP API (reliable for production)
+    EMAIL_BACKEND = 'anymail.backends.sendgrid.EmailBackend'
     ANYMAIL = {
-        'MAILERSEND_API_TOKEN': MAILERSEND_API_KEY,
+        'SENDGRID_API_KEY': SENDGRID_API_KEY,
     }
-else:
-    # Fallback to console backend if no API key
+    DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@moviebooking.com')
+elif not DEBUG:
+    # Production: Log error if no email backend configured
+    import warnings
+    warnings.warn(
+        "⚠️  WARNING: SENDGRID_API_KEY not set in production! "
+        "Emails will use console backend (no emails will be sent). "
+        "Please set SENDGRID_API_KEY environment variable."
+    )
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-
-# Use your verified domain email
-_default_from = os.environ.get('DEFAULT_FROM_EMAIL') or 'noreply@test-dnvo4d9eq86g5r86.mlsender.net'
-DEFAULT_FROM_EMAIL = _default_from
+    DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@moviebooking.com')
+else:
+    # Development: Use console backend for testing
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@moviebooking.com')
 
 SITE_URL = os.environ.get('SITE_URL', 'http://localhost:8000')
 
