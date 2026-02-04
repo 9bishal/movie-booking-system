@@ -362,13 +362,118 @@ else:
 
 SITE_URL = os.environ.get('SITE_URL', 'http://localhost:8000')
 
-# Password Reset Timeout (24 hours)
-PASSWORD_RESET_TIMEOUT = 86400
+# ============================================================================
+# 🔍 LOGGING CONFIGURATION - Track all critical events in Render logs
+# ============================================================================
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '[{levelname}] {asctime} | {name} | {funcName}:{lineno}d | {message}',
+            'style': '{',
+            'datefmt': '%Y-%m-%d %H:%M:%S',
+        },
+        'simple': {
+            'format': '[{levelname}] {message}',
+            'style': '{',
+        },
+    },
+    'filters': {
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
+        },
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'level': 'INFO',
+            'formatter': 'verbose',
+            'stream': 'ext://sys.stdout',
+        },
+        'console_debug': {
+            'class': 'logging.StreamHandler',
+            'level': 'DEBUG',
+            'formatter': 'verbose',
+            'stream': 'ext://sys.stdout',
+            'filters': ['require_debug_true'],
+        },
+        'file': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'level': 'INFO',
+            'formatter': 'verbose',
+            'filename': os.path.join(BASE_DIR, 'logs', 'movie_booking.log'),
+            'maxBytes': 10485760,  # 10MB
+            'backupCount': 5,
+        },
+    },
+    'loggers': {
+        # ===== ROOT LOGGER - Captures everything by default =====
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        # ===== EMAIL LOGGING - Track all email operations =====
+        'bookings.email_utils': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        # ===== PAYMENT LOGGING - Track Razorpay operations =====
+        'bookings.razorpay_utils': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'bookings.views': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        # ===== ACCOUNT LOGGING - Track authentication =====
+        'accounts.email_utils': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'accounts.views': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        # ===== CELERY LOGGING - Track async tasks =====
+        'celery': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'celery.task': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        # ===== DEBUG TOOLBAR & SECURITY =====
+        'django.db.backends': {
+            'handlers': ['console_debug'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'django.security': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}
 
-# Debug Toolbar Settings
-INTERNAL_IPS = [
-    "127.0.0.1",
-]
+# Create logs directory if it doesn't exist
+LOGS_DIR = os.path.join(BASE_DIR, 'logs')
+if not os.path.exists(LOGS_DIR):
+    os.makedirs(LOGS_DIR, exist_ok=True)
 
 
 

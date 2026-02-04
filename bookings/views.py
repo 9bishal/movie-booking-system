@@ -216,11 +216,20 @@ def create_booking(request, showtime_id):
     🏗️ WHY: This is the 'Handshake'. 
     The user is ready to pay, so we officially 'Lock' the seats in the database records.
     """
+    logger.info(
+        f"🏗️  [CREATE_BOOKING] Started for showtime_id={showtime_id} | User: {request.user.email}"
+    )
+    
     try:
         showtime = get_object_or_404(Showtime, id=showtime_id)
         # 📥 HOW: Get data from the browser (JavaScript)
         data = json.loads(request.body)
         seat_ids = data.get('seat_ids', [])
+        
+        logger.info(
+            f"🏗️  [CREATE_BOOKING] Received seat selection: {seat_ids} | "
+            f"Movie: {showtime.movie.title} | Time: {showtime.date} {showtime.start_time}"
+        )
         
         # 🧹 CLEANUP: Cancel any existing PENDING bookings for this user/showtime
         # This handles the case where user goes back and tries to book again
@@ -408,12 +417,20 @@ def payment_success(request, booking_id):
     🎉 WHY: Razorpay redirects here after a successful transaction.
     HOW: We verify the signature to ENSURE the payment was real.
     """
+    logger.info(f"🎉 [PAYMENT_SUCCESS] Received payment success redirect for booking_id={booking_id} | User: {request.user.email}")
+    
     booking = get_object_or_404(Booking, id=booking_id, user=request.user)
     
     # Get parameters from Razorpay redirect
     razorpay_payment_id = request.GET.get('razorpay_payment_id')
     razorpay_order_id = request.GET.get('razorpay_order_id')
     razorpay_signature = request.GET.get('razorpay_signature')
+    
+    logger.info(
+        f"🎉 [PAYMENT_SUCCESS] Details: Booking={booking.booking_number} | "
+        f"Payment ID={razorpay_payment_id} | Order ID={razorpay_order_id} | "
+        f"Signature present={bool(razorpay_signature)}"
+    )
     
     # 🕵️ SECURITY: Ensure the Order ID matches our database anchor.
     # WHY: Authority Model. Even if Razorpay's modal stays open too long, 

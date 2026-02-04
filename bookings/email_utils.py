@@ -36,7 +36,7 @@ def send_email_safe(task_func, *args, **kwargs):
     try:
         # Try to send async (requires Celery worker)
         result = task_func.delay(*args, **kwargs)
-        logger.info(f"✅ Email task queued asynchronously: {task_func.name}")
+        logger.info(f"✅ 📧 Email task queued asynchronously: {task_func.name} | Task ID: {result.id}")
         return result
     except Exception as e:
         logger.warning(
@@ -48,15 +48,15 @@ def send_email_safe(task_func, *args, **kwargs):
             # This executes the actual email logic directly without Celery
             logger.info(f"📧 Attempting synchronous email send for {task_func.name} with args: {args}")
             result = task_func(*args, **kwargs)
-            logger.info(f"✅ Email sent synchronously: {task_func.name}. Result: {result}")
+            logger.info(f"✅ 📧 Email sent synchronously: {task_func.name}. Result: {result}")
             return result
         except Exception as sync_error:
             logger.error(
-                f"❌ Both async and sync email sending failed for {task_func.name}\n"
-                f"   Async error: {e}\n"
+                f"❌ 📧 CRITICAL: Both async and sync email sending FAILED for {task_func.name}\n"
+                f"   Async error: {type(e).__name__}: {e}\n"
                 f"   Sync error: {type(sync_error).__name__}: {str(sync_error)}\n"
                 f"   Args: {args}\n"
-                f"Email NOT sent to user."
+                f"   Email NOT sent to user."
             )
             return None
 
@@ -78,18 +78,26 @@ def send_booking_confirmation_email(booking_id):
     from django.db import transaction
     
     try:
+        logger.info(f"🔄 [CONFIRMATION_EMAIL] Processing confirmation email for booking_id={booking_id}")
+        
         # 🛡️ ATOMIC LOCK: Use transaction to ensure database consistency
         # Note: select_for_update() is avoided because SQLite in production has limited support
         with transaction.atomic():
             booking = Booking.objects.get(id=booking_id)
             user = booking.user
             
+            logger.info(
+                f"📧 [CONFIRMATION_EMAIL] Found booking: {booking.booking_number} | "
+                f"User: {user.email} | Status: {booking.status} | "
+                f"Payment Received: {booking.payment_received_at is not None}"
+            )
+            
             # 🛡️ CRITICAL: Only send if payment_received_at is set
             # This ensures we never send confirmation before payment is actually received
             if not booking.payment_received_at:
                 logger.warning(
-                    f"⏭️  Skipping confirmation email for {booking.booking_number} - "
-                    f"payment_received_at not set (payment not received)"
+                    f"⏭️  SKIPPED: Confirmation email for {booking.booking_number} - "
+                    f"payment_received_at not set (payment not received yet)"
                 )
                 return f"Email not sent - payment not received yet"
             
@@ -97,17 +105,17 @@ def send_booking_confirmation_email(booking_id):
             # Don't send confirmation if payment failed
             if booking.status != 'CONFIRMED':
                 logger.warning(
-                    f"⏭️  Skipping confirmation email for {booking.booking_number} - "
-                    f"Status is {booking.status}, not CONFIRMED (payment may have failed)"
+                    f"⏭️  SKIPPED: Confirmation email for {booking.booking_number} - "
+                    f"Status is {booking.status}, not CONFIRMED"
                 )
                 return f"Email not sent - booking status is {booking.status}"
             
             # 🛡️ IDEMPOTENCY CHECK: Only send once
             # If email was already sent, don't send again (prevents double emails)
             if booking.confirmation_email_sent:
-                logger.warning(
-                    f"⏭️  Skipping confirmation email for {booking.booking_number} - "
-                    f"Email already sent"
+                logger.info(
+                    f"⏭️  SKIPPED: Confirmation email for {booking.booking_number} - "
+                    f"Already sent (idempotency check)"
                 )
                 return f"Email already sent - skipping"
             
@@ -123,10 +131,10 @@ def send_booking_confirmation_email(booking_id):
             qr_base64 = booking.get_qr_code_base64()
             if not qr_base64:
                 # Fallback: generate QR code inline if model method fails
-                logger.warning(f"QR code generation failed for booking {booking.booking_number}, using fallback")
+                logger.warning(f"⚠️  QR code generation failed for {booking.booking_number}, using fallback")
                 qr_base64 = booking._generate_inline_qr_base64()
         except Exception as e:
-            logger.error(f"QR code generation error for booking {booking.booking_number}: {str(e)}")
+            logger.error(f"❌ QR code generation error for {booking.booking_number}: {str(e)}")
             # Generate simple fallback QR code
             qr_data = f"Booking: {booking.booking_number}\nMovie: {booking.showtime.movie.title}"
             qr = qrcode.QRCode(version=1, box_size=10, border=5)
@@ -164,10 +172,10 @@ def send_booking_confirmation_email(booking_id):
         # Send email
         email.send()
         
-        logger.info(f"✅ Confirmation email sent to {user.email}")
+        logger.info(f"✅ 📧 CONFIRMATION EMAIL SENT | Booking: {booking.booking_number} | To: {user.email} | QR: Attached")
         return f"Email sent successfully to {user.email}"
     except Exception as e:
-        logger.error(f"❌ Error sending email for booking {booking_id}: {str(e)}")
+        logger.error(f"❌ 📧 ERROR sending confirmation email for booking {booking_id}: {type(e).__name__}: {str(e)}")
         return f"Error sending email: {str(e)}"
 
 @shared_task
@@ -187,11 +195,19 @@ def send_payment_failed_email(booking_id):
     from django.db import transaction
     
     try:
+        logger.info(f"🔄 [FAILURE_EMAIL] Processing payment failed email for booking_id={booking_id}")
+        
         # 🛡️ ATOMIC LOCK: Use transaction to ensure database consistency
         # Note: select_for_update() is avoided because SQLite in production has limited support
         with transaction.atomic():
             booking = Booking.objects.get(id=booking_id)
             user = booking.user
+            
+            logger.info(
+                f"❌ [FAILURE_EMAIL] Found booking: {booking.booking_number} | "
+                f"User: {user.email} | Status: {booking.status} | "
+                f"Payment Received: {booking.payment_received_at is not None}"
+            )
             
             # 🛡️ CRITICAL CHECK 1: If payment_received_at is set, payment DEFINITELY succeeded
             # Don't send failure email at all

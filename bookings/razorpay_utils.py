@@ -75,12 +75,19 @@ class RazorpayClient:
         if notes:
             data["notes"] = notes
         
+        logger.info(
+            f"💳 [RAZORPAY_ORDER] Creating order: Amount={amount} {currency} | "
+            f"Receipt={receipt} | Mock={self.is_mock}"
+        )
+        
         if self.is_mock:
             # 🎭 Return a fake order for local testing
+            order_id = f"order_mock_{int(time.time())}"
+            logger.info(f"🎭 [RAZORPAY_ORDER_MOCK] Mock order created: {order_id}")
             return {
                 'success': True,
                 'is_mock': True,
-                'order_id': f"order_mock_{int(time.time())}",
+                'order_id': order_id,
                 'amount': int(amount * 100),
                 'currency': currency,
                 'receipt': receipt
@@ -94,9 +101,13 @@ class RazorpayClient:
         
         while retry_count < max_retries:
             try:
+                logger.info(f"💳 [RAZORPAY_ORDER] Attempt {retry_count + 1}/{max_retries}")
                 # Set timeout for the request (30 seconds)
                 order = self.client.order.create(data=data)
-                logger.info(f"✅ Razorpay order created successfully: {order['id']}")
+                logger.info(
+                    f"✅ [RAZORPAY_ORDER] Order created successfully: {order['id']} | "
+                    f"Amount: {order['amount']} | Status: {order.get('status', 'created')}"
+                )
                 return {
                     'success': True,
                     'is_mock': False,
@@ -113,7 +124,7 @@ class RazorpayClient:
                     # Exponential backoff: 1s, 2s, 4s, 8s, 16s
                     wait_time = 2 ** (retry_count - 1)
                     logger.warning(
-                        f"⚠️  Razorpay API error (attempt {retry_count}/{max_retries}): {last_error}. "
+                        f"⚠️  [RAZORPAY_ORDER] API error (attempt {retry_count}/{max_retries}): {last_error}. "
                         f"Retrying in {wait_time}s..."
                     )
                     time.sleep(wait_time)
