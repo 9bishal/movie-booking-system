@@ -305,11 +305,8 @@ def create_booking(request, showtime_id):
         })
         
     except Exception as e:
-        logger.error(f"❌ Error creating booking for showtime {showtime_id}: {str(e)}", exc_info=True)
-        import traceback
-        error_trace = traceback.format_exc()
-        print(f"BOOKING ERROR:\n{error_trace}")
-        return JsonResponse({'error': f'Failed to create booking: {str(e)}'}, status=500)
+        logger.error(f"Error creating booking for showtime {showtime_id}: {str(e)}")
+        return JsonResponse({'error': 'Failed to create booking. Please try again.'}, status=500)
 
 @login_required
 def payment_page(request, booking_id):
