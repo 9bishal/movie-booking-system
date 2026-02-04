@@ -34,5 +34,6 @@ RUN python manage.py collectstatic --noinput || true
 # Expose port
 EXPOSE 8000
 
-# Run migrations, create superuser if needed, fix admin emails, and start server
-CMD ["sh", "-c", "python manage.py migrate && python create_superuser.py && python manage.py verify_admin_emails && gunicorn moviebooking.wsgi:application --bind 0.0.0.0:${PORT:-8000} --timeout 120 --workers 3"]
+# Run migrations on startup, then start server
+# Note: Superuser creation and admin verification only happen if needed (via management commands with safety checks)
+CMD ["sh", "-c", "python manage.py migrate && gunicorn moviebooking.wsgi:application --bind 0.0.0.0:${PORT:-8000} --timeout 120 --workers 3"]
