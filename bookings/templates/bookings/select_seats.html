@@ -808,25 +808,26 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Handle seat selection
     seats.forEach(seat => {
+        // Single click/tap to select or deselect
         seat.addEventListener('click', function() {
             handleSeatSelection(this);
         });
         
-        // Add touch feedback for mobile - single tap to select
+        // Touch feedback for mobile
         if ('ontouchstart' in window) {
             seat.addEventListener('touchstart', function(e) {
                 if (!this.classList.contains('booked') && !this.classList.contains('reserved')) {
                     this.style.transform = 'scale(0.95)';
                 }
-            });
+            }, { passive: true });
             
             seat.addEventListener('touchend', function(e) {
                 this.style.transform = '';
-            });
+            }, { passive: true });
             
             seat.addEventListener('touchcancel', function() {
                 this.style.transform = '';
-            });
+            }, { passive: true });
         }
     });
     
@@ -967,56 +968,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Prevent accidental scroll interference with seat selection on mobile
-    let isScrolling = false;
-    let scrollDetectionThreshold = 10;
-    
-    if ('ontouchstart' in window && seatLayoutContainer) {
-        let touchStartX = 0;
-        let touchStartY = 0;
-        
-        seatLayoutContainer.addEventListener('touchstart', function(e) {
-            touchStartX = e.touches[0].clientX;
-            touchStartY = e.touches[0].clientY;
-            isScrolling = false;
-        }, { passive: true });
-        
-        seatLayoutContainer.addEventListener('touchmove', function(e) {
-            const touchX = e.touches[0].clientX;
-            const diffX = Math.abs(touchX - touchStartX);
-            
-            // Mark as scrolling if user moved more than threshold horizontally
-            if (diffX > scrollDetectionThreshold) {
-                isScrolling = true;
-            }
-        }, { passive: true });
-        
-        // Add scroll detection to seats to ignore taps during scroll
-        seats.forEach(seat => {
-            seat.addEventListener('touchstart', function(e) {
-                touchStartX = e.touches[0].clientX;
-                touchStartY = e.touches[0].clientY;
-                isScrolling = false;
-            }, { passive: true });
-            
-            seat.addEventListener('touchmove', function(e) {
-                const touchX = e.touches[0].clientX;
-                const diffX = Math.abs(touchX - touchStartX);
-                
-                if (diffX > scrollDetectionThreshold) {
-                    isScrolling = true;
-                }
-            }, { passive: true });
-            
-            seat.addEventListener('touchend', function(e) {
-                // Only process seat selection if this wasn't a scroll gesture
-                if (!isScrolling) {
-                    handleSeatSelection(this);
-                }
-                isScrolling = false;
-            }, { passive: true });
-        });
-    }
+    // Remove scroll detection - allow simple single tap selection
+    // Users can now click/tap once to select, and again to deselect
 });
 </script>
 {% endblock %}
