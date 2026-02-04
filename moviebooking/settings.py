@@ -73,6 +73,7 @@ except ImportError:
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",  # Serve static files in production
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -183,6 +184,7 @@ CSRF_TRUSTED_ORIGINS = [
     'https://*.up.railway.app',
     'http://localhost:8000',
     'http://127.0.0.1:8000',
+    'https://*.onrender.com',
 ]
 
 # CSRF Cookie settings
@@ -289,10 +291,13 @@ STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
 STATIC_ROOT = BASE_DIR / "staticfiles"
-
+# WhiteNoise configuration for serving static files
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
-
+# Add Render domain if not already present
+if not any('onrender.com' in host or host == '*' for host in ALLOWED_HOSTS):
+    ALLOWED_HOSTS.append('.onrender.com')
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Authentication
