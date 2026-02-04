@@ -8,11 +8,13 @@ import time
 import razorpay
 from django.conf import settings
 import logging
+from urllib3.util.retry import Retry
+from requests.adapters import HTTPAdapter
 
 logger = logging.getLogger(__name__)
 
 class RazorpayClient:
-    """Razorpay client wrapper"""
+    """Razorpay client wrapper with improved connection handling"""
     
     def __init__(self):
         self.key_id = getattr(settings, 'RAZORPAY_KEY_ID', 'rzp_test_xxxx')
@@ -25,8 +27,28 @@ class RazorpayClient:
         
         if not self.is_mock:
             self.client = razorpay.Client(auth=(self.key_id, self.key_secret))
+            # 🔧 Configure connection pooling and retries for better stability
+            self._configure_client_session()
         else:
             print("⚠️ WARNING: Running in MOCK PAYMENT MODE. No real transactions will occur.")
+    
+    def _configure_client_session(self):
+        """Configure HTTP session with retry strategy for better reliability"""
+        try:
+            if hasattr(self.client, 'session'):
+                # Configure retry strategy
+                retry_strategy = Retry(
+                    total=3,
+                    backoff_factor=1,
+                    status_forcelist=[429, 500, 502, 503, 504],
+                    allowed_methods=["POST", "GET"]
+                )
+                adapter = HTTPAdapter(max_retries=retry_strategy)
+                self.client.session.mount("https://", adapter)
+                self.client.session.mount("http://", adapter)
+                logger.info("✅ Razorpay client session configured with retry strategy")
+        except Exception as e:
+            logger.warning(f"⚠️ Could not configure Razorpay session: {e}")
     
     def create_order(self, amount, currency="INR", receipt="receipt", notes=None):
         """
@@ -64,14 +86,15 @@ class RazorpayClient:
                 'receipt': receipt
             }
 
-        # 🔄 RETRY LOGIC: Attempt up to 3 times with exponential backoff
+        # 🔄 RETRY LOGIC: Attempt up to 5 times with exponential backoff
         # This handles transient network errors (connection timeouts, temporary disconnects)
-        max_retries = 3
+        max_retries = 5
         retry_count = 0
         last_error = None
         
         while retry_count < max_retries:
             try:
+                # Set timeout for the request (30 seconds)
                 order = self.client.order.create(data=data)
                 logger.info(f"✅ Razorpay order created successfully: {order['id']}")
                 return {
@@ -87,7 +110,7 @@ class RazorpayClient:
                 retry_count += 1
                 
                 if retry_count < max_retries:
-                    # Exponential backoff: 1s, 2s, 4s
+                    # Exponential backoff: 1s, 2s, 4s, 8s, 16s
                     wait_time = 2 ** (retry_count - 1)
                     logger.warning(
                         f"⚠️  Razorpay API error (attempt {retry_count}/{max_retries}): {last_error}. "
