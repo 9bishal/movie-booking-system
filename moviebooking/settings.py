@@ -324,10 +324,11 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'Asia/Kolkata'
 
-# Development mode: Execute tasks synchronously (no worker needed)
-if DEBUG:
-    CELERY_TASK_ALWAYS_EAGER = True
-    CELERY_TASK_EAGER_PROPAGATES = True
+# Execute tasks synchronously (no Celery worker needed)
+# This ensures emails are sent immediately when bookings are confirmed
+# In production, emails will be sent directly via SendGrid backend
+CELERY_TASK_ALWAYS_EAGER = True
+CELERY_TASK_EAGER_PROPAGATES = True
 
 # Razorpay Configuration
 RAZORPAY_KEY_ID = os.environ.get('RAZORPAY_KEY_ID', '')
