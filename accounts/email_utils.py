@@ -121,52 +121,6 @@ class AuthEmailService:
             return False
 
     @staticmethod
-    def send_password_reset_otp(user, otp):
-        """
-        🔑 Send password reset OTP email (6-digit code, expires in 5 minutes)
-        """
-        try:
-            subject = "🔐 Your Password Reset Code - MovieBooking"
-            
-            context = {
-                'user': user,
-                'otp': otp,
-                'username': user.first_name or user.username,
-                'expiry_minutes': 5,
-                'site_url': settings.SITE_URL or 'http://localhost:8000',
-            }
-            
-            # Render HTML and text versions
-            html_message = render_to_string('auth/password_reset_otp.html', context)
-            text_message = render_to_string('auth/password_reset_otp.txt', context)
-            
-            # Create email with both versions
-            email = EmailMultiAlternatives(
-                subject=subject,
-                body=text_message,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                to=[user.email]
-            )
-            email.attach_alternative(html_message, "text/html")
-            
-            result = email.send(fail_silently=False)
-            
-            logger.info(f"✅ Password reset OTP sent to {user.email} | OTP: {otp} | Result: {result}")
-            print("\n" + "="*60)
-            print("🔐 PASSWORD RESET OTP SENT")
-            print("="*60)
-            print(f"   Email: {user.email}")
-            print(f"   OTP: {otp}")
-            print(f"   Expires in: 5 minutes")
-            print("="*60 + "\n")
-            return True
-            
-        except Exception as e:
-            logger.error(f"❌ Failed to send password reset OTP to {user.email}: {str(e)}", exc_info=True)
-            print(f"\n⚠️ EMAIL FAILED: {str(e)}\n")
-            return False
-
-    @staticmethod
     def send_email_verification_email(user):
         """
         ✉️ Send email verification OTP (6-digit code, expires in 5 minutes)
@@ -207,13 +161,6 @@ class AuthEmailService:
             # Send the email
             try:
                 result = email.send(fail_silently=False)
-                if result == 0:
-                    # Email send returned 0 (no emails sent)
-                    logger.error(f"❌ Failed to send email to {user.email}: Email backend returned 0")
-                    if not settings.DEBUG:
-                        logger.warning(f"⚠️ OTP for {user.email}: {otp} (Email delivery failed)")
-                        return True  # Don't block user flow
-                    return False
             except Exception as e:
                 logger.error(f"❌ Failed to send email to {user.email}: {e}")
                 # In production with email failures, log OTP and continue

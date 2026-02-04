@@ -41,12 +41,9 @@ if _allowed_hosts == '*':
 else:
     ALLOWED_HOSTS = [h.strip() for h in _allowed_hosts.split(',')]
 
-# Add Railway and Render domains if not already present
+# Add Railway domain if not already present
 if not any('railway.app' in host or host == '*' for host in ALLOWED_HOSTS):
     ALLOWED_HOSTS.append('moviebookingapp-production-0bce.up.railway.app')
-
-if not any('onrender.com' in host or host == '*' for host in ALLOWED_HOSTS):
-    ALLOWED_HOSTS.append('.onrender.com')
 
 # Application definition
 
@@ -76,7 +73,6 @@ except ImportError:
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",  # Serve static files in production
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -125,7 +121,7 @@ WSGI_APPLICATION = "moviebooking.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# Use PostgreSQL in production (Railway) and development (local)
+# Use PostgreSQL in production (Railway), SQLite in development
 if os.environ.get('DATABASE_URL'):
     # Production: Use PostgreSQL via DATABASE_URL (Railway)
     import dj_database_url
@@ -137,22 +133,30 @@ if os.environ.get('DATABASE_URL'):
         )
     }
 else:
-    # Development: Use PostgreSQL locally (same as production for consistency)
+    # Development: Use SQLite with improved concurrency settings
     DATABASES = {
         "default": {
-            "ENGINE": "django.db.backends.postgresql",
-            "NAME": "moviebooking_local",
-            "USER": os.environ.get('DB_USER', 'bishalkumarshah'),
-            "PASSWORD": os.environ.get('DB_PASSWORD', ''),
-            "HOST": os.environ.get('DB_HOST', 'localhost'),
-            "PORT": os.environ.get('DB_PORT', '5432'),
-            "ATOMIC_REQUESTS": False,
-            "CONN_MAX_AGE": 600,
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
             "OPTIONS": {
-                "connect_timeout": 10,
+                "timeout": 20,  # Wait up to 20 seconds for locks to be released
             },
         }
     }
+    # Enable WAL mode for SQLite (better concurrency)
+    # This is done via signal instead of OPTIONS since init_command is not valid for SQLite
+    from django.db.backends.signals import connection_created
+    from django.dispatch import receiver
+    
+    @receiver(connection_created)
+    def setup_sqlite_pragmas(sender, connection, **kwargs):
+        """Enable Write-Ahead Logging mode for SQLite for better concurrency."""
+        if connection.vendor == 'sqlite':
+            cursor = connection.cursor()
+            cursor.execute('PRAGMA journal_mode=WAL;')
+            cursor.execute('PRAGMA synchronous=NORMAL;')  # Faster writes with WAL
+            cursor.execute('PRAGMA busy_timeout=20000;')  # 20 second timeout
+            cursor.close()
 
 if not DEBUG:
     DATABASES['default']['CONN_MAX_AGE'] = 600
@@ -172,20 +176,14 @@ CACHES = {
 
 
 # CSRF Configuration
-# Allow CSRF from Render, Railway domains and trusted origins
+# Allow CSRF from Railway domain and trusted origins
 CSRF_TRUSTED_ORIGINS = [
     'https://moviebookingapp-production-0bce.up.railway.app',
     'https://*.railway.app',
     'https://*.up.railway.app',
-    'https://*.onrender.com',
     'http://localhost:8000',
     'http://127.0.0.1:8000',
 ]
-
-# Add specific Render URL from environment if available
-_site_url = os.environ.get('SITE_URL', '')
-if _site_url and _site_url not in CSRF_TRUSTED_ORIGINS:
-    CSRF_TRUSTED_ORIGINS.append(_site_url)
 
 # CSRF Cookie settings
 CSRF_COOKIE_SECURE = not DEBUG  # Secure only in production
@@ -292,9 +290,6 @@ STATICFILES_DIRS = [
 ]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-# WhiteNoise configuration for serving static files
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
@@ -324,45 +319,33 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'Asia/Kolkata'
 
-# 🚀 CRITICAL: Execute tasks synchronously (no worker/beat services needed)
-# WHY: Railway free tier has limited memory. Without workers, we run sync.
-# HOW: CELERY_TASK_ALWAYS_EAGER makes .delay() calls run immediately
-# WHEN: Always on, both development and production
-# NOTE: This works fine for small-scale apps (emails, notifications)
-CELERY_TASK_ALWAYS_EAGER = True
-CELERY_TASK_EAGER_PROPAGATES = True
+# Development mode: Execute tasks synchronously (no worker needed)
+if DEBUG:
+    CELERY_TASK_ALWAYS_EAGER = True
+    CELERY_TASK_EAGER_PROPAGATES = True
 
 # Razorpay Configuration
 RAZORPAY_KEY_ID = os.environ.get('RAZORPAY_KEY_ID', '')
 RAZORPAY_KEY_SECRET = os.environ.get('RAZORPAY_KEY_SECRET', '')
 
 # Email Configuration
-# Use SendGrid API for email sending via django-anymail
-SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY', '')
+# Use MailerSend API for email sending via django-anymail
+MAILERSEND_API_KEY = os.environ.get('MAILERSEND_API_KEY', '')
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
 
-if SENDGRID_API_KEY:
-    # Use SendGrid HTTP API (reliable for production)
-    EMAIL_BACKEND = 'anymail.backends.sendgrid.EmailBackend'
+if MAILERSEND_API_KEY:
+    # Use Anymail with MailerSend backend
+    EMAIL_BACKEND = 'anymail.backends.mailersend.EmailBackend'
     ANYMAIL = {
-        'SENDGRID_API_KEY': SENDGRID_API_KEY,
+        'MAILERSEND_API_TOKEN': MAILERSEND_API_KEY,
     }
-    DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@shahbishal.com.np')
-elif not DEBUG:
-    # Production: Log error if no email backend configured
-    # This will help us debug email issues
-    import warnings
-    warnings.warn(
-        "⚠️  WARNING: SENDGRID_API_KEY not set in production! "
-        "Emails will use console backend (no emails will be sent). "
-        "Please set SENDGRID_API_KEY environment variable."
-    )
-    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-    DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@moviebooking.com')
 else:
-    # Development: Use console backend for testing
+    # Fallback to console backend if no API key
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-    DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@moviebooking.com')
+
+# Use your verified domain email
+_default_from = os.environ.get('DEFAULT_FROM_EMAIL') or 'noreply@test-dnvo4d9eq86g5r86.mlsender.net'
+DEFAULT_FROM_EMAIL = _default_from
 
 SITE_URL = os.environ.get('SITE_URL', 'http://localhost:8000')
 

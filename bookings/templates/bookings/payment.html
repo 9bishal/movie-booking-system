@@ -295,16 +295,13 @@
             "escape": true,
             // Don't close modal when clicking outside during payment
             "backdropclose": false
-        },
-        // 🚫 Prevent Razorpay from redirecting to hosted page
-        "redirect": false
+        }
     };
 
     document.getElementById('razorpay-pay-button').onclick = function(e) {
         e.preventDefault();
         const btn = this;
-        // Fix: Render as string and compare as string
-        const isMock = '{{ is_mock|yesno:"true,false" }}' === 'true';
+        const isMock = {{ is_mock|yesno:"true,false" }};
 
         console.log('💳 Payment button clicked. Mock mode:', isMock);
         paymentInProgress = true;  // Set flag to prevent page unload warnings
@@ -410,7 +407,7 @@
         // Send beacon to server for ALL cases (refresh, close, navigate away)
         // The server will handle the cancellation
         const data = JSON.stringify({
-            booking_id: "{{ booking.id }}",
+            booking_id: {{ booking.id }},
             reason: isNavigatingAway ? 'navigation' : (paymentInProgress ? 'tab_closed_during_payment' : 'page_refresh_or_close'),
             timestamp: new Date().toISOString()
         });

@@ -354,7 +354,6 @@
         .sticky-lg-top {
             position: sticky;
             top: 80px;
-            z-index: 10; /* Lower than navbar but higher than content */
         }
     }
     
@@ -486,12 +485,11 @@
             margin-right: 6px;
         }
         
-        /* Make sticky sidebar relative on mobile with proper z-index */
+        /* Make sticky sidebar relative on mobile */
         .sticky-lg-top {
             position: relative !important;
             top: 0 !important;
             margin-top: 1rem;
-            z-index: 1 !important; /* Lower than navbar dropdown which has higher z-index */
         }
     }
     
@@ -793,48 +791,35 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Handle seat selection
     seats.forEach(seat => {
-        seat.addEventListener('click', function(e) {
-            // Prevent event if it's part of a scroll gesture
-            if (seat._isScrolling) {
-                seat._isScrolling = false;
-                return;
-            }
+        seat.addEventListener('click', function() {
             handleSeatSelection(this);
         });
         
-        // Add visual feedback for touch devices
+        // Add touch feedback for mobile
         if ('ontouchstart' in window) {
+            let touchStartTime;
+            
             seat.addEventListener('touchstart', function(e) {
                 if (!this.classList.contains('booked') && !this.classList.contains('reserved')) {
                     this.style.transform = 'scale(0.95)';
-                    this._touchStartTime = Date.now();
-                    this._touchStartX = e.touches[0].clientX;
-                    this._touchStartY = e.touches[0].clientY;
-                }
-            });
-            
-            seat.addEventListener('touchmove', function(e) {
-                // Check if user is scrolling
-                if (this._touchStartX && this._touchStartY) {
-                    const touchX = e.touches[0].clientX;
-                    const touchY = e.touches[0].clientY;
-                    const diffX = Math.abs(touchX - this._touchStartX);
-                    const diffY = Math.abs(touchY - this._touchStartY);
-                    
-                    if (diffX > 10 || diffY > 10) {
-                        this._isScrolling = true;
-                        this.style.transform = '';
-                    }
+                    touchStartTime = Date.now();
                 }
             });
             
             seat.addEventListener('touchend', function(e) {
-                this.style.transform = '';
+                if (!this.classList.contains('booked') && !this.classList.contains('reserved')) {
+                    const touchDuration = Date.now() - touchStartTime;
+                    this.style.transform = '';
+                    
+                    // Only trigger selection if touch was short (not a scroll)
+                    if (touchDuration < 200) {
+                        handleSeatSelection(this);
+                    }
+                }
             });
             
             seat.addEventListener('touchcancel', function() {
                 this.style.transform = '';
-                this._isScrolling = false;
             });
         }
     });
@@ -976,40 +961,41 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Track scrolling in container to prevent accidental clicks during scroll
-    if ('ontouchstart' in window && seatLayoutContainer) {
-        let isContainerScrolling = false;
-        let scrollTimeout;
+    // Prevent accidental scroll when tapping seats on mobile
+    if ('ontouchstart' in window) {
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let isScrolling = false;
         
         seatLayoutContainer.addEventListener('touchstart', function(e) {
-            isContainerScrolling = false;
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            isScrolling = false;
         });
         
         seatLayoutContainer.addEventListener('touchmove', function(e) {
-            isContainerScrolling = true;
-            clearTimeout(scrollTimeout);
+            const touchX = e.touches[0].clientX;
+            const touchY = e.touches[0].clientY;
+            const diffX = Math.abs(touchX - touchStartX);
+            const diffY = Math.abs(touchY - touchStartY);
             
-            // Reset scrolling flag after scroll stops
-            scrollTimeout = setTimeout(() => {
-                isContainerScrolling = false;
-            }, 150);
+            if (diffX > 5 || diffY > 5) {
+                isScrolling = true;
+            }
         });
         
-        seatLayoutContainer.addEventListener('touchend', function(e) {
-            // Keep scrolling flag for a brief moment after touch ends
-            setTimeout(() => {
-                isContainerScrolling = false;
-            }, 50);
-        });
-        
-        // Mark all seats as scrolling when container is scrolling
+        // Add to seat touch handlers to prevent selection during scroll
         seats.forEach(seat => {
-            seatLayoutContainer.addEventListener('scroll', function() {
-                seats.forEach(s => s._isScrolling = true);
-                clearTimeout(scrollTimeout);
-                scrollTimeout = setTimeout(() => {
-                    seats.forEach(s => s._isScrolling = false);
-                }, 100);
+            seat.addEventListener('touchstart', function(e) {
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+            });
+            
+            seat.addEventListener('touchend', function(e) {
+                if (isScrolling) {
+                    e.preventDefault();
+                    isScrolling = false;
+                }
             });
         });
     }

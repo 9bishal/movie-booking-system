@@ -222,6 +222,20 @@ def create_booking(request, showtime_id):
         data = json.loads(request.body)
         seat_ids = data.get('seat_ids', [])
         
+        # 🔐 CRITICAL SECURITY: Validate that seat_ids match session
+        # WHY: Prevent malicious/buggy frontend from sending fake seats
+        # HOW: Compare against what was stored during seat selection
+        reservation = request.session.get('seat_reservation', {})
+        session_seat_ids = reservation.get(str(showtime_id), [])
+        
+        # Validate: seat_ids from request must match session exactly (after sorting)
+        if sorted(seat_ids) != sorted(session_seat_ids):
+            logger.warning(f"⚠️ SECURITY: User {request.user.id} tried to book {seat_ids} but session has {session_seat_ids}")
+            return JsonResponse({
+                'success': False,
+                'error': 'Your seat selection was invalid. Please start over.'
+            }, status=400)
+        
         # 🧹 CLEANUP: Cancel any existing PENDING bookings for this user/showtime
         # This handles the case where user goes back and tries to book again
         existing_pending = Booking.objects.filter(
@@ -883,9 +897,9 @@ def release_booking_beacon(request, booking_id):
         
         # Email sending happens OUTSIDE the transaction
         # Send payment failed email (Async) - Tab was closed during payment
-        # if not booking.failure_email_sent:
-        #     from .email_utils import send_payment_failed_email
-        #     send_payment_failed_email.delay(booking.id)
+        if not booking.failure_email_sent:
+            from .email_utils import send_payment_failed_email
+            send_payment_failed_email.delay(booking.id)
         
         # 🛡️ CRITICAL: Release seats from both Redis cache and user reservation key
         SeatManager.release_seats(booking.showtime.id, booking.seats, user_id=booking.user.id)
