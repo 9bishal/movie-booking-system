@@ -40,18 +40,22 @@ def send_email_safe(task_func, *args, **kwargs):
         return result
     except Exception as e:
         logger.warning(
-            f"⚠️  Async email task failed for {task_func.name}: {str(e)}. "
+            f"⚠️  Async email task failed for {task_func.name}: {type(e).__name__}: {str(e)}. "
             f"Falling back to synchronous sending..."
         )
         try:
             # Fallback: Call the task function synchronously
             # This executes the actual email logic directly without Celery
+            logger.info(f"📧 Attempting synchronous email send for {task_func.name} with args: {args}")
             result = task_func(*args, **kwargs)
-            logger.info(f"✅ Email sent synchronously: {task_func.name}")
+            logger.info(f"✅ Email sent synchronously: {task_func.name}. Result: {result}")
             return result
         except Exception as sync_error:
             logger.error(
-                f"❌ Both async and sync email sending failed for {task_func.name}: {str(sync_error)}. "
+                f"❌ Both async and sync email sending failed for {task_func.name}\n"
+                f"   Async error: {e}\n"
+                f"   Sync error: {type(sync_error).__name__}: {str(sync_error)}\n"
+                f"   Args: {args}\n"
                 f"Email NOT sent to user."
             )
             return None
@@ -74,10 +78,10 @@ def send_booking_confirmation_email(booking_id):
     from django.db import transaction
     
     try:
-        # 🛡️ ATOMIC LOCK: Use select_for_update to ensure only one task processes this email
-        # This prevents race conditions where multiple async tasks try to send the same email
+        # 🛡️ ATOMIC LOCK: Use transaction to ensure database consistency
+        # Note: select_for_update() is avoided because SQLite in production has limited support
         with transaction.atomic():
-            booking = Booking.objects.select_for_update().get(id=booking_id)
+            booking = Booking.objects.get(id=booking_id)
             user = booking.user
             
             # 🛡️ CRITICAL: Only send if payment_received_at is set
@@ -183,10 +187,10 @@ def send_payment_failed_email(booking_id):
     from django.db import transaction
     
     try:
-        # 🛡️ ATOMIC LOCK: Use select_for_update to ensure only one task processes this email
-        # This prevents race conditions where multiple async tasks try to send the same email
+        # 🛡️ ATOMIC LOCK: Use transaction to ensure database consistency
+        # Note: select_for_update() is avoided because SQLite in production has limited support
         with transaction.atomic():
-            booking = Booking.objects.select_for_update().get(id=booking_id)
+            booking = Booking.objects.get(id=booking_id)
             user = booking.user
             
             # 🛡️ CRITICAL CHECK 1: If payment_received_at is set, payment DEFINITELY succeeded
