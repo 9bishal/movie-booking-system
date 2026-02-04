@@ -115,7 +115,7 @@
 
         <!-- Sidebar: Selection Summary -->
         <div class="col-lg-3">
-            <div class="card border-0 shadow sticky-lg-top">
+            <div class="card border-0 shadow sticky-lg-top" style="top: 80px; z-index: 10;">
                 <div class="card-header bg-dark text-white py-3">
                     <h5 class="mb-0">Booking Summary</h5>
                 </div>
@@ -248,19 +248,24 @@
     .seat-layout-wrapper {
         width: 100%;
         position: relative;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
     }
     
     .seat-layout-container {
         width: 100%;
-        overflow: visible;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
     }
     
     .seat-layout {
         display: flex;
         flex-direction: column;
-        align-items: center;
+        align-items: flex-start;
         width: fit-content;
-        margin: 0 auto;
+        margin: 0;
         padding: 0 20px;
     }
     
@@ -371,20 +376,32 @@
         /* Mobile Layout Container - Full width scroll */
         .seat-layout-wrapper {
             width: 100%;
-            overflow: hidden;
-            padding: 10px 0;
+            overflow-x: auto;
+            overflow-y: hidden;
+            -webkit-overflow-scrolling: touch;
+            margin: 0;
+            padding: 0;
         }
         
         .seat-layout-container {
-            width: 100%;
+            display: block;
+            width: fit-content;
+            min-width: 100%;
             overflow-x: auto;
             overflow-y: visible;
             -webkit-overflow-scrolling: touch;
             scrollbar-width: thin;
-            padding: 15px 20px;
+            padding: 15px 0;
             background: #f8f9fa;
             border-radius: 10px;
             border: 1px solid #e9ecef;
+            box-sizing: border-box;
+        }
+        
+        .seat-layout {
+            width: fit-content;
+            padding: 0 20px;
+            align-items: flex-start;
         }
         
         /* Custom scrollbar */
@@ -405,14 +422,6 @@
         
         .seat-layout-container::-webkit-scrollbar-thumb:hover {
             background: #555;
-        }
-        
-        .seat-layout {
-            width: max-content;
-            min-width: 100%;
-            padding: 0;
-            align-items: flex-start;
-            margin: 0;
         }
         
         /* Mobile Seat Sizing */
@@ -780,12 +789,20 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 100);
         
         // Add click handlers for scroll indicators
-        leftIndicator.addEventListener('click', () => {
-            seatLayoutContainer.scrollBy({ left: -200, behavior: 'smooth' });
+        leftIndicator.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const scrollAmount = 250;
+            seatLayoutContainer.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+            setTimeout(() => updateScrollIndicators(), 400);
         });
         
-        rightIndicator.addEventListener('click', () => {
-            seatLayoutContainer.scrollBy({ left: 200, behavior: 'smooth' });
+        rightIndicator.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const scrollAmount = 250;
+            seatLayoutContainer.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+            setTimeout(() => updateScrollIndicators(), 400);
         });
     }
     
@@ -795,27 +812,16 @@ document.addEventListener('DOMContentLoaded', function() {
             handleSeatSelection(this);
         });
         
-        // Add touch feedback for mobile
+        // Add touch feedback for mobile - single tap to select
         if ('ontouchstart' in window) {
-            let touchStartTime;
-            
             seat.addEventListener('touchstart', function(e) {
                 if (!this.classList.contains('booked') && !this.classList.contains('reserved')) {
                     this.style.transform = 'scale(0.95)';
-                    touchStartTime = Date.now();
                 }
             });
             
             seat.addEventListener('touchend', function(e) {
-                if (!this.classList.contains('booked') && !this.classList.contains('reserved')) {
-                    const touchDuration = Date.now() - touchStartTime;
-                    this.style.transform = '';
-                    
-                    // Only trigger selection if touch was short (not a scroll)
-                    if (touchDuration < 200) {
-                        handleSeatSelection(this);
-                    }
-                }
+                this.style.transform = '';
             });
             
             seat.addEventListener('touchcancel', function() {
@@ -961,42 +967,54 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Prevent accidental scroll when tapping seats on mobile
-    if ('ontouchstart' in window) {
+    // Prevent accidental scroll interference with seat selection on mobile
+    let isScrolling = false;
+    let scrollDetectionThreshold = 10;
+    
+    if ('ontouchstart' in window && seatLayoutContainer) {
         let touchStartX = 0;
         let touchStartY = 0;
-        let isScrolling = false;
         
         seatLayoutContainer.addEventListener('touchstart', function(e) {
             touchStartX = e.touches[0].clientX;
             touchStartY = e.touches[0].clientY;
             isScrolling = false;
-        });
+        }, { passive: true });
         
         seatLayoutContainer.addEventListener('touchmove', function(e) {
             const touchX = e.touches[0].clientX;
-            const touchY = e.touches[0].clientY;
             const diffX = Math.abs(touchX - touchStartX);
-            const diffY = Math.abs(touchY - touchStartY);
             
-            if (diffX > 5 || diffY > 5) {
+            // Mark as scrolling if user moved more than threshold horizontally
+            if (diffX > scrollDetectionThreshold) {
                 isScrolling = true;
             }
-        });
+        }, { passive: true });
         
-        // Add to seat touch handlers to prevent selection during scroll
+        // Add scroll detection to seats to ignore taps during scroll
         seats.forEach(seat => {
             seat.addEventListener('touchstart', function(e) {
                 touchStartX = e.touches[0].clientX;
                 touchStartY = e.touches[0].clientY;
-            });
+                isScrolling = false;
+            }, { passive: true });
+            
+            seat.addEventListener('touchmove', function(e) {
+                const touchX = e.touches[0].clientX;
+                const diffX = Math.abs(touchX - touchStartX);
+                
+                if (diffX > scrollDetectionThreshold) {
+                    isScrolling = true;
+                }
+            }, { passive: true });
             
             seat.addEventListener('touchend', function(e) {
-                if (isScrolling) {
-                    e.preventDefault();
-                    isScrolling = false;
+                // Only process seat selection if this wasn't a scroll gesture
+                if (!isScrolling) {
+                    handleSeatSelection(this);
                 }
-            });
+                isScrolling = false;
+            }, { passive: true });
         });
     }
 });
