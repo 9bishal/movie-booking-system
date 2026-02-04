@@ -20,15 +20,6 @@ from accounts.decorators import email_verified_required
 # Initialize logger
 logger = logging.getLogger(__name__)
 
-# Helper function to check if database supports row-level locking
-def supports_select_for_update():
-    """
-    Check if the current database backend supports SELECT FOR UPDATE.
-    SQLite has limited support and can cause 'database is locked' errors.
-    """
-    db_engine = settings.DATABASES['default']['ENGINE']
-    return 'sqlite3' not in db_engine
-
 # ==============================================================================
 # ❓ THE BOOKING WORKFLOW (Step-by-Step)
 # 1. Select Seats: User picks seats on a UI (select_seats).
@@ -507,39 +498,29 @@ def payment_success(request, booking_id):
             return redirect('my_bookings')
 
         # ✅ ALL CLEAR: Proceed with confirmation
-        # 🛡️ CRITICAL: Use atomic transaction to prevent race conditions
-        # This ensures payment_received_at is set ATOMICALLY before any other code can check it
-        from django.db import transaction
+        # 🛡️ CRITICAL: Double-check before marking as confirmed
+        # Refresh booking from DB to ensure we have latest state
+        booking.refresh_from_db()
         
-        with transaction.atomic():
-            # Refresh booking from DB with optional lock to prevent concurrent modifications
-            # Use select_for_update only if database supports it (PostgreSQL, MySQL)
-            # SQLite has limited locking support and can cause "database is locked" errors
-            if supports_select_for_update():
-                booking = Booking.objects.select_for_update().get(id=booking.id)
-            else:
-                booking = Booking.objects.get(id=booking.id)
-            
-            # Double-check: If already confirmed, don't process again
-            if booking.status == 'CONFIRMED':
-                logger.info(f"Booking {booking.booking_number} already confirmed, skipping duplicate processing")
-                messages.success(request, f'Booking {booking.booking_number} confirmed!')
-                return redirect('booking_detail', booking_id=booking.id)
-            
-            # Set payment_received_at FIRST (atomic guard)
-            # Once payment_received_at is set, no failure email will ever be sent
-            payment_received_at = timezone.now()
-            booking.payment_received_at = payment_received_at
-            booking.payment_id = razorpay_payment_id
-            booking.payment_method = 'RAZORPAY'
-            booking.status = 'CONFIRMED'
-            booking.confirmed_at = timezone.now()
-            
-            # 🎫 GENERATE QR CODE PERMANENTLY
-            booking.generate_qr_code()
-            booking.save()
+        # Double-check: If already confirmed, don't process again
+        if booking.status == 'CONFIRMED':
+            logger.info(f"Booking {booking.booking_number} already confirmed, skipping duplicate processing")
+            messages.success(request, f'Booking {booking.booking_number} confirmed!')
+            return redirect('booking_detail', booking_id=booking.id)
         
-        # ALL CODE BELOW RUNS AFTER TRANSACTION COMMITS
+        # Set payment_received_at FIRST - this is the critical flag
+        # Once payment_received_at is set, no failure email will ever be sent
+        payment_received_at = timezone.now()
+        booking.payment_received_at = payment_received_at
+        booking.payment_id = razorpay_payment_id
+        booking.payment_method = 'RAZORPAY'
+        booking.status = 'CONFIRMED'
+        booking.confirmed_at = timezone.now()
+        
+        # 🎫 GENERATE QR CODE PERMANENTLY
+        booking.generate_qr_code()
+        booking.save()
+        
         logger.info(f"✅ Booking {booking.booking_number} confirmed with QR code generated")
         
         # Confirm seats in Redis (after atomic transaction)
@@ -770,18 +751,11 @@ def cancel_booking_api(request, booking_id):
         
         # 🛡️ ATOMIC: Use transaction to prevent race conditions
         with transaction.atomic():
-            # Lock the row during the entire check-and-update process (if supported)
-            if supports_select_for_update():
-                booking = get_object_or_404(
-                    Booking.objects.select_for_update(), 
-                    id=booking_id, 
-                    user=request.user
-                )
-            else:
-                booking = get_object_or_404(
-                    Booking, 
-                    id=booking_id, 
-                    user=request.user
+            # Get the booking (no locking due to SQLite limitations)
+            booking = get_object_or_404(
+                Booking, 
+                id=booking_id, 
+                user=request.user
                 )
             
             # Only cancel PENDING bookings
@@ -865,19 +839,13 @@ def release_booking_beacon(request, booking_id):
         data = json.loads(request.body) if request.body else {}
         reason = data.get('reason', 'Tab closed (beacon)')
         
-        # 🛡️ ATOMIC: Use transaction with row lock to prevent race conditions
+        # 🛡️ ATOMIC: Use transaction to prevent race conditions
         with transaction.atomic():
-            # Use select_for_update to lock the row during check (if supported)
-            if supports_select_for_update():
-                booking = Booking.objects.select_for_update().filter(
-                    id=booking_id, 
-                    status='PENDING'
-                ).first()
-            else:
-                booking = Booking.objects.filter(
-                    id=booking_id, 
-                    status='PENDING'
-                ).first()
+            # Get the booking (no locking due to SQLite limitations)
+            booking = Booking.objects.filter(
+                id=booking_id, 
+                status='PENDING'
+            ).first()
             
             if not booking:
                 # Booking doesn't exist, already processed, or already confirmed
