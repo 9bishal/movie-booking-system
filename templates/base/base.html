@@ -14,8 +14,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <!-- Mobile Responsive Styles -->
-    <link rel="stylesheet" href="{% static 'css/mobile-responsive.css' %}">
     
     <style>
         /* Modernized Cinematic Palette */
@@ -111,88 +109,69 @@
             white-space: nowrap;
         }
 
-        .user-name-display {
-            max-width: 150px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        /* Hide nav text on horizontal navbar for small screens */
-        @media (min-width: 992px) and (max-width: 1200px) {
+        /* Improved mobile responsiveness */
+        @media (max-width: 1200px) {
             .user-name-text {
                 max-width: 100px;
             }
-            .user-name-display {
-                max-width: 100px;
-            }
         }
 
-        /* Compact navigation for smaller screens - hide text, keep icons */
-        @media (max-width: 991px) {
-            /* When navbar is NOT collapsed (horizontal), hide text */
-            .navbar-collapse:not(.show) .nav-text {
-                display: none;
+        /* Compact navigation for smaller screens */
+        @media (max-width: 992px) {
+            .nav-link-bms {
+                margin: 0 4px;
+                padding: 8px 12px !important;
+                font-size: 0.9rem;
             }
             
-            .navbar-collapse:not(.show) .user-name-display {
-                display: none;
+            .navbar-brand-bms {
+                font-size: 1.6rem;
             }
             
-            /* When navbar IS collapsed (vertical menu), show text */
-            .navbar-collapse.show .nav-text {
-                display: inline !important;
-            }
-            
-            .navbar-collapse.show .user-name-display {
-                display: inline !important;
-                max-width: none;
-            }
-        }
-
-        /* Mobile Menu Toggle Button - Hamburger Icon */
-        .navbar-toggler {
-            border: 2px solid rgba(255,255,255,0.5);
-            padding: 8px 12px;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-        }
-
-        .navbar-toggler:focus {
-            box-shadow: 0 0 0 3px rgba(248, 68, 100, 0.5);
-            outline: none;
-        }
-
-        .navbar-toggler-icon {
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 1%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
-            width: 28px;
-            height: 28px;
-        }
-
-        /* Mobile Menu Collapsed Styles */
-        @media (max-width: 991.98px) {
-            .navbar-collapse {
-                background: linear-gradient(135deg, var(--secondary-blue) 0%, var(--dark-bg) 100%);
-                padding: 20px;
-                border-radius: 0 0 15px 15px;
-                margin-top: 10px;
-                box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            .user-name-text {
+                max-width: 80px;
             }
 
             .navbar-nav {
-                flex-direction: column;
-                gap: 10px !important;
+                gap: 0.1rem;
             }
+        }
 
+        @media (max-width: 768px) {
             .nav-link-bms {
-                padding: 12px 20px !important;
-                margin: 0 !important;
-                border-radius: 8px;
-                font-size: 1rem !important;
+                margin: 0 2px;
+                padding: 8px 8px !important;
+                font-size: 0.85rem;
+            }
+            
+            .navbar-brand-bms {
+                font-size: 1.4rem;
+            }
+            
+            .navbar-brand-bms i {
+                font-size: 1.6rem;
+                margin-right: 8px;
+            }
+            
+            /* Hide text on small screens, keep icons */
+            .nav-text-hide-sm {
+                display: none;
             }
 
-            .nav-link-bms:hover {
-                background: rgba(255,255,255,0.1);
+            .navbar-nav {
+                gap: 0;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .navbar-brand-bms {
+                font-size: 1.2rem;
+            }
+            
+            .nav-link-bms {
+                margin: 0 1px;
+                padding: 6px 6px !important;
+                font-size: 0.8rem;
             }
         }
 
@@ -577,83 +556,42 @@
             color: #721c24;
         }
 
-        /* Responsive Design */
+        /* ========== POSTER IMAGE SIZING - CONSISTENT ACROSS ALL PAGES ========== */
+        /* Movie Detail Page Poster - with higher specificity */
+        .movie-detail-poster {
+            max-width: 100% !important;
+            width: 100% !important;
+            height: auto !important;
+            aspect-ratio: 2 / 3 !important;
+            object-fit: cover !important;
+            display: block !important;
+        }
+
+        /* Placeholder when no poster is available */
+        .col-md-4 .bg-dark {
+            aspect-ratio: 2 / 3;
+            width: 100%;
+            height: auto;
+        }
+
         @media (max-width: 768px) {
-            .hero-banner h1 {
-                font-size: 2rem;
-            }
-            
-            .auth-container-bms {
-                margin: 20px;
-            }
-            
-            .auth-header-bms,
-            .auth-body-bms {
-                padding: 30px 20px;
-            }
-            
-            body {
-                padding-top: 70px;
+            /* On tablets and below, poster maintains aspect ratio */
+            .movie-detail-poster {
+                aspect-ratio: 2 / 3 !important;
+                width: 100% !important;
             }
         }
 
         @media (max-width: 576px) {
-            .navbar-brand-bms {
-                font-size: 1.4rem;
-            }
-            
-            .hero-banner {
-                padding: 40px 20px;
-            }
-            
-            .movie-card-img {
-                height: 250px;
+            /* On mobile, poster maintains aspect ratio and is responsive */
+            .movie-detail-poster {
+                aspect-ratio: 2 / 3 !important;
+                width: 100% !important;
+                max-width: 100% !important;
             }
         }
 
-        /* Poster image support for all formats (JPG, PNG, WebP, GIF, etc.) */
-        .movie-poster,
-        .movie-card-img,
-        .card-img-top,
-        img[src*="poster"],
-        img[src*="movie_posters"] {
-            background-color: var(--medium-gray);
-            object-fit: cover;
-            width: 100%;
-            height: 100%;
-            /* Support for WebP and modern formats */
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-        }
-
-        /* Ensure images are responsive */
-        .movie-poster {
-            max-width: 100%;
-            height: auto;
-        }
-
-        /* Error fallback styling */
-        .movie-card-img-container > div,
-        .bg-dark.d-flex,
-        .bg-light.d-flex {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-        }
-
-        /* Lazy loading placeholder */
-        img[loading="lazy"]:not([src]) {
-            background: linear-gradient(90deg, var(--light-gray) 25%, var(--medium-gray) 50%, var(--light-gray) 75%);
-            background-size: 200% 100%;
-            animation: shimmer 1.5s infinite;
-        }
-
-        @keyframes shimmer {
-            0% { background-position: -200% 0; }
-            100% { background-position: 200% 0; }
-        }
+        /* ========== END POSTER IMAGE SIZING ========== */
 
         /* Custom Utilities */
         .text-bms-red {
@@ -990,23 +928,23 @@
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
                         <a class="nav-link-bms nav-link {% if request.path == '/' %}active{% endif %}" href="{% url 'home' %}">
-                            <i class="fas fa-home me-2"></i><span class="nav-text">Home</span>
+                            <i class="fas fa-home me-1"></i><span class="d-none d-sm-inline">Home</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link-bms nav-link {% if 'movies' in request.path %}active{% endif %}" href="{% url 'movie_list' %}">
-                            <i class="fas fa-ticket-alt me-2"></i><span class="nav-text">Movies</span>
+                            <i class="fas fa-ticket-alt me-1"></i><span class="d-none d-sm-inline">Movies</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link-bms nav-link" href="#">
-                            <!-- <i class="fas fa-video me-2"></i><span class="nav-text">Stream</span> -->
+                            <!-- <i class="fas fa-video me-1"></i><span class="nav-text-hide-sm">Stream</span> -->
                         </a>
                     </li>
                     {% comment %}
                     <li class="nav-item">
                         <a class="nav-link-bms nav-link" href="#">
-                            <i class="fas fa-calendar-alt me-2"></i><span class="nav-text">Events</span>
+                            <i class="fas fa-calendar-alt me-1"></i><span class="nav-text-hide-sm">Events</span>
                         </a>
                     </li>
                     {% endcomment %}
@@ -1038,10 +976,11 @@
                     <!-- User Profile Section (RESPONSIVE DROPDOWN) -->
                     <li class="nav-item dropdown">
                         <a class="nav-link-bms nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-user-circle me-2" style="font-size: 1.1rem;"></i>
-                            <span class="user-name-display">{{ user.username|truncatechars:12 }}</span>
+                            <i class="fas fa-user-circle me-1" style="font-size: 1.1rem;"></i>
+                            <span class="d-none d-lg-inline user-name-text">{{ user.username|truncatechars:10 }}</span>
+                            <span class="d-lg-none d-none d-sm-inline">{{ user.username|truncatechars:6 }}</span>
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-end bg-white border-0 shadow-lg" style="min-width: 200px; z-index: 1050;">
+                        <ul class="dropdown-menu dropdown-menu-end bg-white border-0 shadow-lg" style="min-width: 200px;">
                             <li class="px-3 py-2 border-bottom">
                                 <small class="text-muted">Signed in as</small><br>
                                 <strong class="text-dark" style="font-size: 0.9rem;">{{ user.username }}</strong>
@@ -1090,12 +1029,12 @@
                     {% else %}
                     <li class="nav-item">
                         <a class="nav-link-bms nav-link" href="{% url 'login' %}">
-                            <i class="fas fa-sign-in-alt me-2"></i><span class="nav-text">Sign In</span>
+                            <i class="fas fa-sign-in-alt me-1"></i>Sign In
                         </a>
                     </li>
-                    <li class="nav-item">
+                    <li class="nav-item ms-2">
                         <a class="btn btn-bms-primary" href="{% url 'register' %}">
-                            <i class="fas fa-user-plus me-2"></i><span class="nav-text">Sign Up</span>
+                            <i class="fas fa-user-plus me-1"></i>Sign Up
                         </a>
                     </li>
                     {% endif %}

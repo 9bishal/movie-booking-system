@@ -55,10 +55,12 @@ fieldset.module h2 {
     text-align: center;
 }
 
-/* Poster in change form */
+/* Poster in change form - CONSISTENT 2:3 ASPECT RATIO */
 .field-poster img {
     max-width: 200px;
     height: auto;
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     margin-top: 10px;

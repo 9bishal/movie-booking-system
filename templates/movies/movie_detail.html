@@ -8,9 +8,9 @@
     <div class="row mb-5">
         <div class="col-md-4">
             {% if movie.poster %}
-            <img src="{{ movie.poster.url }}" class="img-fluid rounded shadow" alt="{{ movie.title }}">
+            <img src="{{ movie.poster.url }}" class="img-fluid rounded shadow movie-detail-poster" alt="{{ movie.title }}" style="width: 100%; height: auto; aspect-ratio: 2/3; object-fit: cover;">
             {% else %}
-            <div class="bg-dark text-white rounded shadow d-flex align-items-center justify-content-center" style="height: 400px;">
+            <div class="bg-dark text-white rounded shadow d-flex align-items-center justify-content-center" style="width: 100%; height: auto; aspect-ratio: 2/3;">
                 <i class="fas fa-film fa-5x"></i>
             </div>
             {% endif %}
