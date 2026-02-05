@@ -15,7 +15,8 @@
             </div>
             {% endif %}
             
-            {% if movie.trailer_url and movie.youtube_id %}
+            {% if movie.trailer_url %}
+                {% if movie.youtube_id %}
             <div class="mt-4">
                 <h5 class="mb-3"><i class="fab fa-youtube text-danger me-2"></i>Official Trailer</h5>
                 <div class="ratio ratio-16x9 shadow rounded overflow-hidden position-relative cursor-pointer trailer-thumbnail" 
@@ -34,6 +35,14 @@
                     </div>
                 </div>
             </div>
+                {% else %}
+            <div class="mt-4">
+                <h5 class="mb-3"><i class="fas fa-external-link-alt text-primary me-2"></i>Watch Trailer</h5>
+                <a href="{{ movie.trailer_url }}" target="_blank" class="btn btn-primary btn-lg">
+                    <i class="fas fa-play-circle me-2"></i>Open Trailer in New Tab
+                </a>
+            </div>
+                {% endif %}
             {% endif %}
         </div>
         
