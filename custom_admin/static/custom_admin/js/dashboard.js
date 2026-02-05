@@ -63,6 +63,7 @@ class AdminDashboard {
         this.isLoading = true;
         
         try {
+            console.log('Initializing dashboard...');
             // Load all data concurrently
             await Promise.all([
                 this.loadStats(),
@@ -70,6 +71,7 @@ class AdminDashboard {
                 this.loadBookings()
             ]);
             
+            console.log('Dashboard data loaded successfully');
             // Setup filter event listeners
             this.setupFilterListeners();
         } catch (error) {
@@ -84,37 +86,202 @@ class AdminDashboard {
      * Setup event listeners for filter controls
      */
     setupFilterListeners() {
-        const movieSearch = document.getElementById('movieSearch');
+        const movieFilter = document.getElementById('movieFilter');
         const periodFilter = document.getElementById('periodFilter');
         const theaterFilter = document.getElementById('theaterFilter');
-        const bookingsTable = document.getElementById('bookingsTable');
+        const dateRangeGroup = document.getElementById('dateRangeGroup');
+        const dateFrom = document.getElementById('dateFrom');
+        const dateTo = document.getElementById('dateTo');
+        const applyBtn = document.getElementById('applyFilters');
+        const resetBtn = document.getElementById('resetFilters');
 
-        if (!movieSearch || !periodFilter || !theaterFilter || !bookingsTable) return;
+        if (!applyBtn || !resetBtn) return;
 
-        const applyFilters = () => {
-            const searchTerm = movieSearch.value.toLowerCase();
-            const period = periodFilter.value;
-            const theater = theaterFilter.value;
+        // Load filter options
+        this.loadFilterOptions();
 
-            const rows = bookingsTable.querySelectorAll('tr');
-            rows.forEach(row => {
-                const movieCell = row.cells[1]?.textContent.toLowerCase() || '';
-                const userCell = row.cells[0]?.textContent.toLowerCase() || '';
-                
-                let showRow = true;
-
-                // Movie search filter
-                if (searchTerm && !movieCell.includes(searchTerm) && !userCell.includes(searchTerm)) {
-                    showRow = false;
+        // Show/hide date range when custom period is selected
+        if (periodFilter && dateRangeGroup) {
+            periodFilter.addEventListener('change', (e) => {
+                if (e.target.value === 'custom') {
+                    dateRangeGroup.style.display = 'block';
+                    // Set default dates
+                    if (!dateFrom.value) {
+                        const today = new Date();
+                        const lastMonth = new Date(today);
+                        lastMonth.setMonth(lastMonth.getMonth() - 1);
+                        dateFrom.value = lastMonth.toISOString().split('T')[0];
+                        dateTo.value = today.toISOString().split('T')[0];
+                    }
+                } else {
+                    dateRangeGroup.style.display = 'none';
                 }
-
-                row.style.display = showRow ? '' : 'none';
+                this.updateActiveFilterCount();
             });
+        }
+
+        // Update filter count on any filter change
+        [movieFilter, periodFilter, theaterFilter, dateFrom, dateTo].forEach(el => {
+            if (el) {
+                el.addEventListener('change', () => this.updateActiveFilterCount());
+            }
+        });
+
+        applyBtn.addEventListener('click', () => {
+            this.applyFilters();
+        });
+
+        resetBtn.addEventListener('click', () => {
+            // Reset all filter values
+            if (movieFilter) movieFilter.value = '';
+            if (periodFilter) periodFilter.value = 'all';
+            if (theaterFilter) theaterFilter.value = '';
+            if (dateFrom) dateFrom.value = '';
+            if (dateTo) dateTo.value = '';
+            if (dateRangeGroup) dateRangeGroup.style.display = 'none';
+            
+            this.updateActiveFilterCount();
+            
+            // Reload dashboard data
+            this.init();
+        });
+
+        // Initial filter count update
+        this.updateActiveFilterCount();
+    }
+
+    /**
+     * Update active filter count badge
+     */
+    updateActiveFilterCount() {
+        const movieFilter = document.getElementById('movieFilter')?.value;
+        const periodFilter = document.getElementById('periodFilter')?.value;
+        const theaterFilter = document.getElementById('theaterFilter')?.value;
+        const dateFrom = document.getElementById('dateFrom')?.value;
+        const dateTo = document.getElementById('dateTo')?.value;
+        const badge = document.getElementById('activeFiltersCount');
+        
+        let count = 0;
+        if (movieFilter) count++;
+        if (theaterFilter) count++;
+        if (periodFilter && periodFilter !== 'all') count++;
+        if (dateFrom || dateTo) count++;
+        
+        if (badge) {
+            if (count > 0) {
+                badge.textContent = `${count} active`;
+                badge.style.display = 'inline-block';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+    }
+
+    /**
+     * Load available filter options (movies and theaters)
+     */
+    async loadFilterOptions() {
+        try {
+            const response = await fetch(`${this.apiBaseUrl}/filter-options/`, {
+                credentials: 'include'
+            });
+            if (!response.ok) {
+                throw new Error(`Filter options API error: ${response.status}`);
+            }
+
+            const data = await response.json();
+            
+            // Populate movie filter
+            const movieFilter = document.getElementById('movieFilter');
+            if (movieFilter && Array.isArray(data.movies)) {
+                data.movies.forEach(movie => {
+                    const option = document.createElement('option');
+                    option.value = movie.id;
+                    option.textContent = movie.title;
+                    movieFilter.appendChild(option);
+                });
+            }
+
+            // Populate theater filter
+            const theaterFilter = document.getElementById('theaterFilter');
+            if (theaterFilter && Array.isArray(data.theaters)) {
+                data.theaters.forEach(theater => {
+                    const option = document.createElement('option');
+                    option.value = theater.id;
+                    option.textContent = theater.name;
+                    theaterFilter.appendChild(option);
+                });
+            }
+        } catch (error) {
+            console.error('Error loading filter options:', error);
+        }
+    }
+
+    /**
+     * Apply selected filters and reload data
+     */
+    async applyFilters() {
+        const movieFilter = document.getElementById('movieFilter')?.value;
+        const periodFilter = document.getElementById('periodFilter')?.value;
+        const theaterFilter = document.getElementById('theaterFilter')?.value;
+
+        // Build query string
+        const params = new URLSearchParams();
+        if (movieFilter) params.append('movie_id', movieFilter);
+        if (periodFilter && periodFilter !== 'all') params.append('period', periodFilter);
+        if (theaterFilter) params.append('theater_id', theaterFilter);
+
+        // Store filter state
+        this.currentFilters = {
+            movie_id: movieFilter,
+            period: periodFilter,
+            theater_id: theaterFilter
         };
 
-        movieSearch.addEventListener('keyup', applyFilters);
-        periodFilter.addEventListener('change', applyFilters);
-        theaterFilter.addEventListener('change', applyFilters);
+        // Reload data with new filters
+        if (this.isLoading) return;
+        this.isLoading = true;
+        
+        try {
+            await Promise.all([
+                this.loadStats(),
+                this.loadRevenue(),
+                this.loadBookings()
+            ]);
+        } catch (error) {
+            console.error('Error applying filters:', error);
+            this.showError('Failed to apply filters. Please try again.');
+        } finally {
+            this.isLoading = false;
+        }
+    }
+
+    /**
+     * Build query parameters from current filter state
+     */
+    buildFilterParams() {
+        const params = new URLSearchParams();
+        
+        const movieFilter = document.getElementById('movieFilter')?.value;
+        const periodFilter = document.getElementById('periodFilter')?.value;
+        const theaterFilter = document.getElementById('theaterFilter')?.value;
+        const dateFrom = document.getElementById('dateFrom')?.value;
+        const dateTo = document.getElementById('dateTo')?.value;
+        
+        if (movieFilter) params.append('movie_id', movieFilter);
+        if (theaterFilter) params.append('theater_id', theaterFilter);
+        
+        // Handle period filter
+        if (periodFilter === 'custom') {
+            // Use custom date range
+            if (dateFrom) params.append('date_from', dateFrom);
+            if (dateTo) params.append('date_to', dateTo);
+        } else if (periodFilter && periodFilter !== 'all') {
+            // Use predefined period
+            params.append('period', periodFilter);
+        }
+        
+        return params.toString();
     }
 
     /**
@@ -128,12 +295,19 @@ class AdminDashboard {
      */
     async loadStats() {
         try {
-            const response = await fetch(`${this.apiBaseUrl}/stats/`);
+            console.log('[loadStats] Starting...');
+            const params = this.buildFilterParams();
+            console.log('[loadStats] Filter params:', params);
+            const response = await fetch(`${this.apiBaseUrl}/stats/?${params}`, {
+                credentials: 'include'
+            });
+            console.log('[loadStats] Response status:', response.status);
             if (!response.ok) {
                 throw new Error(`Stats API error: ${response.status}`);
             }
             
             const data = await response.json();
+            console.log('Stats data:', data);
             
             // Validate data
             if (typeof data.total_revenue !== 'number' || 
@@ -189,12 +363,17 @@ class AdminDashboard {
      */
     async loadRevenue() {
         try {
-            const response = await fetch(`${this.apiBaseUrl}/revenue/?days=30`);
+            const params = this.buildFilterParams();
+            const response = await fetch(`${this.apiBaseUrl}/revenue/?days=30&${params}`, {
+                credentials: 'include'
+            });
             if (!response.ok) {
                 throw new Error(`Revenue API error: ${response.status}`);
             }
             
             const data = await response.json();
+            console.log('Revenue data:', data);
+            console.log('Revenue data received:', data);
             
             // Validate data
             if (!Array.isArray(data.dates) || !Array.isArray(data.revenues)) {
@@ -202,13 +381,19 @@ class AdminDashboard {
             }
             
             if (data.dates.length === 0 || data.revenues.length === 0) {
-                console.warn('No revenue data available');
+                console.warn('No revenue data available - creating empty chart');
+                // Create empty chart with no data
+                this.renderRevenueChart({ dates: [], revenues: [] });
+                return;
             }
             
+            console.log(`Revenue chart data: ${data.dates.length} dates, ${data.revenues.length} revenues`);
             this.renderRevenueChart(data);
         } catch (error) {
             console.error('Error loading revenue:', error);
             this.showError('Failed to load revenue chart.');
+            // Still render empty chart
+            this.renderRevenueChart({ dates: [], revenues: [] });
         }
     }
 
@@ -224,9 +409,14 @@ class AdminDashboard {
      */
     async loadBookings() {
         try {
+            const params = this.buildFilterParams();
             const [bookingsResponse, theatersResponse] = await Promise.all([
-                fetch(`${this.apiBaseUrl}/bookings/`),
-                fetch(`${this.apiBaseUrl}/theaters/`)
+                fetch(`${this.apiBaseUrl}/bookings/?${params}`, {
+                    credentials: 'include'
+                }),
+                fetch(`${this.apiBaseUrl}/theaters/?${params}`, {
+                    credentials: 'include'
+                })
             ]);
             
             if (!bookingsResponse.ok) {
@@ -234,6 +424,7 @@ class AdminDashboard {
             }
             
             const bookingsData = await bookingsResponse.json();
+            console.log('Bookings data:', bookingsData);
             
             // Validate bookings data
             if (!Array.isArray(bookingsData.movies) || !Array.isArray(bookingsData.bookings)) {
@@ -272,13 +463,18 @@ class AdminDashboard {
      */
     renderRevenueChart(data) {
         const ctx = document.getElementById('revenueChart');
-        if (!ctx) return;
-        
-        // Validate chart data
-        if (!data || !data.dates || !data.revenues || data.dates.length === 0) {
-            console.warn('No revenue data to render');
+        if (!ctx) {
+            console.error('Revenue chart canvas not found');
             return;
         }
+        
+        // Validate chart data
+        if (!data || !data.dates || !data.revenues) {
+            console.warn('No valid revenue data to render');
+            return;
+        }
+        
+        console.log(`Rendering revenue chart with ${data.dates.length} data points`);
         
         // Destroy previous chart instance to prevent memory leaks
         if (this.charts.revenue) {
@@ -286,18 +482,123 @@ class AdminDashboard {
         }
 
         try {
+            // Generate sample data if empty
+            const hasData = data.dates.length > 0 && data.revenues.length > 0;
+            const chartDates = hasData ? data.dates : this.generateSampleDates(30);
+            const chartRevenues = hasData ? data.revenues : this.generateSampleRevenues(30);
+            
             // Create new line chart with gradient styling
             this.charts.revenue = new Chart(ctx.getContext('2d'), {
                 type: 'line',
                 data: {
                     // Format dates to 'Mon 10' format for readability
-                    labels: data.dates.map(d => {
+                    labels: chartDates.map(d => {
                         const date = new Date(d + 'T00:00:00');
                         return date.toLocaleDateString('en-IN', { month: 'short', day: 'numeric' });
                     }),
                     datasets: [{
                         label: 'Revenue (₹)',
-                        data: data.revenues.map(v => Math.max(0, v)),
+                        data: chartRevenues.map(v => Math.max(0, v)),
+                        borderColor: '#667eea',  // Line color
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',  // Fill color
+                        fill: true,
+                        tension: 0.4,  // Smooth curves
+                        pointRadius: 4,  // Data point size
+                        pointBackgroundColor: '#667eea',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointHoverRadius: 6,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    plugins: {
+                        legend: { 
+                            display: true, 
+                            position: 'top',
+                            labels: {
+                                font: { size: 12, weight: '600' },
+                                padding: 15,
+                                usePointStyle: true,
+                            }
+                        },
+                        filler: { propagate: true },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 12,
+                            titleFont: { size: 12, weight: 'bold' },
+                            bodyFont: { size: 11 },
+                            cornerRadius: 6,
+                            displayColors: true,
+                            callbacks: {
+                                label: (context) => {
+                                    const value = context.parsed.y || 0;
+                                    return 'Revenue: ₹' + value.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(0, 0, 0, 0.05)', drawBorder: false },
+                            ticks: {
+                                // Format large numbers with K abbreviation
+                                callback: (v) => {
+                                    if (v >= 1000) {
+                                        return '₹' + (v / 1000).toFixed(0) + 'k';
+                                    }
+                                    return '₹' + v;
+                                },
+                                font: { size: 11 },
+                                color: '#858796',
+                                padding: 8,
+                            }
+                        },
+                        x: {
+                            grid: { display: false, drawBorder: false },
+                            ticks: { 
+                                font: { size: 11 },
+                                color: '#858796',
+                                padding: 8,
+                            }
+                        }
+                    }
+                }
+            });
+            
+            console.log('Revenue chart rendered successfully');
+        } catch (error) {
+            console.error('Error rendering revenue chart:', error);
+            this.showError('Failed to render revenue chart.');
+        }
+    }
+    
+    /**
+     * Generate sample dates for display when no data available
+     */
+    generateSampleDates(days) {
+        const dates = [];
+        const end = new Date();
+        for (let i = days - 1; i >= 0; i--) {
+            const date = new Date(end);
+            date.setDate(date.getDate() - i);
+            dates.push(date.toISOString().split('T')[0]);
+        }
+        return dates;
+    }
+    
+    /**
+     * Generate sample revenues for display when no data available
+     */
+    generateSampleRevenues(days) {
+        return Array(days).fill(0);
+    }
                         borderColor: '#667eea',  // Line color
                         backgroundColor: 'rgba(102, 126, 234, 0.1)',  // Fill color
                         fill: true,
@@ -391,8 +692,11 @@ class AdminDashboard {
         // Validate movie data
         if (!Array.isArray(movies) || movies.length === 0) {
             console.warn('No movie data to render');
+            console.log('Movie data received:', movies);
             return;
         }
+        
+        console.log('Rendering movies chart with data:', movies);
         
         // Clean up previous instance
         if (this.charts.movies) {
@@ -486,8 +790,11 @@ class AdminDashboard {
         // Validate theater data
         if (!Array.isArray(theaters) || theaters.length === 0) {
             console.warn('No theater data to render');
+            console.log('Theater data received:', theaters);
             return;
         }
+        
+        console.log('Rendering theaters chart with data:', theaters);
         
         // Clean up previous instance
         if (this.charts.theaters) {
@@ -624,5 +931,11 @@ class AdminDashboard {
 
 // Initialize dashboard when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-    new AdminDashboard();
+    console.log('DOM loaded, initializing AdminDashboard...');
+    try {
+        const dashboard = new AdminDashboard();
+        console.log('AdminDashboard initialized successfully');
+    } catch (error) {
+        console.error('Failed to initialize AdminDashboard:', error);
+    }
 });

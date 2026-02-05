@@ -83,17 +83,157 @@ def admin_logout(request):
 @staff_member_required(login_url='custom_admin:login')
 def dashboard(request):
     """
-    Main admin dashboard page.
+    Main admin dashboard page with server-side rendering.
     
-    Displays the custom admin dashboard with charts and analytics.
-    Dashboard data is loaded asynchronously via JavaScript API calls.
+    Displays the custom admin dashboard with real-time analytics.
+    All data is rendered server-side, no JavaScript API calls needed.
+    
+    Query Parameters:
+        movie_id (int): Filter by movie ID
+        theater_id (int): Filter by theater ID
+        period (str): 'today', 'week', 'month', or 'all'
+        date_from (str): Custom start date (YYYY-MM-DD)
+        date_to (str): Custom end date (YYYY-MM-DD)
     
     Access: Only staff members
     
     Returns:
-        HTML dashboard template with user context
+        HTML dashboard template with all data pre-rendered
     """
-    return render(request, 'custom_admin/dashboard.html')
+    from datetime import datetime, timedelta
+    
+    today = timezone.now().date()
+    
+    # Get filter parameters
+    movie_id = request.GET.get('movie_id')
+    theater_id = request.GET.get('theater_id')
+    period = request.GET.get('period', 'all')
+    date_from = request.GET.get('date_from')
+    date_to = request.GET.get('date_to')
+    
+    # Build base filter
+    filters = Q(status='CONFIRMED')
+    
+    if movie_id:
+        filters &= Q(showtime__movie_id=movie_id)
+    
+    if theater_id:
+        filters &= Q(showtime__screen__theater_id=theater_id)
+    
+    # Handle date filtering
+    period_filters = Q()
+    if date_from and date_to:
+        # Custom date range
+        period_filters = Q(created_at__date__gte=date_from, created_at__date__lte=date_to)
+    elif period == 'today':
+        period_filters = Q(created_at__date=today)
+    elif period == 'week':
+        week_ago = today - timedelta(days=7)
+        period_filters = Q(created_at__date__gte=week_ago)
+    elif period == 'month':
+        month_ago = today - timedelta(days=30)
+        period_filters = Q(created_at__date__gte=month_ago)
+    
+    final_filters = filters & period_filters if period_filters else filters
+    
+    # Get all bookings with filters
+    filtered_bookings = Booking.objects.filter(final_filters)
+    
+    # Calculate statistics
+    total_revenue = Booking.objects.filter(filters).aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+    period_revenue = filtered_bookings.aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+    total_bookings = Booking.objects.filter(filters).count()
+    period_bookings = filtered_bookings.count()
+    
+    # Get revenue data for last 30 days (for chart)
+    end_date = today
+    start_date = today - timedelta(days=29)
+    revenue_data = []
+    current_date = start_date
+    
+    while current_date <= end_date:
+        daily_bookings = Booking.objects.filter(
+            filters,
+            created_at__date=current_date
+        )
+        daily_revenue = daily_bookings.aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+        revenue_data.append({
+            'date': current_date.strftime('%b %d'),
+            'revenue': float(daily_revenue)
+        })
+        current_date += timedelta(days=1)
+    
+    # Get top 5 movies
+    top_movies = Movie.objects.filter(
+        showtime__booking__in=filtered_bookings
+    ).annotate(
+        booking_count=Count('showtime__booking', filter=Q(showtime__booking__in=filtered_bookings))
+    ).distinct().order_by('-booking_count')[:5]
+    
+    # Get top 5 theaters
+    top_theaters = Theater.objects.filter(
+        screen__showtime__booking__in=filtered_bookings
+    ).annotate(
+        booking_count=Count('screen__showtime__booking', filter=Q(screen__showtime__booking__in=filtered_bookings)),
+        revenue=Sum('screen__showtime__booking__total_amount', filter=Q(screen__showtime__booking__in=filtered_bookings))
+    ).distinct().order_by('-revenue')[:5]
+    
+    # Get recent 5 bookings
+    recent_bookings = filtered_bookings.select_related(
+        'user', 'showtime__movie'
+    ).order_by('-created_at')[:5]
+    
+    # Get all movies and theaters for filter dropdowns
+    all_movies = Movie.objects.filter(is_active=True).order_by('title')
+    all_theaters = Theater.objects.order_by('name')
+    
+    context = {
+        # Statistics
+        'total_revenue': total_revenue,
+        'period_revenue': period_revenue,
+        'total_bookings': total_bookings,
+        'period_bookings': period_bookings,
+        
+        # Chart data
+        'revenue_data': revenue_data,
+        'top_movies': top_movies,
+        'top_theaters': top_theaters,
+        
+        # Tables
+        'recent_bookings': recent_bookings,
+        
+        # Filters
+        'all_movies': all_movies,
+        'all_theaters': all_theaters,
+        'selected_movie_id': movie_id,
+        'selected_theater_id': theater_id,
+        'selected_period': period,
+        'date_from': date_from,
+        'date_to': date_to,
+        
+        # Period label for display
+        'period_label': {
+            'today': 'Today',
+            'week': 'Last 7 Days',
+            'month': 'Last 30 Days',
+            'all': 'All Time'
+        }.get(period, 'Custom Range' if date_from and date_to else 'All Time'),
+    }
+    
+    return render(request, 'custom_admin/dashboard_server.html', context)
+
+
+def debug_page(request):
+    """
+    Debug page for testing API endpoints.
+    
+    This page helps diagnose issues with API calls and authentication.
+    Accessible without authentication for debugging purposes.
+    
+    Returns:
+        HTML debug tool page
+    """
+    return render(request, 'custom_admin/debug.html')
 
 
 # ============= API ENDPOINTS =============
@@ -106,11 +246,14 @@ def api_stats(request):
     """
     Get summary statistics for dashboard stat cards.
     
-    Calculates:
-    - Total revenue from confirmed bookings (all time)
-    - Today's revenue from confirmed bookings
-    - Total booking count (all time)
-    - Today's booking count
+    Filters by movie, theater, and period if provided.
+    
+    Query Parameters:
+        movie_id (int): Filter by movie ID
+        theater_id (int): Filter by theater ID
+        period (str): 'today', 'week', 'month', or 'all'
+        date_from (str): Custom start date (YYYY-MM-DD)
+        date_to (str): Custom end date (YYYY-MM-DD)
     
     Returns:
         JSON: {
@@ -122,31 +265,58 @@ def api_stats(request):
     """
     today = timezone.now().date()
     
-    # Calculate total revenue from all confirmed bookings
+    # Build filter query
+    filters = Q(status='CONFIRMED')
+    
+    movie_id = request.GET.get('movie_id')
+    if movie_id:
+        filters &= Q(showtime__movie_id=movie_id)
+    
+    theater_id = request.GET.get('theater_id')
+    if theater_id:
+        filters &= Q(showtime__screen__theater_id=theater_id)
+    
+    # Handle custom date range
+    date_from = request.GET.get('date_from')
+    date_to = request.GET.get('date_to')
+    period = request.GET.get('period', 'all')
+    period_filters = Q()
+    
+    if date_from and date_to:
+        # Custom date range
+        period_filters = Q(created_at__date__gte=date_from, created_at__date__lte=date_to)
+    elif period == 'today':
+        period_filters = Q(created_at__date=today)
+    elif period == 'week':
+        week_ago = today - timedelta(days=7)
+        period_filters = Q(created_at__date__gte=week_ago)
+    elif period == 'month':
+        month_ago = today - timedelta(days=30)
+        period_filters = Q(created_at__date__gte=month_ago)
+    
+    # Calculate total revenue
     total_revenue = Booking.objects.filter(
-        status='CONFIRMED'
+        filters
     ).aggregate(Sum('total_amount'))['total_amount__sum'] or 0
     
-    # Calculate today's revenue
-    today_revenue = Booking.objects.filter(
-        created_at__date=today,
-        status='CONFIRMED'
+    # Calculate revenue for selected period
+    period_revenue = Booking.objects.filter(
+        filters & period_filters
     ).aggregate(Sum('total_amount'))['total_amount__sum'] or 0
     
     # Count total bookings
-    total_bookings = Booking.objects.filter(status='CONFIRMED').count()
+    total_bookings = Booking.objects.filter(filters).count()
     
-    # Count today's bookings
-    today_bookings = Booking.objects.filter(
-        created_at__date=today,
-        status='CONFIRMED'
+    # Count bookings for selected period
+    period_bookings = Booking.objects.filter(
+        filters & period_filters
     ).count()
     
     return JsonResponse({
         'total_revenue': float(total_revenue),
-        'today_revenue': float(today_revenue),
+        'today_revenue': float(period_revenue),
         'total_bookings': total_bookings,
-        'today_bookings': today_bookings,
+        'today_bookings': period_bookings,
     })
 
 
@@ -156,11 +326,13 @@ def api_revenue(request):
     """
     Get daily revenue data for the last N days.
     
-    Used to render the revenue trend line chart on dashboard.
-    Returns daily revenue totals for each date in the range.
+    Filters by movie, theater, and period if provided.
     
     Query Parameters:
         days (int): Number of days to fetch (default: 30)
+        movie_id (int): Filter by movie ID
+        theater_id (int): Filter by theater ID
+        period (str): 'today', 'week', 'month'
     
     Returns:
         JSON: {
@@ -173,6 +345,17 @@ def api_revenue(request):
     end_date = timezone.now().date()
     start_date = end_date - timedelta(days=days)
     
+    # Build filter query
+    filters = Q(status='CONFIRMED')
+    
+    movie_id = request.GET.get('movie_id')
+    if movie_id:
+        filters &= Q(showtime__movie_id=movie_id)
+    
+    theater_id = request.GET.get('theater_id')
+    if theater_id:
+        filters &= Q(showtime__screen__theater_id=theater_id)
+    
     dates = []
     revenues = []
     
@@ -184,7 +367,13 @@ def api_revenue(request):
         # Sum revenue for this day
         daily_revenue = Booking.objects.filter(
             created_at__date=current_date,
-            status='CONFIRMED'
+            **{'__'.join(str(k).split('__')[:-1]) if '__' in k else k: v for k, v in filters.children}
+        ).aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+        
+        # Use proper query filtering
+        daily_revenue = Booking.objects.filter(
+            filters,
+            created_at__date=current_date
         ).aggregate(Sum('total_amount'))['total_amount__sum'] or 0
         
         revenues.append(float(daily_revenue))
@@ -202,13 +391,12 @@ def api_bookings(request):
     """
     Get top movies and recent bookings data.
     
-    Calculates:
-    1. Top 5 movies by number of confirmed bookings
-    2. 5 most recent confirmed bookings with user and movie details
+    Filters by movie, theater, and period if provided.
     
-    Used for:
-    - Top movies bar chart
-    - Recent bookings table
+    Query Parameters:
+        movie_id (int): Filter by movie ID
+        theater_id (int): Filter by theater ID
+        period (str): 'today', 'week', 'month'
     
     Returns:
         JSON: {
@@ -227,10 +415,47 @@ def api_bookings(request):
             ]
         }
     """
-    # Get top 5 movies by booking count
-    movies = Movie.objects.annotate(
-        booking_count=Count('showtime__booking', filter=Q(showtime__booking__status='CONFIRMED'))
-    ).filter(booking_count__gt=0).order_by('-booking_count')[:5]
+    # Build filter query
+    filters = Q(status='CONFIRMED')
+    
+    movie_id = request.GET.get('movie_id')
+    if movie_id:
+        filters &= Q(showtime__movie_id=movie_id)
+    
+    theater_id = request.GET.get('theater_id')
+    if theater_id:
+        filters &= Q(showtime__screen__theater_id=theater_id)
+    
+    # Handle custom date range
+    date_from = request.GET.get('date_from')
+    date_to = request.GET.get('date_to')
+    period = request.GET.get('period', 'all')
+    period_filters = Q()
+    today = timezone.now().date()
+    
+    if date_from and date_to:
+        # Custom date range
+        period_filters = Q(created_at__date__gte=date_from, created_at__date__lte=date_to)
+    elif period == 'today':
+        period_filters = Q(created_at__date=today)
+    elif period == 'week':
+        week_ago = today - timedelta(days=7)
+        period_filters = Q(created_at__date__gte=week_ago)
+    elif period == 'month':
+        month_ago = today - timedelta(days=30)
+        period_filters = Q(created_at__date__gte=month_ago)
+    
+    final_filters = filters & period_filters if period_filters else filters
+    
+    # Get all bookings matching the filters
+    filtered_bookings = Booking.objects.filter(final_filters)
+    
+    # Get top 5 movies by booking count from filtered bookings
+    movies = Movie.objects.filter(
+        showtime__booking__in=filtered_bookings
+    ).annotate(
+        booking_count=Count('showtime__booking', filter=Q(showtime__booking__in=filtered_bookings))
+    ).distinct().order_by('-booking_count')[:5]
     
     movie_data = [
         {
@@ -240,9 +465,9 @@ def api_bookings(request):
         for m in movies
     ]
     
-    # Get 5 most recent confirmed bookings
+    # Get 5 most recent bookings
     recent = Booking.objects.filter(
-        status='CONFIRMED'
+        final_filters
     ).select_related('user', 'showtime__movie').order_by('-created_at')[:5]
     
     booking_data = [
@@ -267,11 +492,12 @@ def api_theaters(request):
     """
     Get theater performance data.
     
-    Retrieves top 5 theaters by revenue from confirmed bookings.
-    Includes booking count and total revenue for each theater.
+    Filters by movie, theater, and period if provided.
     
-    Used for:
-    - Top theaters bar chart
+    Query Parameters:
+        movie_id (int): Filter by movie ID
+        theater_id (int): Filter by specific theater
+        period (str): 'today', 'week', 'month'
     
     Returns:
         JSON: {
@@ -285,11 +511,49 @@ def api_theaters(request):
             ]
         }
     """
-    # Annotate theaters with booking count and revenue
-    theaters = Theater.objects.annotate(
-        booking_count=Count('screen__showtime__booking', filter=Q(screen__showtime__booking__status='CONFIRMED')),
-        revenue=Sum('screen__showtime__booking__total_amount', filter=Q(screen__showtime__booking__status='CONFIRMED'))
-    ).filter(booking_count__gt=0).order_by('-revenue')[:5]
+    # Build filter query at Booking level
+    booking_filters = Q(status='CONFIRMED')
+    
+    movie_id = request.GET.get('movie_id')
+    if movie_id:
+        booking_filters &= Q(showtime__movie_id=movie_id)
+    
+    theater_id = request.GET.get('theater_id')
+    
+    # Handle custom date range
+    date_from = request.GET.get('date_from')
+    date_to = request.GET.get('date_to')
+    period = request.GET.get('period', 'all')
+    period_filters = Q()
+    today = timezone.now().date()
+    
+    if date_from and date_to:
+        # Custom date range
+        period_filters = Q(created_at__date__gte=date_from, created_at__date__lte=date_to)
+    elif period == 'today':
+        period_filters = Q(created_at__date=today)
+    elif period == 'week':
+        week_ago = today - timedelta(days=7)
+        period_filters = Q(created_at__date__gte=week_ago)
+    elif period == 'month':
+        month_ago = today - timedelta(days=30)
+        period_filters = Q(created_at__date__gte=month_ago)
+    
+    final_booking_filters = booking_filters & period_filters if period_filters else booking_filters
+    
+    # Get all bookings matching the filters
+    filtered_bookings = Booking.objects.filter(final_booking_filters)
+    
+    # Annotate theaters with booking count and revenue from filtered bookings
+    query = Theater.objects.filter(
+        screen__showtime__booking__in=filtered_bookings
+    ).annotate(
+        booking_count=Count('screen__showtime__booking', filter=Q(screen__showtime__booking__in=filtered_bookings)),
+        revenue=Sum('screen__showtime__booking__total_amount', filter=Q(screen__showtime__booking__in=filtered_bookings))
+    ).distinct().order_by('-revenue')[:5]
+    
+    if theater_id:
+        query = query.filter(id=theater_id)
     
     # Build response data
     theater_data = [
@@ -298,7 +562,7 @@ def api_theaters(request):
             'bookings': t.booking_count or 0,
             'revenue': float(t.revenue or 0),
         }
-        for t in theaters
+        for t in query
     ]
     
     return JsonResponse({
