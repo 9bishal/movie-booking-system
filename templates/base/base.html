@@ -208,6 +208,96 @@
             transform: translateY(-2px);
         }
 
+        /* Hamburger Menu (3-line icon) Styling */
+        .navbar-toggler {
+            border: none !important;
+            padding: 0.25rem 0.75rem !important;
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+
+        .navbar-toggler:focus {
+            box-shadow: none !important;
+            outline: 2px solid var(--primary-red) !important;
+            outline-offset: 2px !important;
+        }
+
+        /* Override Bootstrap's default hamburger styling */
+        .navbar-toggler-icon {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(255,255,255,0.75)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
+            background-size: 100% !important;
+            width: 1.5em !important;
+            height: 1.5em !important;
+            background-repeat: no-repeat !important;
+        }
+
+        /* Ensure navbar-toggler always visible on mobile */
+        @media (max-width: 991.98px) {
+            .navbar-toggler {
+                display: block !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+                background: transparent !important;
+                border: none !important;
+            }
+            
+            /* Fix collapsed menu visibility */
+            .navbar-collapse {
+                background: linear-gradient(135deg, var(--secondary-blue) 0%, var(--dark-bg) 100%) !important;
+                border-radius: 0 0 10px 10px;
+                margin-top: 10px;
+                padding: 15px 0 !important;
+            }
+            
+            .navbar-nav {
+                padding: 10px 0 !important;
+                flex-direction: column !important;
+                width: 100% !important;
+            }
+            
+            .navbar-nav.me-auto {
+                margin-right: 0 !important;
+            }
+            
+            .nav-item {
+                width: 100% !important;
+            }
+            
+            .nav-link-bms {
+                color: var(--white) !important;
+                display: block !important;
+                padding: 12px 20px !important;
+                margin: 5px 0 !important;
+                border-radius: 5px !important;
+                font-size: 1rem !important;
+                text-decoration: none !important;
+            }
+            
+            .nav-link-bms:hover {
+                background-color: rgba(255, 255, 255, 0.2) !important;
+            }
+            
+            .nav-link-bms.active {
+                background-color: var(--primary-red) !important;
+            }
+            
+            /* Dropdown menu styling for mobile */
+            .dropdown-menu {
+                background-color: rgba(0, 0, 0, 0.1) !important;
+                border: none !important;
+            }
+            
+            .dropdown-item {
+                color: var(--white) !important;
+                padding: 10px 15px !important;
+            }
+            
+            .dropdown-item:hover {
+                background-color: rgba(255, 255, 255, 0.2) !important;
+            }
+        }
+
         /* Global Loading Styles */
         .btn-loading-state {
             opacity: 0.8 !important;
@@ -928,12 +1018,12 @@
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
                         <a class="nav-link-bms nav-link {% if request.path == '/' %}active{% endif %}" href="{% url 'home' %}">
-                            <i class="fas fa-home me-1"></i><span class="d-none d-sm-inline">Home</span>
+                            <i class="fas fa-home me-1"></i><span>Home</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link-bms nav-link {% if 'movies' in request.path %}active{% endif %}" href="{% url 'movie_list' %}">
-                            <i class="fas fa-ticket-alt me-1"></i><span class="d-none d-sm-inline">Movies</span>
+                            <i class="fas fa-ticket-alt me-1"></i><span>Movies</span>
                         </a>
                     </li>
                     <li class="nav-item">
