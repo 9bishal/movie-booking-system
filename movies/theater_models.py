@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils.text import slugify
+from django.core.validators import MaxValueValidator, MinValueValidator
 
 # ========== CITY MODEL ==========
 # Represents the cities where theaters are located.
@@ -75,7 +76,7 @@ class Screen(models.Model):
     total_seats = models.IntegerField(default=100)
     
     def __str__(self):
-        return f"{self.theater.name} - {self.name} ({self.screen_type})"
+        return f"{self.theater.name} ({self.theater.city.name}) - {self.name} [{self.screen_type}]"
     
     class Meta:
         ordering = ['theater', 'name']
@@ -97,7 +98,10 @@ class Showtime(models.Model):
     price = models.DecimalField(max_digits=8, decimal_places=2, default=200.00)
     
     # Tracks how many seats are left. Logic will need to decrease this on booking.
-    available_seats = models.IntegerField(default=100)
+    available_seats = models.IntegerField(
+        default=100,
+        validators=[MinValueValidator(0), MaxValueValidator(100)]
+    )
     
     # Status
     is_active = models.BooleanField(default=True)

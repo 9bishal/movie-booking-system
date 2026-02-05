@@ -73,6 +73,11 @@ class MovieAdmin(admin.ModelAdmin):
         }),
     ]
     
+    class Media:
+        css = {
+            'all': ('admin/css/movie_admin.css',)
+        }
+    
     # ❓ WHY THIS METHOD?
     # Keeps the admin list clean. This method simply calls the helper we defined in the Model.
     def duration_formatted(self, obj):
@@ -84,8 +89,11 @@ class MovieAdmin(admin.ModelAdmin):
     # format_html marks the string as safe, so the browser renders the actual image.
     def poster_preview(self, obj):
         if obj.poster:
-            return format_html('<img src="{}" width="50" height="75" />', obj.poster.url)
-        return "No Poster"
+            return format_html(
+                '<img src="{}" style="width: 50px; height: 75px; object-fit: cover; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" />', 
+                obj.poster.url
+            )
+        return format_html('<div style="width: 50px; height: 75px; background: #f0f0f0; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #999;">No Poster</div>')
     poster_preview.short_description = 'Poster'
 
 # ========== CITY ADMIN ==========
@@ -115,6 +123,12 @@ class ScreenAdmin(admin.ModelAdmin):
     # 'theater' is a foreign key. We can't search an object ID efficiently.
     # This syntax tells Django to look up the 'name' field of the related Theater object.
     search_fields = ['name', 'theater__name']
+    
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "theater":
+            # Show theater with city in dropdown
+            kwargs["queryset"] = Theater.objects.select_related('city').all()
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 # ========== SHOWTIME ADMIN ==========
 @admin.register(Showtime)
@@ -129,3 +143,9 @@ class ShowtimeAdmin(admin.ModelAdmin):
     # Adds a navigation bar at the top to drill down by Year > Month > Day.
     # Extremely useful for finding showtimes efficiently.
     date_hierarchy = 'date'
+    
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "screen":
+            # Show screen with theater and city details in dropdown
+            kwargs["queryset"] = Screen.objects.select_related('theater__city').all()
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
