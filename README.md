@@ -470,7 +470,7 @@ navigator.sendBeacon(url, data);
 | Redis seat locking | ✅ Completed |
 | Payment gateway integration | ✅ Completed |
 | Email & ticket generation | ✅ Completed |
-| Docker & cloud deployment | 🚧 Planned |
+| Docker & cloud deployment |✅ Completed |
 | Mobile app (React Native) | 🚧 Future |
 
 ---
