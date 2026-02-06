@@ -5,23 +5,87 @@
 {% block content %}
 <div class="container py-4">
     <div class="row">
-        <!-- Main Content: Seat Selection -->
-        <div class="col-lg-9">
+        <!-- Booking Summary - Shows last on mobile, sidebar on desktop -->
+        <div class="col-lg-3 order-2 order-lg-2 mb-4 mb-lg-0" id="booking-summary-wrapper">
+            <div class="card border-0 shadow sticky-top booking-summary-card" style="top: 100px; z-index: 10;">
+                <div class="card-header bg-dark text-white py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-receipt me-2"></i>Booking Summary
+                    </h5>
+                </div>
+                <div class="card-body" id="booking-summary-body">
+                    <div id="selection-empty" class="text-center py-4">
+                        <i class="fas fa-couch fa-3x text-light mb-3"></i>
+                        <p class="text-muted mb-0">No seats selected yet.</p>
+                        <small class="text-muted">Click on available seats to select</small>
+                    </div>
+                    
+                    <div id="selection-details" style="display: none;">
+                        <div class="mb-3">
+                            <label class="small text-muted mb-2 d-block">
+                                <i class="fas fa-chair me-1"></i>Selected Seats:
+                            </label>
+                            <div id="selected-seats-list" class="d-flex flex-wrap gap-2"></div>
+                        </div>
+                        
+                        <hr class="my-3">
+                        
+                        <div class="d-flex justify-content-between mb-2">
+                            <span><i class="fas fa-list-ol me-2"></i>Count:</span>
+                            <span id="seat-count" class="fw-bold">0</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-4">
+                            <span><i class="fas fa-rupee-sign me-2"></i>Total:</span>
+                            <span class="fw-bold text-primary fs-5">₹<span id="total-amount">0</span></span>
+                        </div>
+                        
+                        <button id="book-now-btn" class="btn btn-primary w-100 btn-lg shadow-sm">
+                            <i class="fas fa-arrow-right me-2"></i>Proceed to Summary
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content: Seat Selection - Shows first on mobile -->
+        <div class="col-lg-9 order-1 order-lg-1">
             <div class="card border-0 shadow mb-4">
                 <div class="card-body p-4">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <div>
+                    <!-- Movie Poster and Info Header -->
+                    <div class="d-flex gap-3 mb-4 flex-column flex-sm-row align-items-start">
+                        {% if movie.poster %}
+                        <div class="movie-poster-container flex-shrink-0">
+                            <img src="{{ movie.poster.url }}" 
+                                 alt="{{ movie.title }}" 
+                                 class="img-fluid rounded shadow-sm"
+                                 style="width: 120px; height: 180px; object-fit: cover;">
+                        </div>
+                        {% endif %}
+                        <div class="flex-grow-1">
                             <h2 class="h4 mb-1">{{ movie.title }}</h2>
-                            <p class="text-muted mb-0">
+                            <p class="text-muted mb-2">
                                 <i class="fas fa-map-marker-alt me-2"></i>{{ showtime.screen.theater.name }} | {{ showtime.get_formatted_time }}
                             </p>
-                        </div>
-                        <div class="text-end">
-                            <span class="badge bg-info text-dark px-3 py-2">
-                                <i class="fas fa-film me-2"></i>{{ showtime.screen.screen_type }}
-                            </span>
+                            {% if movie.genre %}
+                            <p class="mb-2">
+                                <span class="badge bg-secondary me-1">{{ movie.genre }}</span>
+                                {% if movie.language %}
+                                <span class="badge bg-secondary">{{ movie.language }}</span>
+                                {% endif %}
+                            </p>
+                            {% endif %}
+                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                <span class="badge bg-info text-dark px-3 py-2">
+                                    <i class="fas fa-film me-2"></i>{{ showtime.screen.screen_type }}
+                                </span>
+                                <span class="badge bg-success px-3 py-2">
+                                    <i class="fas fa-rupee-sign me-1"></i>{{ showtime.price }} per seat
+                                </span>
+                            </div>
                         </div>
                     </div>
+                    
+                    <hr class="my-4">
 
                     <!-- Legend -->
                     <div class="d-flex justify-content-center gap-4 mb-5 flex-wrap small">
@@ -44,77 +108,42 @@
                         <div class="screen shadow">SCREEN THIS WAY</div>
                     </div>
 
-                    <!-- Seat Layout -->
-                    <div class="seat-layout mb-4 overflow-auto">
-                        {% for row_data in seat_layout %}
-                        <div class="d-flex justify-content-center mb-2">
-                            <!-- Row label - use first seat's row letter -->
-                            {% with first_seat=row_data.0 %}
-                            {% if first_seat %}
-                                <div class="row-label me-3 text-muted fw-bold d-flex align-items-center">{{ first_seat.row }}</div>
-                            {% else %}
-                                <!-- If first element is walkway, get row from second seat -->
-                                {% with second_seat=row_data.1 %}
-                                {% if second_seat %}
-                                    <div class="row-label me-3 text-muted fw-bold d-flex align-items-center">{{ second_seat.row }}</div>
+                    <!-- Seat Layout - Horizontally scrollable on mobile -->
+                    <div class="seat-layout-wrapper">
+                        <div class="seat-layout mb-4">
+                            {% for row_data in seat_layout %}
+                            <div class="seat-row mb-2">
+                                <!-- Row label - use first seat's row letter -->
+                                {% with first_seat=row_data.0 %}
+                                {% if first_seat %}
+                                    <div class="row-label me-3 text-muted fw-bold d-flex align-items-center">{{ first_seat.row }}</div>
+                                {% else %}
+                                    <!-- If first element is walkway, get row from second seat -->
+                                    {% with second_seat=row_data.1 %}
+                                    {% if second_seat %}
+                                        <div class="row-label me-3 text-muted fw-bold d-flex align-items-center">{{ second_seat.row }}</div>
+                                    {% endif %}
+                                    {% endwith %}
                                 {% endif %}
                                 {% endwith %}
-                            {% endif %}
-                            {% endwith %}
-                            <div class="d-flex gap-2">
-                                {% for seat in row_data %}
-                                {% if seat %}
-                                <div class="seat {{ seat.status }}" 
-                                     data-seat-id="{{ seat.seat_id }}" 
-                                     data-price="{{ showtime.price }}"
-                                     title="Seat {{ seat.seat_id }} (₹{{ showtime.price }})">
-                                    {{ seat.number }}
+                                <div class="seat-row-content d-flex gap-2">
+                                    {% for seat in row_data %}
+                                    {% if seat %}
+                                    <div class="seat {{ seat.status }}" 
+                                         data-seat-id="{{ seat.seat_id }}" 
+                                         data-price="{{ showtime.price }}"
+                                         title="Seat {{ seat.seat_id }} (₹{{ showtime.price }})">
+                                        {{ seat.number }}
+                                    </div>
+                                    {% else %}
+                                    <!-- Walkway gap -->
+                                    <div class="walkway"></div>
+                                    {% endif %}
+                                    {% endfor %}
                                 </div>
-                                {% else %}
-                                <!-- Walkway gap -->
-                                <div class="walkway"></div>
-                                {% endif %}
-                                {% endfor %}
                             </div>
+                            {% endfor %}
                         </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Sidebar: Selection Summary -->
-        <div class="col-lg-3">
-            <div class="card border-0 shadow sticky-top" style="top: 20px; z-index: 10;">
-                <div class="card-header bg-dark text-white py-3">
-                    <h5 class="mb-0">Booking Summary</h5>
-                </div>
-                <div class="card-body">
-                    <div id="selection-empty" class="text-center py-4">
-                        <i class="fas fa-couch fa-3x text-light mb-3"></i>
-                        <p class="text-muted">No seats selected yet.</p>
-                    </div>
-                    
-                    <div id="selection-details" style="display: none;">
-                        <div class="mb-3">
-                            <label class="small text-muted mb-2">Selected Seats:</label>
-                            <div id="selected-seats-list" class="d-flex flex-wrap gap-2"></div>
-                        </div>
-                        
-                        <hr>
-                        
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>Count:</span>
-                            <span id="seat-count" class="fw-bold">0</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-4">
-                            <span>Total:</span>
-                            <span class="fw-bold text-primary fs-5">₹<span id="total-amount">0</span></span>
-                        </div>
-                        
-                        <button id="book-now-btn" class="btn btn-primary w-100 btn-lg shadow-sm">
-                            Proceed to Summary
-                        </button>
                     </div>
                 </div>
             </div>
@@ -138,9 +167,36 @@
         justify-content: center;
         border-radius: 5px;
     }
+    
+    /* Seat layout wrapper - enables horizontal scroll on mobile */
+    .seat-layout-wrapper {
+        overflow-x: auto;
+        overflow-y: visible;
+        -webkit-overflow-scrolling: touch;
+        margin: 0 -1rem; /* Extend to card edges */
+        padding: 0 1rem;
+    }
+    
+    .seat-layout {
+        min-width: fit-content; /* Prevents shrinking */
+        display: inline-block;
+    }
+    
+    .seat-row {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        white-space: nowrap;
+    }
+    
+    .seat-row-content {
+        display: inline-flex !important;
+    }
+    
     .seat {
         width: 32px;
         height: 32px;
+        min-width: 32px; /* Prevent shrinking */
         border-radius: 6px;
         display: flex;
         align-items: center;
@@ -149,14 +205,133 @@
         font-weight: 500;
         transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         user-select: none;
+        flex-shrink: 0; /* Never shrink seats */
     }
     .seat.available { background: #fff; border: 1px solid #dee2e6; color: #6c757d; cursor: pointer; }
     .seat.available:hover { background: #e7f1ff; border-color: #0d6efd; color: #0d6efd; transform: scale(1.1); }
     .seat.selected { background: #0d6efd; border-color: #0d6efd; color: #fff; box-shadow: 0 0 10px rgba(13, 110, 253, 0.4); transform: scale(1.1); cursor: pointer; }
     .seat.booked { background: #dee2e6; border-color: #dee2e6; color: #adb5bd; cursor: not-allowed !important; pointer-events: none !important; }
     .seat.reserved { background: #ffc107; border-color: #ffc107; color: #000; cursor: not-allowed !important; pointer-events: none !important; }
-    .row-label { width: 25px; }
-    .walkway { width: 20px; } /* Walkway gap between seat sections */
+    .row-label { width: 25px; min-width: 25px; flex-shrink: 0; }
+    .walkway { width: 20px; min-width: 20px; flex-shrink: 0; } /* Walkway gap between seat sections */
+    
+    /* Mobile optimizations */
+    @media (max-width: 768px) {
+        .seat-layout-wrapper {
+            margin: 0 -0.75rem;
+            padding: 0 0.75rem;
+        }
+        
+        /* Show scrollbar hint on mobile */
+        .seat-layout-wrapper::-webkit-scrollbar {
+            height: 6px;
+        }
+        
+        .seat-layout-wrapper::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        .seat-layout-wrapper::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+        
+        .seat-layout-wrapper::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        
+        /* Booking summary mobile styles - ensure visibility */
+        #booking-summary-wrapper {
+            display: block !important;
+            min-height: 200px;
+            margin-bottom: 1.5rem !important;
+        }
+        
+        /* Booking summary card - NOT sticky on mobile, appears at bottom */
+        .booking-summary-card {
+            position: static !important;
+            top: auto !important;
+            display: block !important;
+            width: 100%;
+            margin-bottom: 1.5rem;
+        }
+        
+        .booking-summary-card .card-body {
+            display: block !important;
+            padding: 1.25rem !important;
+            min-height: 150px;
+            background: #fff;
+        }
+        
+        /* Ensure empty state is visible */
+        #selection-empty {
+            display: block;
+            padding: 2rem 1rem !important;
+        }
+        
+        #selection-empty .fa-couch {
+            display: block !important;
+            margin-bottom: 1rem;
+        }
+        
+        /* Selection details visibility on mobile */
+        #selection-details {
+            padding: 0.5rem 0;
+        }
+        
+        #selection-details .mb-3,
+        #selection-details .mb-2,
+        #selection-details .mb-4 {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Ensure badges are visible and wrap properly */
+        #selected-seats-list {
+            display: flex !important;
+            flex-wrap: wrap !important;
+            gap: 0.5rem !important;
+            min-height: 35px;
+        }
+        
+        #selected-seats-list .badge {
+            font-size: 0.875rem !important;
+            padding: 0.5rem 0.75rem !important;
+            display: inline-block !important;
+        }
+        
+        /* Make booking button more prominent on mobile */
+        #book-now-btn {
+            font-size: 1.1rem !important;
+            padding: 0.875rem 1.5rem !important;
+            font-weight: 600 !important;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        /* Ensure all text elements are visible */
+        #booking-summary-body label,
+        #booking-summary-body span,
+        #booking-summary-body p {
+            display: block !important;
+            visibility: visible !important;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .seat {
+            width: 28px;
+            height: 28px;
+            min-width: 28px;
+            font-size: 11px;
+        }
+        
+        .row-label {
+            width: 20px;
+            min-width: 20px;
+            font-size: 13px;
+        }
+    }
 </style>
 
 <script>
@@ -167,6 +342,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const emptyState = document.getElementById('selection-empty');
     const detailsState = document.getElementById('selection-details');
     const bookNowBtn = document.getElementById('book-now-btn');
+    
+    // Debug: Check if all elements are found
+    console.log('🔍 Booking Summary Elements Check:');
+    console.log('  - selectedSeatsList:', selectedSeatsList ? '✅' : '❌');
+    console.log('  - seatCountEl:', seatCountEl ? '✅' : '❌');
+    console.log('  - totalAmountEl:', totalAmountEl ? '✅' : '❌');
+    console.log('  - emptyState:', emptyState ? '✅' : '❌');
+    console.log('  - detailsState:', detailsState ? '✅' : '❌');
+    console.log('  - bookNowBtn:', bookNowBtn ? '✅' : '❌');
     
     let selectedSeats = new Set();
     const MAX_SEATS = 10;
@@ -210,10 +394,14 @@ document.addEventListener('DOMContentLoaded', function() {
     attachSeatHandlers();
     
     function updateUI() {
+        console.log('📊 Updating UI - Selected seats:', selectedSeats.size);
+        
         if (selectedSeats.size > 0) {
+            // Hide empty state, show details
             emptyState.style.display = 'none';
             detailsState.style.display = 'block';
             
+            // Clear and rebuild selected seats list
             selectedSeatsList.innerHTML = '';
             let total = 0;
             
@@ -226,14 +414,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 // For simplicity, we assume price is same for all. 
                 // Real app would fetch per-seat category price.
                 const seatEl = document.querySelector(`.seat[data-seat-id="${id}"]`);
-                total += parseFloat(seatEl.dataset.price);
+                if (seatEl && seatEl.dataset.price) {
+                    total += parseFloat(seatEl.dataset.price);
+                }
             });
             
+            // Update count and total
             seatCountEl.textContent = selectedSeats.size;
             totalAmountEl.textContent = total.toFixed(2);
+            
+            console.log('✅ Details shown - Count:', selectedSeats.size, 'Total:', total);
         } else {
+            // Show empty state, hide details
             emptyState.style.display = 'block';
             detailsState.style.display = 'none';
+            console.log('📭 Empty state shown');
         }
     }
     
