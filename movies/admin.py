@@ -93,7 +93,7 @@ class MovieAdmin(admin.ModelAdmin):
                 '<img src="{}" style="width: 50px; height: 75px; object-fit: cover; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" />', 
                 obj.poster.url
             )
-        return format_html('<div style="width: 50px; height: 75px; background: #f0f0f0; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #999;">No Poster</div>')
+        return format_html('<div style="width: 50px; height: 75px; background: #f0f0f0; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #999;">{}</div>', 'No Poster')
     poster_preview.short_description = 'Poster'
 
 # ========== CITY ADMIN ==========

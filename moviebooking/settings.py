@@ -318,14 +318,19 @@ import cloudinary.uploader
 import cloudinary.api
 
 cloudinary.config(
-    cloud_name='drdvl5dab',
+    cloud_name='dxabti5mu',
     api_key='858736468657877',
     api_secret='_Xj5H6Cl9l8vD6pzYi02eBLG0vk'
 )
 
 # Use Cloudinary for media storage
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-MEDIA_URL = 'https://res.cloudinary.com/drdvl5dab/image/upload/'
+MEDIA_URL = '/media/'  # Cloudinary handles the actual URL transformation
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': 'dxabti5mu',
+    'API_KEY': '858736468657877',
+    'API_SECRET': '_Xj5H6Cl9l8vD6pzYi02eBLG0vk'
+}
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
 
 # Redis Configuration
