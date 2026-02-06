@@ -61,6 +61,8 @@ INSTALLED_APPS = [
     "django_celery_results",
     "embed_video",
     "custom_admin",
+    "cloudinary_storage",
+    "cloudinary",
 ]
 
 # Optional Apps
@@ -310,8 +312,21 @@ LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'profile'  # Redirect to profile after login
 LOGOUT_REDIRECT_URL = 'home'   # Redirect to home after logout
 
-MEDIA_URL='/media/'
-MEDIA_ROOT=os.path.join(BASE_DIR,'media/')
+# Cloudinary Configuration for Persistent Media Storage
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
+
+cloudinary.config(
+    cloud_name='drdvl5dab',
+    api_key='858736468657877',
+    api_secret='_Xj5H6Cl9l8vD6pzYi02eBLG0vk'
+)
+
+# Use Cloudinary for media storage
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+MEDIA_URL = 'https://res.cloudinary.com/drdvl5dab/image/upload/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
 
 # Redis Configuration
 REDIS_URL = os.environ.get('REDIS_URL', 'redis://127.0.0.1:6379/1')
